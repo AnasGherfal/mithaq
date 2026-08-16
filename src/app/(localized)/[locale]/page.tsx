@@ -34,9 +34,7 @@ export default async function HomePage() {
         />
         <div className="relative mx-auto grid w-full max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:py-28">
           <div>
-            <p className="text-sm font-semibold text-primary">
-              {t("eyebrow")}
-            </p>
+            <p className="text-sm font-semibold text-primary">{t("eyebrow")}</p>
             <h1 className="mt-4 max-w-4xl text-4xl font-bold tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl xl:text-7xl">
               {t("title")}
             </h1>
@@ -134,9 +132,7 @@ export default async function HomePage() {
         <Card className="border-primary/15 bg-card">
           <CardContent className="p-7 sm:p-8">
             <Globe2 className="size-7 text-primary" aria-hidden="true" />
-            <h2 className="mt-5 text-2xl font-bold">
-              {t("diasporaTitle")}
-            </h2>
+            <h2 className="mt-5 text-2xl font-bold">{t("diasporaTitle")}</h2>
             <p className="mt-4 leading-8 text-muted-foreground">
               {t("diasporaBody")}
             </p>
