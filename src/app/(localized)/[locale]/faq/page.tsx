@@ -41,7 +41,7 @@ export default async function FaqPage() {
                   +
                 </span>
               </summary>
-              <p className="pb-5 ps-8 leading-8 text-muted-foreground">
+              <p className="ps-8 pb-5 leading-8 text-muted-foreground">
                 {t(`a${item}`)}
               </p>
             </details>
