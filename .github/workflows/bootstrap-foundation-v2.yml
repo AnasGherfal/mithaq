@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - agent/milestone-1-foundation
+    paths:
+      - .github/workflows/bootstrap-foundation-v2.yml
   workflow_dispatch:
 
 permissions:
