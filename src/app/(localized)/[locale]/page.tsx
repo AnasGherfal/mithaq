@@ -1,193 +1,115 @@
 import {
-  Check,
-  Landmark,
+  ArrowRight,
+  CameraOff,
+  Globe2,
   LockKeyhole,
-  ScanLine,
   ShieldCheck,
+  UsersRound,
 } from "lucide-react";
-import { getLocale, getTranslations } from "next-intl/server";
-import { LocaleSwitcher } from "@/components/layout/locale-switcher";
-import { ConnectivityStatus } from "@/components/pwa/connectivity-status";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import type { Locale } from "@/i18n/locale";
+import { getTranslations } from "next-intl/server";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 
-export default async function FoundationPage() {
-  const t = await getTranslations("Foundation");
-  const localeSwitcher = await getTranslations("LocaleSwitcher");
-  const locale = (await getLocale()) as Locale;
+export default async function HomePage() {
+  const t = await getTranslations("Home");
 
   const principles = [
-    {
-      title: t("privacyTitle"),
-      body: t("privacyBody"),
-      icon: LockKeyhole,
-    },
-    {
-      title: t("rtlTitle"),
-      body: t("rtlBody"),
-      icon: Landmark,
-    },
-    {
-      title: t("qualityTitle"),
-      body: t("qualityBody"),
-      icon: ShieldCheck,
-    },
+    { icon: LockKeyhole, title: t("privateTitle"), body: t("privateBody") },
+    { icon: CameraOff, title: t("photoTitle"), body: t("photoBody") },
+    { icon: ShieldCheck, title: t("verifiedTitle"), body: t("verifiedBody") },
+    { icon: UsersRound, title: t("familyTitle"), body: t("familyBody") },
   ];
 
   return (
-    <div className="min-h-svh">
-      <header className="border-b border-border/80 bg-background/85 backdrop-blur">
-        <div className="mx-auto flex min-h-20 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <a
-            href={`/${locale}`}
-            className="inline-flex min-h-11 items-center gap-3 rounded-xl font-semibold text-primary"
-            aria-label="Mithaq"
-          >
-            <span
-              aria-hidden="true"
-              className="grid size-10 place-items-center rounded-t-[1.4rem] rounded-b-lg border border-primary/25 bg-primary/5"
-            >
-              <span className="size-4 rounded-t-full border-2 border-b-0 border-primary" />
-            </span>
-            <span className="flex items-baseline gap-2">
-              <span lang="ar" dir="rtl" className="text-xl">
-                {t("nameArabic")}
-              </span>
-              <span
-                lang="en"
-                dir="ltr"
-                className="text-sm text-muted-foreground"
-              >
-                {t("nameEnglish")}
-              </span>
-            </span>
-          </a>
-
-          <LocaleSwitcher
-            locale={locale}
-            label={localeSwitcher("label")}
-            shortLabel={localeSwitcher("short")}
-          />
-        </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-20">
-        <section className="grid items-center gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16">
+    <main>
+      <section className="relative overflow-hidden border-b border-border/70">
+        <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(169,131,66,0.12),transparent_30%),radial-gradient(circle_at_80%_20%,rgba(15,77,63,0.10),transparent_35%)]" />
+        <div className="relative mx-auto grid w-full max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:py-28">
           <div>
-            <p className="mb-5 inline-flex min-h-11 items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
-              {t("eyebrow")}
-            </p>
-
-            <h1 className="max-w-3xl text-5xl font-bold tracking-tight text-balance text-foreground sm:text-6xl">
-              <span lang="ar" dir="rtl" className="block">
-                {t("nameArabic")}
-              </span>
-              <span
-                lang="en"
-                dir="ltr"
-                className="mt-1 block text-2xl font-semibold tracking-normal text-muted-foreground sm:text-3xl"
-              >
-                {t("nameEnglish")}
-              </span>
-            </h1>
-
-            <p className="mt-5 max-w-2xl text-xl font-semibold text-primary sm:text-2xl">
-              {t("tagline")}
-            </p>
-
-            <div className="mt-8 max-w-2xl">
-              <h2 className="text-2xl font-semibold text-foreground">
-                {t("statusTitle")}
-              </h2>
-              <p className="mt-3 text-base leading-8 text-muted-foreground sm:text-lg">
-                {t("statusBody")}
-              </p>
+            <p className="text-sm font-semibold text-primary">{t("eyebrow")}</p>
+            <h1 className="mt-4 max-w-4xl text-4xl font-bold tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl xl:text-7xl">{t("title")}</h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl sm:leading-9">{t("intro")}</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button size="lg" asChild>
+                <Link href="/waitlist">{t("primaryCta")}<ArrowRight className="rtl:rotate-180" aria-hidden="true" /></Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/how-it-works">{t("secondaryCta")}</Link>
+              </Button>
             </div>
-
-            <div className="mt-7">
-              <ConnectivityStatus />
-            </div>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">{t("stageNote")}</p>
           </div>
 
-          <Card className="threshold-pattern overflow-hidden border-primary/15 bg-card/95">
-            <CardContent className="relative grid min-h-96 place-items-center px-6 py-10">
-              <div
-                aria-hidden="true"
-                className="absolute inset-x-8 top-8 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent"
-              />
-              <div className="relative flex w-full max-w-sm flex-col items-center">
-                <div className="relative h-64 w-48 rounded-t-[6rem] border border-primary/30 bg-background/90 p-4 shadow-[inset_0_0_0_8px_rgba(15,77,63,0.035)]">
-                  <div className="h-full w-full rounded-t-[5rem] border-2 border-primary/65 bg-card">
-                    <div className="mx-auto mt-8 h-36 w-px bg-gold/55" />
-                    <div className="mx-auto size-3 -translate-y-20 rounded-full border border-primary/30 bg-gold/65" />
-                  </div>
-                </div>
-                <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
-                  <Check aria-hidden="true" />
-                  {t("exampleBadge")}
+          <div className="threshold-pattern relative min-h-[26rem] overflow-hidden rounded-[2rem] border border-primary/15 bg-card/90 p-8 shadow-sm">
+            <div className="absolute inset-x-10 top-10 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+            <div className="flex h-full min-h-[22rem] items-end justify-center">
+              <div className="relative h-80 w-56 rounded-t-[7rem] border border-primary/30 bg-background/95 p-5 shadow-[inset_0_0_0_10px_rgba(15,77,63,0.035)]">
+                <div className="h-full rounded-t-[6rem] border-2 border-primary/60 bg-card">
+                  <div className="mx-auto mt-12 h-40 w-px bg-gold/60" />
+                  <div className="mx-auto size-3 -translate-y-24 rounded-full border border-primary/30 bg-gold" />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </section>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <section
-          aria-label={t("statusTitle")}
-          className="mt-14 grid gap-4 md:grid-cols-3 lg:mt-20"
-        >
-          {principles.map(({ title, body, icon: Icon }) => (
-            <Card key={title} className="h-full">
-              <CardHeader>
-                <div className="mb-2 grid size-11 place-items-center rounded-xl bg-primary/8 text-primary">
-                  <Icon aria-hidden="true" />
-                </div>
-                <CardTitle>{title}</CardTitle>
-                <CardDescription>{body}</CardDescription>
-              </CardHeader>
+      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="max-w-3xl">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("trustTitle")}</h2>
+          <p className="mt-4 text-lg leading-8 text-muted-foreground">{t("trustIntro")}</p>
+        </div>
+        <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {principles.map(({ icon: Icon, title, body }) => (
+            <Card key={title} className="h-full border-primary/10">
+              <CardContent className="p-6">
+                <div className="grid size-11 place-items-center rounded-xl bg-primary/8 text-primary"><Icon aria-hidden="true" /></div>
+                <h3 className="mt-5 text-lg font-semibold">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{body}</p>
+              </CardContent>
             </Card>
           ))}
-        </section>
+        </div>
+      </section>
 
-        <Card className="mt-6 border-gold/25">
-          <CardHeader>
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <CardTitle>{t("exampleTitle")}</CardTitle>
-                <CardDescription className="mt-2 max-w-3xl">
-                  {t("exampleBody")}
-                </CardDescription>
-              </div>
-              <ScanLine aria-hidden="true" className="text-gold" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-xl border border-border bg-background p-4">
-              <p className="text-sm font-semibold text-foreground">
-                {t("tagline")}
-              </p>
-              <p
-                dir="ltr"
-                className="mt-3 rounded-lg border border-input bg-card px-4 py-3 font-mono text-sm text-muted-foreground"
-              >
-                {t("examplePhone")}
-              </p>
-            </div>
+      <section className="bg-primary text-primary-foreground">
+        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-14 sm:px-6 md:grid-cols-[auto_1fr] md:items-start lg:px-8 lg:py-18">
+          <div className="grid size-14 place-items-center rounded-2xl bg-white/10"><ShieldCheck aria-hidden="true" /></div>
+          <div className="max-w-4xl">
+            <p className="text-sm font-semibold text-primary-foreground/70">{t("differenceEyebrow")}</p>
+            <h2 className="mt-2 text-3xl font-bold sm:text-4xl">{t("differenceTitle")}</h2>
+            <p className="mt-4 text-lg leading-8 text-primary-foreground/80">{t("differenceBody")}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-16 sm:px-6 md:grid-cols-2 lg:px-8 lg:py-20">
+        <Card className="border-gold/25 bg-card">
+          <CardContent className="p-7 sm:p-8">
+            <UsersRound className="size-7 text-gold" aria-hidden="true" />
+            <h2 className="mt-5 text-2xl font-bold">{t("womenTitle")}</h2>
+            <p className="mt-4 leading-8 text-muted-foreground">{t("womenBody")}</p>
+            <Button variant="link" className="mt-3 px-0" asChild><Link href="/for-women">{t("womenCta")}</Link></Button>
           </CardContent>
         </Card>
+        <Card className="border-primary/15 bg-card">
+          <CardContent className="p-7 sm:p-8">
+            <Globe2 className="size-7 text-primary" aria-hidden="true" />
+            <h2 className="mt-5 text-2xl font-bold">{t("diasporaTitle")}</h2>
+            <p className="mt-4 leading-8 text-muted-foreground">{t("diasporaBody")}</p>
+            <Button variant="link" className="mt-3 px-0" asChild><Link href="/libya-diaspora">{t("diasporaCta")}</Link></Button>
+          </CardContent>
+        </Card>
+      </section>
 
-        <Separator className="my-10" />
-
-        <footer className="safe-area-bottom text-center text-sm leading-7 text-muted-foreground">
-          {t("footer")}
-        </footer>
-      </main>
-    </div>
+      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-primary/15 bg-primary/5 p-7 sm:p-10">
+          <h2 className="max-w-3xl text-3xl font-bold">{t("finalTitle")}</h2>
+          <p className="mt-4 max-w-3xl leading-8 text-muted-foreground">{t("finalBody")}</p>
+          <Button className="mt-6" asChild><Link href="/waitlist">{t("finalCta")}</Link></Button>
+        </div>
+      </section>
+    </main>
   );
 }
