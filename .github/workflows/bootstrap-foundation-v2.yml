@@ -1,0 +1,72 @@
+name: Publish Milestone 1 foundation
+
+on:
+  push:
+    branches:
+      - agent/milestone-1-foundation
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APP_ENV: local
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: bootstrap-public-placeholder
+
+    steps:
+      - name: Check out bootstrap branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Expand and publish the prepared source tree
+        run: |
+          for script in .bootstrap/*.sh; do
+            echo "Running ${script}"
+            bash "${script}"
+          done
+          rm -rf .bootstrap
+          rm -f .github/workflows/bootstrap-foundation.yml
+          rm -f .github/workflows/bootstrap-foundation-v2.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Expand Milestone 1 foundation"
+          git push origin HEAD:agent/milestone-1-foundation
+
+      - name: Install Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.21.0
+
+      - name: Resolve dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Generate reproducible PWA icons
+        run: pnpm icons:generate
+
+      - name: Format the project
+        run: pnpm format
+
+      - name: Publish lockfile, icons, and formatting
+        run: |
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Resolve Milestone 1 foundation artifacts"
+            git push origin HEAD:agent/milestone-1-foundation
+          fi
+
+      - name: Run foundation checks
+        run: pnpm check
