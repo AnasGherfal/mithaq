@@ -18,6 +18,7 @@ type PublicInfoPageProps = {
   ctaTitle: string;
   ctaBody: string;
   ctaLabel: string;
+  ctaHref?: string;
 };
 
 export function PublicInfoPage({
@@ -28,6 +29,7 @@ export function PublicInfoPage({
   ctaTitle,
   ctaBody,
   ctaLabel,
+  ctaHref = "/waitlist",
 }: PublicInfoPageProps) {
   return (
     <main>
@@ -59,7 +61,7 @@ export function PublicInfoPage({
             <h2 className="text-2xl font-bold sm:text-3xl">{ctaTitle}</h2>
             <p className="mt-3 leading-8 text-primary-foreground/80">{ctaBody}</p>
             <Button className="mt-6 bg-background text-foreground hover:bg-background/90" asChild>
-              <Link href="/waitlist">
+              <Link href={ctaHref}>
                 {ctaLabel}
                 <ArrowRight aria-hidden="true" className="rtl:rotate-180" />
               </Link>
