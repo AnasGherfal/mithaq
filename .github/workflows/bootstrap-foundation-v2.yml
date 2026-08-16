@@ -43,6 +43,7 @@ jobs:
           package_path = Path("package.json")
           package = json.loads(package_path.read_text())
           package["packageManager"] = "pnpm@11.22.0"
+          package["type"] = "module"
           package["dependencies"]["@supabase/supabase-js"] = "^2.112.3"
           package["dependencies"]["next"] = "16.3.1"
           package["dependencies"]["next-intl"] = "4.13.6"
@@ -108,5 +109,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Build Milestone 1 foundation"
+          git commit -m "Build Milestone 1 foundation [skip ci]"
           git push origin HEAD:agent/milestone-1-foundation
