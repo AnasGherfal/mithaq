@@ -73,5 +73,13 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.8"
   },
-  "type": "module"
+  "type": "module",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "esbuild",
+      "sharp",
+      "supabase"
+    ]
+  }
 }
