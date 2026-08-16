@@ -7,51 +7,115 @@ import path from "node:path";
 import sharp from "sharp";
 
 const outputDirectory = path.resolve("public/icons");
-const number = (value) => Number(value.toFixed(3));
+const emerald = [15, 77, 63, 255];
+const ivory = [248, 244, 234, 255];
+const gold = [169, 131, 66, 255];
 
-function iconSvg(size, { maskable = false } = {}) {
-  const inset = size * (maskable ? 0.2 : 0.1);
-  const left = number(inset);
-  const right = number(size - inset);
-  const top = number(inset);
-  const bottom = number(size - inset);
-  const center = number(size / 2);
-  const width = right - left;
-  const shoulder = number(top + width / 2);
-  const innerInset = number(width * 0.23);
-  const innerLeft = number(left + innerInset);
-  const innerRight = number(right - innerInset);
-  const innerTop = number(top + innerInset);
-  const innerShoulder = number(shoulder + innerInset * 0.32);
-  const stroke = number(size * 0.043);
-  const goldStroke = number(size * 0.024);
-  const lineTop = number(innerTop + innerInset * 0.35);
-  const lineBottom = number(bottom - innerInset * 0.42);
-  const dotRadius = number(size * 0.022);
+function isInsideArch(x, y, left, top, right, bottom) {
+  if (x < left || x > right || y < top || y > bottom) {
+    return false;
+  }
 
-  const outerPath = [
-    `M ${left} ${bottom}`,
-    `L ${left} ${shoulder}`,
-    `C ${left} ${number(top + width * 0.22)}, ${number(left + width * 0.22)} ${top}, ${center} ${top}`,
-    `C ${number(right - width * 0.22)} ${top}, ${right} ${number(top + width * 0.22)}, ${right} ${shoulder}`,
-    `L ${right} ${bottom}`,
-    "Z"
-  ].join(" ");
+  const radius = (right - left) / 2;
+  const centerX = (left + right) / 2;
+  const centerY = top + radius;
 
-  const innerPath = [
-    `M ${innerLeft} ${bottom}`,
-    `L ${innerLeft} ${innerShoulder}`,
-    `C ${innerLeft} ${number(innerTop + (innerRight - innerLeft) * 0.22)}, ${number(innerLeft + (innerRight - innerLeft) * 0.22)} ${innerTop}, ${center} ${innerTop}`,
-    `C ${number(innerRight - (innerRight - innerLeft) * 0.22)} ${innerTop}, ${innerRight} ${number(innerTop + (innerRight - innerLeft) * 0.22)}, ${innerRight} ${innerShoulder}`,
-    `L ${innerRight} ${bottom}`
-  ].join(" ");
+  if (y >= centerY) {
+    return true;
+  }
 
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><rect width="${size}" height="${size}" rx="${maskable ? 0 : number(size * 0.18)}" fill="#0F4D3F"/><path d="${outerPath}" fill="#F8F4EA"/><path d="${innerPath}" fill="none" stroke="#0F4D3F" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/><line x1="${center}" y1="${lineTop}" x2="${center}" y2="${lineBottom}" stroke="#A98342" stroke-width="${goldStroke}" stroke-linecap="round"/><circle cx="${center}" cy="${number(size * 0.58)}" r="${dotRadius}" fill="#A98342"/></svg>`;
+  const normalizedX = (x - centerX) / radius;
+  const normalizedY = (y - centerY) / radius;
+  return normalizedX * normalizedX + normalizedY * normalizedY <= 1;
+}
+
+function writePixel(buffer, offset, color) {
+  buffer[offset] = color[0];
+  buffer[offset + 1] = color[1];
+  buffer[offset + 2] = color[2];
+  buffer[offset + 3] = color[3];
+}
+
+function iconPixels(size, { maskable = false } = {}) {
+  const pixels = Buffer.alloc(size * size * 4);
+  const outerInset = Math.round(size * (maskable ? 0.2 : 0.1));
+  const outerLeft = outerInset;
+  const outerTop = outerInset;
+  const outerRight = size - outerInset - 1;
+  const outerBottom = size - outerInset - 1;
+  const outerWidth = outerRight - outerLeft;
+  const innerInset = Math.round(outerWidth * 0.23);
+  const innerLeft = outerLeft + innerInset;
+  const innerTop = outerTop + innerInset;
+  const innerRight = outerRight - innerInset;
+  const innerBottom = outerBottom;
+  const centerX = Math.round(size / 2);
+  const lineHalfWidth = Math.max(1, Math.round(size * 0.012));
+  const lineTop = Math.round(innerTop + (innerRight - innerLeft) * 0.42);
+  const lineBottom = Math.round(innerBottom - innerInset * 0.35);
+  const dotCenterY = Math.round(size * 0.58);
+  const dotRadius = Math.max(2, Math.round(size * 0.022));
+
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      let color = emerald;
+
+      if (
+        isInsideArch(
+          x + 0.5,
+          y + 0.5,
+          outerLeft,
+          outerTop,
+          outerRight,
+          outerBottom
+        )
+      ) {
+        color = ivory;
+      }
+
+      if (
+        isInsideArch(
+          x + 0.5,
+          y + 0.5,
+          innerLeft,
+          innerTop,
+          innerRight,
+          innerBottom
+        )
+      ) {
+        color = emerald;
+      }
+
+      const onLine =
+        Math.abs(x - centerX) <= lineHalfWidth &&
+        y >= lineTop &&
+        y <= lineBottom;
+      const dotX = x - centerX;
+      const dotY = y - dotCenterY;
+      const onDot = dotX * dotX + dotY * dotY <= dotRadius * dotRadius;
+
+      if (onLine || onDot) {
+        color = gold;
+      }
+
+      writePixel(pixels, (y * size + x) * 4, color);
+    }
+  }
+
+  return pixels;
 }
 
 async function writeIcon(fileName, size, options) {
-  await sharp(Buffer.from(iconSvg(size, options)))
-    .png({ compressionLevel: 9 })
+  const pixels = iconPixels(size, options);
+
+  await sharp(pixels, {
+    raw: {
+      width: size,
+      height: size,
+      channels: 4
+    }
+  })
+    .png({ compressionLevel: 9, palette: true })
     .toFile(path.join(outputDirectory, fileName));
 }
 
