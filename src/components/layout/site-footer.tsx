@@ -62,10 +62,7 @@ export async function SiteFooter() {
           </p>
         </div>
 
-        <nav
-          className="grid gap-8 sm:grid-cols-3"
-          aria-label={t("navLabel")}
-        >
+        <nav className="grid gap-8 sm:grid-cols-3" aria-label={t("navLabel")}>
           {groups.map((group) => (
             <div key={group.title}>
               <h2 className="text-sm font-semibold text-foreground">
