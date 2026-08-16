@@ -9,10 +9,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: publish-milestone-1-foundation
+  cancel-in-progress: true
+
 jobs:
-  publish-and-validate:
+  expand-validate-and-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       APP_ENV: local
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
@@ -25,48 +29,78 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Expand and publish the prepared source tree
+      - name: Expand the prepared source tree
         run: |
           for script in .bootstrap/*.sh; do
             echo "Running ${script}"
             bash "${script}"
           done
+
+          python3 <<'PY'
+          import json
+          from pathlib import Path
+
+          package_path = Path("package.json")
+          package = json.loads(package_path.read_text())
+          package["packageManager"] = "pnpm@11.22.0"
+          package["dependencies"]["@supabase/supabase-js"] = "^2.112.3"
+          package["dependencies"]["next"] = "16.3.1"
+          package["devDependencies"]["eslint-config-next"] = "16.3.1"
+          package.pop("pnpm", None)
+          package_path.write_text(json.dumps(package, ensure_ascii=False, indent=2) + "\n")
+          PY
+
+          cat > pnpm-workspace.yaml <<'YAML'
+          strictDepBuilds: true
+          allowBuilds:
+            esbuild: true
+            sharp: true
+            supabase: true
+          YAML
+
+          # The Actions token cannot add or update workflow files. The connected
+          # GitHub app installs the validated CI workflow in a separate commit.
+          rm -f .github/workflows/ci.yml
           rm -rf .bootstrap
-          rm -f .github/workflows/bootstrap-foundation.yml
-          rm -f .github/workflows/bootstrap-foundation-v2.yml
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Expand Milestone 1 foundation"
-          git push origin HEAD:agent/milestone-1-foundation
-
-      - name: Install Node.js 24
-        uses: actions/setup-node@v6
+      - name: Install pnpm and Node.js 24
+        uses: pnpm/setup@v2
         with:
-          node-version: 24
+          runtime: node@24
+          install: false
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 11.21.0
-
-      - name: Resolve dependencies
+      - name: Install and lock dependencies
         run: pnpm install --no-frozen-lockfile
 
       - name: Generate reproducible PWA icons
         run: pnpm icons:generate
 
-      - name: Format the project
+      - name: Format the expanded project
         run: pnpm format
 
-      - name: Publish lockfile, icons, and formatting
-        run: |
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Resolve Milestone 1 foundation artifacts"
-            git push origin HEAD:agent/milestone-1-foundation
-          fi
-
-      - name: Run foundation checks
+      - name: Run formatting, lint, type, unit, and production build checks
         run: pnpm check
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run production end-to-end tests
+        run: pnpm test:e2e
+
+      - name: Start local Supabase
+        run: pnpm db:start
+
+      - name: Run pgTAP database tests
+        run: pnpm test:db
+
+      - name: Stop local Supabase
+        if: always()
+        run: pnpm db:stop || true
+
+      - name: Commit the validated application files and lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Build Milestone 1 foundation"
+          git push origin HEAD:agent/milestone-1-foundation
