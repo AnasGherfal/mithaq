@@ -49,7 +49,9 @@ test("the locale switcher preserves a Milestone 2 trust route", async ({
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
 });
 
-test("the mobile navigation exposes the core trust routes", async ({ page }) => {
+test("the mobile navigation exposes the core trust routes", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/en");
 
