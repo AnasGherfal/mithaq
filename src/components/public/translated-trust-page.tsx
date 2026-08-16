@@ -18,7 +18,10 @@ type TranslatedTrustPageProps = {
   ctaHref?: string;
 };
 
-export async function TranslatedTrustPage({ namespace, ctaHref }: TranslatedTrustPageProps) {
+export async function TranslatedTrustPage({
+  namespace,
+  ctaHref,
+}: TranslatedTrustPageProps) {
   const t = await getTranslations(namespace);
 
   return (
