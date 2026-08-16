@@ -25,16 +25,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 11.21.0
-
-      - name: Install Node.js 24
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-
       - name: Expand the prepared project
         run: |
           for script in .bootstrap/*.sh; do
@@ -43,6 +33,16 @@ jobs:
           done
           rm -rf .bootstrap
           rm -f .github/workflows/bootstrap-foundation.yml
+
+      - name: Install Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.21.0
 
       - name: Install and resolve dependencies
         run: pnpm install --no-frozen-lockfile
