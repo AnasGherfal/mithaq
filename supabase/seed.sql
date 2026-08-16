@@ -1,0 +1,2 @@
+-- Milestone 1 intentionally seeds no application records.
+-- Stage A reference data will be introduced with reviewed migrations in Milestone 3.
