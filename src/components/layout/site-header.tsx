@@ -39,7 +39,7 @@ export async function SiteHeader() {
             <span
               lang="en"
               dir="ltr"
-              className="mt-1 block text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+              className="mt-1 block text-[0.68rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase"
             >
               Mithaq
             </span>
