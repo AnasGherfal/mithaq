@@ -1,0 +1,53 @@
+{
+  "Metadata": {
+    "title": "Mithaq | Serious, trusted marriage introductions",
+    "description": "The technical foundation for Mithaq, a private marriage-introduction network for Libyans."
+  },
+  "Foundation": {
+    "eyebrow": "Milestone 1 · Technical foundation",
+    "nameArabic": "ميثاق",
+    "nameEnglish": "Mithaq",
+    "tagline": "Trusted introductions for serious marriage",
+    "statusTitle": "Preparing a secure, dependable foundation",
+    "statusBody": "This page validates the technical architecture, bilingual routing, and directionality. Waitlist registration is not open in this milestone.",
+    "privacyTitle": "Privacy from the start",
+    "privacyBody": "This foundation does not collect registrations, photographs, or identity documents.",
+    "rtlTitle": "Arabic first",
+    "rtlBody": "Correct right-to-left Arabic and English support share one maintainable architecture.",
+    "qualityTitle": "Built deliberately",
+    "qualityBody": "Testing, accessibility, and an offline-safe shell come before the registration journey.",
+    "exampleTitle": "Directionality test card",
+    "exampleBody": "Content begins on the right in Arabic and on the left in English, while technical numbers stay readable.",
+    "exampleBadge": "Direction verified",
+    "examplePhone": "+218 9X XXX XXXX",
+    "footer": "Technical foundation only — no matching or messaging features exist in this release."
+  },
+  "LocaleSwitcher": {
+    "label": "عرض النسخة العربية",
+    "short": "العربية"
+  },
+  "Connectivity": {
+    "online": "Online",
+    "offline": "You are offline",
+    "offlineDetail": "The saved interface remains available, but submitting data will require a connection."
+  },
+  "PwaUpdate": {
+    "title": "A new version is ready",
+    "body": "Update the interface to use the latest Mithaq foundation.",
+    "action": "Update now",
+    "dismiss": "Later"
+  },
+  "Errors": {
+    "title": "Something went wrong",
+    "body": "No data was lost on this foundation page. Try the action again.",
+    "retry": "Try again"
+  },
+  "Offline": {
+    "arabicTitle": "أنت غير متصل الآن",
+    "arabicBody": "يمكن عرض الهيكل الأساسي المحفوظ لموقع ميثاق. أعد الاتصال لفتح الصفحات التي تحتاج إلى الشبكة.",
+    "englishTitle": "You are offline",
+    "englishBody": "The saved Mithaq application shell is available. Reconnect before using any network-dependent page.",
+    "retry": "Try again",
+    "home": "English home"
+  }
+}
