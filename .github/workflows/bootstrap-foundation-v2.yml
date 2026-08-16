@@ -1,5 +1,5 @@
 name: Publish Milestone 1 foundation
-# Bootstrap revision: pwa-e2e-stability-1
+# Bootstrap revision: pwa-e2e-stability-2
 
 on:
   push:
@@ -109,8 +109,36 @@ jobs:
 
       - name: Commit the validated application files and lockfile
         run: |
+          generated_dir="$(mktemp -d)"
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github/workflows' \
+            ./ "${generated_dir}/"
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Build Milestone 1 foundation [skip ci]"
-          git push origin HEAD:agent/milestone-1-foundation
+
+          published=false
+          for attempt in 1 2 3; do
+            git fetch origin agent/milestone-1-foundation
+            git reset --hard origin/agent/milestone-1-foundation
+            git clean -fdx
+
+            rsync -a --delete \
+              --exclude='.git' \
+              --exclude='.github/workflows' \
+              "${generated_dir}/" ./
+            rm -rf .bootstrap
+
+            git add -A
+            git commit -m "Build Milestone 1 foundation [skip ci]"
+
+            if git push origin HEAD:agent/milestone-1-foundation; then
+              published=true
+              break
+            fi
+
+            echo "Publish race detected; retrying from the latest branch head (${attempt}/3)."
+          done
+
+          test "${published}" = true
