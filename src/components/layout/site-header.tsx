@@ -23,7 +23,7 @@ export async function SiteHeader() {
       <div className="mx-auto flex min-h-18 w-full max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="inline-flex min-h-11 shrink-0 items-center gap-3 rounded-xl font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="inline-flex min-h-11 shrink-0 items-center gap-3 rounded-xl font-semibold text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
           aria-label={t("homeLabel")}
         >
           <span
@@ -39,7 +39,7 @@ export async function SiteHeader() {
             <span
               lang="en"
               dir="ltr"
-              className="mt-1 block text-[0.68rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase"
+              className="mt-1 block text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
             >
               Mithaq
             </span>
