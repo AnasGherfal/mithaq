@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cat > src/components/pwa/pwa-update-banner.tsx <<'EOF'
+cat > src/components/pwa/pwa-update-banner.tsx <<'TSX'
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -26,7 +26,7 @@ export function PwaUpdateBanner() {
     let installingWorker: ServiceWorker | null = null;
 
     const handleControllerChange = () => {
-      // The first service-worker installation can fire controllerchange.
+      // A first installation can claim the page and emit controllerchange.
       // Reload only after the user explicitly activates a waiting update.
       if (!shouldReload.current || hasReloaded.current) {
         return;
@@ -117,7 +117,7 @@ export function PwaUpdateBanner() {
     </Alert>
   );
 }
-EOF
+TSX
 
 python3 <<'PY'
 from pathlib import Path
@@ -139,4 +139,12 @@ new = '''    await page.goto(locale.path, { waitUntil: "networkidle" });
 if old not in content:
     raise SystemExit("Accessibility test target was not found")
 path.write_text(content.replace(old, new, 1), encoding="utf-8")
+
+path = Path("vitest.config.ts")
+content = path.read_text(encoding="utf-8")
+content = content.replace(
+    'path.resolve(__dirname, "src")',
+    'path.resolve(import.meta.dirname, "src")',
+)
+path.write_text(content, encoding="utf-8")
 PY
