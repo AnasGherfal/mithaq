@@ -57,10 +57,18 @@ export async function generateMetadata({
         { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
       ],
       apple: [
-        { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+        {
+          url: "/icons/apple-touch-icon.png",
+          sizes: "180x180",
+          type: "image/png",
+        },
       ],
     },
-    appleWebApp: { capable: true, statusBarStyle: "default", title: "ميثاق" },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "ميثاق",
+    },
     formatDetection: { telephone: false },
     openGraph: {
       type: "website",
@@ -77,7 +85,10 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
+export default async function LocaleLayout({
+  children,
+  params,
+}: LocaleLayoutProps) {
   const { locale } = await params;
 
   if (!hasLocale(routing.locales, locale)) {
@@ -88,7 +99,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   return (
     <html lang={locale} dir={getDirection(locale)}>
-      <body className={`${inter.variable} ${notoSansArabic.variable} min-h-svh antialiased`}>
+      <body
+        className={`${inter.variable} ${notoSansArabic.variable} min-h-svh antialiased`}
+      >
         <NextIntlClientProvider>
           <PwaProvider>
             <div className="min-h-svh">
