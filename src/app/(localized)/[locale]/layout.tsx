@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 import { PwaProvider } from "@/components/pwa/pwa-provider";
 import { PwaUpdateBanner } from "@/components/pwa/pwa-update-banner";
 import { Toaster } from "@/components/ui/sonner";
@@ -42,10 +44,7 @@ export async function generateMetadata({
     description: t("description"),
     alternates: {
       canonical: `/${locale}`,
-      languages: {
-        ar: "/ar",
-        en: "/en",
-      },
+      languages: { ar: "/ar", en: "/en" },
     },
     robots: {
       index: false,
@@ -70,9 +69,7 @@ export async function generateMetadata({
       statusBarStyle: "default",
       title: "ميثاق",
     },
-    formatDetection: {
-      telephone: false,
-    },
+    formatDetection: { telephone: false },
     openGraph: {
       type: "website",
       siteName: "ميثاق | Mithaq",
@@ -107,7 +104,11 @@ export default async function LocaleLayout({
       >
         <NextIntlClientProvider>
           <PwaProvider>
-            {children}
+            <div className="min-h-svh">
+              <SiteHeader />
+              {children}
+              <SiteFooter />
+            </div>
             <PwaUpdateBanner />
             <Toaster />
           </PwaProvider>
