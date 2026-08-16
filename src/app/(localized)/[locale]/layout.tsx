@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 import { PwaProvider } from "@/components/pwa/pwa-provider";
 import { PwaUpdateBanner } from "@/components/pwa/pwa-update-banner";
 import { Toaster } from "@/components/ui/sonner";
@@ -42,10 +44,7 @@ export async function generateMetadata({
     description: t("description"),
     alternates: {
       canonical: `/${locale}`,
-      languages: {
-        ar: "/ar",
-        en: "/en",
-      },
+      languages: { ar: "/ar", en: "/en" },
     },
     robots: {
       index: false,
@@ -58,21 +57,11 @@ export async function generateMetadata({
         { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
       ],
       apple: [
-        {
-          url: "/icons/apple-touch-icon.png",
-          sizes: "180x180",
-          type: "image/png",
-        },
+        { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
       ],
     },
-    appleWebApp: {
-      capable: true,
-      statusBarStyle: "default",
-      title: "ميثاق",
-    },
-    formatDetection: {
-      telephone: false,
-    },
+    appleWebApp: { capable: true, statusBarStyle: "default", title: "ميثاق" },
+    formatDetection: { telephone: false },
     openGraph: {
       type: "website",
       siteName: "ميثاق | Mithaq",
@@ -88,10 +77,7 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default async function LocaleLayout({
-  children,
-  params,
-}: LocaleLayoutProps) {
+export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
   const { locale } = await params;
 
   if (!hasLocale(routing.locales, locale)) {
@@ -102,12 +88,14 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={getDirection(locale)}>
-      <body
-        className={`${inter.variable} ${notoSansArabic.variable} min-h-svh antialiased`}
-      >
+      <body className={`${inter.variable} ${notoSansArabic.variable} min-h-svh antialiased`}>
         <NextIntlClientProvider>
           <PwaProvider>
-            {children}
+            <div className="min-h-svh">
+              <SiteHeader />
+              {children}
+              <SiteFooter />
+            </div>
             <PwaUpdateBanner />
             <Toaster />
           </PwaProvider>
