@@ -1,4 +1,5 @@
 name: Publish Milestone 1 foundation
+# Bootstrap revision: pwa-e2e-stability-1
 
 on:
   push:
