@@ -45,7 +45,10 @@ jobs:
           package["packageManager"] = "pnpm@11.22.0"
           package["dependencies"]["@supabase/supabase-js"] = "^2.112.3"
           package["dependencies"]["next"] = "16.3.1"
+          package["dependencies"]["next-intl"] = "4.13.6"
+          package["devDependencies"]["@testing-library/jest-dom"] = "6.9.1"
           package["devDependencies"]["eslint-config-next"] = "16.3.1"
+          package["devDependencies"]["supabase"] = "2.114.0"
           package.pop("pnpm", None)
           package_path.write_text(json.dumps(package, ensure_ascii=False, indent=2) + "\n")
           PY
@@ -53,9 +56,12 @@ jobs:
           cat > pnpm-workspace.yaml <<'YAML'
           strictDepBuilds: true
           allowBuilds:
+            '@parcel/watcher': true
+            '@swc/core': true
             esbuild: true
             sharp: true
             supabase: true
+            unrs-resolver: true
           YAML
 
           # The Actions token cannot add or update workflow files. The connected
