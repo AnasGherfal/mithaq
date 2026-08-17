@@ -17,31 +17,33 @@ const publicRoutes = [
 
 for (const locale of ["ar", "en"] as const) {
   for (const route of publicRoutes) {
-    test(`${locale}${route} renders the Milestone 2 public site`, async ({
-      page,
-    }) => {
+    test(`${locale}${route} renders the public experience`, async ({ page }) => {
       const response = await page.goto(`/${locale}${route}`);
 
       expect(response?.ok()).toBe(true);
       await expect(page.locator("html")).toHaveAttribute("lang", locale);
-      await expect(page.locator("main")).toBeVisible();
+      await expect(
+        page.locator('main:not([aria-label="Loading"])'),
+      ).toBeVisible();
     });
   }
 }
 
-test("the waitlist preview does not collect registration data yet", async ({
+test("the Milestone 3 waitlist collects only eligibility and phone at entry", async ({
   page,
 }) => {
-  await page.goto("/ar/waitlist");
+  await page.goto("/en/waitlist");
 
-  await expect(page.locator("form")).toHaveCount(0);
-  await expect(page.locator("input")).toHaveCount(0);
+  await expect(page.locator("form")).toHaveCount(1);
+  await expect(page.locator('input[type="tel"]')).toHaveCount(1);
+  await expect(page.locator('input[type="checkbox"]')).toHaveCount(2);
   await expect(page.locator("textarea")).toHaveCount(0);
+  await expect(
+    page.getByText(/phone.*not identity|not identity verification/i),
+  ).toBeVisible();
 });
 
-test("the locale switcher preserves a Milestone 2 trust route", async ({
-  page,
-}) => {
+test("the locale switcher preserves a trust route", async ({ page }) => {
   await page.goto("/ar/privacy-safety");
   await page.getByRole("link", { name: "عرض النسخة الإنجليزية" }).click();
 
