@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { router, useLocalSearchParams } from "expo-router";
-import { StyleSheet, Text, TextInput } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { mobileCopy, type MobileLocale } from "@/i18n";
@@ -71,19 +71,41 @@ export default function VerifyScreen() {
         </PrimaryButton>
       }
     >
-      <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>
-        {copy.codeLabel}
-      </Text>
-      <TextInput
-        accessibilityLabel={copy.codeLabel}
-        autoComplete="one-time-code"
-        keyboardType="number-pad"
-        value={code}
-        onChangeText={(value) => setCode(value.replace(/\D/g, "").slice(0, 6))}
-        maxLength={6}
-        textAlign="center"
-        style={styles.codeInput}
-      />
+      <View style={[styles.deliveryCard, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+        <View style={styles.deliveryIcon}>
+          <Text style={styles.deliveryIconText}>✓</Text>
+        </View>
+        <View style={styles.deliveryCopy}>
+          <Text style={[styles.deliveryTitle, { textAlign: rtl ? "right" : "left" }]}>
+            {rtl ? "تم إرسال رمز خاص بك" : "Your private code is on its way"}
+          </Text>
+          <Text style={[styles.deliveryBody, { textAlign: rtl ? "right" : "left" }]}>
+            {phone ?? (rtl ? "رقم هاتفك" : "Your phone number")}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.codeSection}>
+        <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>
+          {copy.codeLabel}
+        </Text>
+        <TextInput
+          accessibilityLabel={copy.codeLabel}
+          autoComplete="one-time-code"
+          keyboardType="number-pad"
+          value={code}
+          onChangeText={(value) => setCode(value.replace(/\D/g, "").slice(0, 6))}
+          maxLength={6}
+          textAlign="center"
+          selectionColor={colors.primary}
+          style={styles.codeInput}
+        />
+        <Text style={[styles.hint, { textAlign: rtl ? "right" : "left" }]}>
+          {rtl
+            ? "الرمز مكوّن من 6 أرقام ويُستخدم مرة واحدة فقط."
+            : "The 6-digit code can only be used once."}
+        </Text>
+      </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -99,30 +121,59 @@ export default function VerifyScreen() {
 }
 
 const styles = StyleSheet.create({
-  label: {
-    color: colors.foreground,
-    fontSize: 14,
-    fontWeight: "800",
-    marginBottom: 8,
-  },
-  codeInput: {
-    minHeight: 66,
+  deliveryCard: {
+    alignItems: "center",
+    gap: 12,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryWash,
+    padding: 14,
+    marginBottom: 22,
+  },
+  deliveryIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+  },
+  deliveryIconText: { color: colors.white, fontSize: 15, fontWeight: "900" },
+  deliveryCopy: { flex: 1 },
+  deliveryTitle: { color: colors.primary, fontSize: 13, fontWeight: "800" },
+  deliveryBody: { color: colors.muted, fontSize: 12, marginTop: 3 },
+  codeSection: { marginBottom: 20 },
+  label: {
     color: colors.foreground,
-    fontSize: 28,
+    fontSize: 13,
+    fontWeight: "800",
+    marginBottom: 10,
+  },
+  codeInput: {
+    minHeight: 72,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceRaised,
+    color: colors.foreground,
+    fontSize: 29,
     fontWeight: "800",
     letterSpacing: 12,
     paddingLeft: 12,
     paddingHorizontal: 16,
+  },
+  hint: {
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 19,
+    marginTop: 9,
   },
   error: {
     color: colors.danger,
     fontSize: 13,
     fontWeight: "700",
     lineHeight: 20,
-    marginVertical: 14,
+    marginBottom: 14,
   },
 });
