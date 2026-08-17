@@ -177,31 +177,42 @@ select is(
   'user A cannot read user B deletion request'
 );
 
-select is(
-  (
-    with changed as (
-      update public.waitlist_applications
-      set current_city = 'Hidden change'
-      where user_id = '22222222-2222-4222-8222-222222222222'
-      returning 1
-    )
-    select count(*)::integer from changed
-  ),
-  0,
-  'user A cannot update user B application'
-);
+update public.waitlist_applications
+set current_city = 'Hidden change'
+where user_id = '22222222-2222-4222-8222-222222222222';
+
+reset role;
 
 select is(
   (
-    with changed as (
-      update public.waitlist_preferences
-      set preferred_partner_age_max = 99
-      where application_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
-      returning 1
-    )
-    select count(*)::integer from changed
+    select current_city
+    from public.waitlist_applications
+    where user_id = '22222222-2222-4222-8222-222222222222'
   ),
-  0,
+  'Benghazi',
+  'user A cannot update user B application'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '11111111-1111-4111-8111-111111111111',
+  true
+);
+
+update public.waitlist_preferences
+set preferred_partner_age_max = 99
+where application_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+reset role;
+
+select is(
+  (
+    select preferred_partner_age_max
+    from public.waitlist_preferences
+    where application_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+  ),
+  38::smallint,
   'user A cannot update user B preferences'
 );
 
