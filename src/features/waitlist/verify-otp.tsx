@@ -61,7 +61,10 @@ export function VerifyOtp() {
   return (
     <main className="relative isolate overflow-hidden px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
       <div className="premium-orb -start-32 top-16" aria-hidden="true" />
-      <div className="premium-orb end-[-10rem] top-[-8rem] opacity-50" aria-hidden="true" />
+      <div
+        className="premium-orb end-[-10rem] top-[-8rem] opacity-50"
+        aria-hidden="true"
+      />
 
       <div className="relative mx-auto w-full max-w-xl">
         <div className="mb-6 flex justify-center">
@@ -107,7 +110,10 @@ export function VerifyOtp() {
               required
             />
             <div className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+              <ShieldCheck
+                className="mt-0.5 size-4 shrink-0 text-primary"
+                aria-hidden="true"
+              />
               <span>
                 {locale === "ar"
                   ? "استخدم الرمز المكوّن من 6 أرقام المرسل إلى هاتفك. لن نعرض رقمك لأي مستخدم آخر."
