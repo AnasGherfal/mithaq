@@ -84,21 +84,21 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v7
 
-      - name: Install pnpm and Node.js 24
-        uses: pnpm/setup@v2
+      - name: Install Node.js 24
+        uses: actions/setup-node@v6
         with:
-          runtime: node@24
-          cache: false
-          install: false
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/mobile/package.json
 
       - name: Install mobile dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: npm install
 
-      - name: Run mobile formatting and TypeScript checks
-        run: pnpm check
+      - name: Run mobile TypeScript and formatting checks
+        run: npm run check
 
       - name: Validate Expo dependencies and configuration
-        run: pnpm dlx expo-doctor@latest
+        run: npx expo-doctor@latest
 
   database:
     name: Supabase database and waitlist integration
@@ -128,12 +128,12 @@ jobs:
 
       - name: Export local browser-safe Supabase credentials
         run: |
-          pnpm supabase status -o env > /tmp/supabase-status.env
+          pnpm exec supabase status -o env > /tmp/supabase-status.env
           set -a
           source /tmp/supabase-status.env
           set +a
           echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL}" >> "$GITHUB_ENV"
-          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${ANON_KEY}" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_KEY:-${ANON_KEY:-}}" >> "$GITHUB_ENV"
 
       - name: Run pgTAP database tests
         run: pnpm test:db
