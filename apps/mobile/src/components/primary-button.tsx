@@ -6,7 +6,7 @@ import {
   Text,
   type PressableProps,
 } from "react-native";
-import { colors, radius } from "@/theme";
+import { colors, radius, shadows } from "@/theme";
 
 type PrimaryButtonProps = PropsWithChildren<
   PressableProps & {
@@ -39,13 +39,9 @@ export function PrimaryButton({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator
-          color={tone === "primary" ? colors.white : colors.primary}
-        />
+        <ActivityIndicator color={tone === "primary" ? colors.white : colors.primary} />
       ) : (
-        <Text
-          style={tone === "primary" ? styles.primaryText : styles.quietText}
-        >
+        <Text style={tone === "primary" ? styles.primaryText : styles.quietText}>
           {children}
         </Text>
       )}
@@ -55,40 +51,39 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 56,
+    minHeight: 60,
     borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 22,
+    paddingHorizontal: 24,
   },
   primary: {
     backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: colors.primaryStrong,
+    ...shadows.button,
   },
   quiet: {
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.surfaceRaised,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
   },
   pressed: {
-    transform: [{ scale: 0.99 }],
-    opacity: 0.94,
+    transform: [{ scale: 0.985 }, { translateY: 1 }],
+    opacity: 0.95,
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
   primaryText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "800",
+    letterSpacing: 0.1,
   },
   quietText: {
     color: colors.primary,
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "800",
   },
 });
