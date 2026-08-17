@@ -2,26 +2,26 @@
 @import "tw-animate-css";
 
 :root {
-  --background: #f8f4ea;
-  --foreground: #17211d;
+  --background: #f7f3e9;
+  --foreground: #14201b;
   --card: #fffdf8;
-  --card-foreground: #17211d;
+  --card-foreground: #14201b;
   --popover: #fffdf8;
-  --popover-foreground: #17211d;
-  --primary: #0f4d3f;
+  --popover-foreground: #14201b;
+  --primary: #0d493c;
   --primary-foreground: #ffffff;
-  --secondary: #e9efe9;
-  --secondary-foreground: #0b3b31;
-  --muted: #ece9df;
-  --muted-foreground: #66736d;
-  --accent: #f2eadb;
-  --accent-foreground: #17211d;
-  --destructive: #a63d40;
-  --border: #d8d8cd;
-  --input: #c8cec7;
-  --ring: #0f4d3f;
+  --secondary: #e8eee8;
+  --secondary-foreground: #0a392f;
+  --muted: #ece8dd;
+  --muted-foreground: #637069;
+  --accent: #f1e8d7;
+  --accent-foreground: #14201b;
+  --destructive: #a33c3f;
+  --border: #d8d5c9;
+  --input: #c6ccc5;
+  --ring: #0d493c;
   --gold: #a98342;
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 }
 
 @theme inline {
@@ -61,23 +61,32 @@ html {
   background: var(--background);
   color: var(--foreground);
   text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
 }
 
 body {
   min-height: 100svh;
   background:
     radial-gradient(
-      circle at 15% 0%,
-      color-mix(in srgb, var(--gold) 10%, transparent) 0,
-      transparent 26rem
+      circle at 8% -4%,
+      color-mix(in srgb, var(--gold) 12%, transparent) 0,
+      transparent 28rem
+    ),
+    radial-gradient(
+      circle at 92% 8%,
+      color-mix(in srgb, var(--primary) 7%, transparent) 0,
+      transparent 34rem
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--background) 94%, white) 0%,
+      color-mix(in srgb, var(--background) 96%, white) 0%,
       var(--background) 100%
     );
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1;
 }
 
 html[dir="rtl"] body {
@@ -86,12 +95,13 @@ html[dir="rtl"] body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--primary) 24%, transparent);
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 a,
 button,
-input {
+input,
+select {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -100,23 +110,246 @@ input {
   outline-offset: 3px;
 }
 
+select {
+  min-height: 3rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--input);
+  background-color: color-mix(in srgb, var(--card) 84%, var(--background));
+  padding-inline: 0.875rem;
+  color: var(--foreground);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    0 1px 2px rgb(20 32 27 / 0.03);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+select:hover {
+  border-color: color-mix(in srgb, var(--primary) 25%, var(--input));
+}
+
+select:focus-visible {
+  border-color: var(--ring);
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--ring) 12%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--primary);
+}
+
+.premium-surface,
+.premium-panel {
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, var(--border));
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  box-shadow:
+    0 1px 1px rgb(20 32 27 / 0.03),
+    0 18px 50px rgb(20 32 27 / 0.06);
+  backdrop-filter: blur(18px);
+}
+
+.premium-panel {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.78),
+    0 24px 70px rgb(20 32 27 / 0.075);
+}
+
+.premium-inset {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.72),
+    inset 0 0 0 1px rgb(15 77 63 / 0.025);
+}
+
+.premium-orb {
+  position: absolute;
+  z-index: -1;
+  width: 24rem;
+  height: 24rem;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gold) 11%, transparent) 0%,
+    color-mix(in srgb, var(--primary) 5%, transparent) 42%,
+    transparent 72%
+  );
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  border: 1px solid color-mix(in srgb, var(--gold) 28%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 7%, transparent);
+  padding-inline: 0.75rem;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .threshold-pattern {
   background-image:
     linear-gradient(
       90deg,
       transparent 49.5%,
-      color-mix(in srgb, var(--primary) 16%, transparent) 50%,
+      color-mix(in srgb, var(--primary) 12%, transparent) 50%,
       transparent 50.5%
     ),
     linear-gradient(
       0deg,
       transparent 49.5%,
-      color-mix(in srgb, var(--primary) 10%, transparent) 50%,
+      color-mix(in srgb, var(--primary) 7%, transparent) 50%,
       transparent 50.5%
     );
-  background-size: 32px 32px;
+  background-size: 36px 36px;
+}
+
+.premium-questionnaire main {
+  width: 100%;
+  max-width: none;
+  padding: 0 0 4rem;
+}
+
+.premium-questionnaire main > p:first-child {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--gold) 28%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 7%, transparent);
+  padding-inline: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.premium-questionnaire main > h1 {
+  max-width: 46rem;
+  margin-top: 1.1rem;
+  font-size: clamp(2rem, 4.5vw, 3.35rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.premium-questionnaire main > h1 + p {
+  margin-top: 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.premium-questionnaire main > .grid.grid-cols-3 {
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+  padding: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border));
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--card) 76%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.65);
+}
+
+.premium-questionnaire main > .grid.grid-cols-3 > div {
+  min-height: 3.2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  line-height: 1.35;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.premium-questionnaire main > section {
+  margin-top: 1rem;
+  border-color: color-mix(in srgb, var(--primary) 12%, var(--border));
+  border-radius: 2rem;
+  background: color-mix(in srgb, var(--card) 95%, transparent);
+  padding: clamp(1.25rem, 3vw, 2.35rem);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.8),
+    0 24px 70px rgb(20 32 27 / 0.07);
+  backdrop-filter: blur(18px);
+}
+
+.premium-questionnaire main > section > * + * {
+  margin-top: 0.25rem;
+}
+
+.premium-questionnaire main > section label:has(input[type="checkbox"]),
+.premium-questionnaire main > section label:has(input[type="radio"]) {
+  border-color: color-mix(in srgb, var(--primary) 10%, var(--border));
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--background) 55%, transparent);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.premium-questionnaire main > section label:has(input:checked) {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
+  background: color-mix(in srgb, var(--primary) 5%, var(--card));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 5%, transparent);
+}
+
+.premium-questionnaire main > section button {
+  min-height: 3.15rem;
 }
 
 .safe-area-bottom {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 1023px) {
+  .premium-questionnaire > .mx-auto {
+    padding-top: 2.5rem;
+  }
+
+  .premium-questionnaire main > .grid.grid-cols-3 {
+    overflow-x: auto;
+    grid-template-columns: repeat(3, minmax(8.5rem, 1fr));
+    scrollbar-width: none;
+  }
+
+  .premium-questionnaire main > .grid.grid-cols-3::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .premium-interactive {
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .premium-interactive:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

@@ -39,18 +39,21 @@ test.describe("Milestone 3 verified waitlist", () => {
     await page
       .getByLabel("I would like Mithaq waitlist and launch updates.")
       .check();
-    await page.getByRole("button", { name: "Complete registration" }).click();
+    await page
+      .getByRole("button", { name: "Confirm and join the waitlist" })
+      .click();
 
     await expect(page).toHaveURL(/\/en\/waitlist\/success\/?$/);
     await expect(
       page.getByRole("heading", {
-        name: "You are now on the Mithaq waitlist",
+        name: "Your place on the Mithaq waitlist is secured",
       }),
     ).toBeVisible();
     await expect(
       page.getByText(/does not mean your identity is verified/i),
     ).toBeVisible();
-    await expect(page.getByText("Your private referral link")).toBeVisible();
+    await expect(page.getByText("Private invitation")).toBeVisible();
+    await expect(page.getByText("What happens next?")).toBeVisible();
 
     await page.getByRole("link", { name: "View registration status" }).click();
     await expect(page).toHaveURL(/\/en\/waitlist\/status\/?$/);
