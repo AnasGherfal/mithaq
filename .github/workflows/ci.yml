@@ -92,7 +92,10 @@ jobs:
           cache-dependency-path: apps/mobile/package-lock.json
 
       - name: Install mobile dependencies
-        run: npm ci
+        # Expo Router brings optional web peers into the native dependency graph.
+        # Keep the committed lockfile deterministic while allowing npm to honor
+        # the Expo SDK 57 React 19.2.3 native stack despite those optional peers.
+        run: npm ci --legacy-peer-deps
 
       - name: Run mobile TypeScript and formatting checks
         run: npm run check
