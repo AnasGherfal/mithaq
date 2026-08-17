@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import type { MobileLocale } from "@/i18n";
+import { supabase } from "@/lib/supabase";
 import {
   authenticateWithBiometrics,
   getBiometricAvailability,
@@ -20,6 +21,8 @@ export default function SecurityScreen() {
   const [enabled, setEnabled] = useState(false);
   const [available, setAvailable] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [sessionSaving, setSessionSaving] = useState(false);
+  const [localeSaving, setLocaleSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,6 +69,55 @@ export default function SecurityScreen() {
     setMessage(rtl ? "تم إيقاف القفل البيومتري." : "Biometric lock has been turned off.");
   }
 
+  async function switchLanguage() {
+    const nextLocale: MobileLocale = locale === "ar" ? "en" : "ar";
+    setLocaleSaving(true);
+    setMessage(null);
+
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) {
+      setLocaleSaving(false);
+      router.replace({ pathname: "/auth", params: { locale: nextLocale } });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("users")
+      .update({ preferred_locale: nextLocale, updated_at: new Date().toISOString() })
+      .eq("id", data.session.user.id);
+
+    if (error) {
+      setLocaleSaving(false);
+      setMessage(rtl ? "تعذر حفظ اللغة الآن. حاول مرة أخرى." : "We could not save your language right now. Try again.");
+      return;
+    }
+
+    setLocaleSaving(false);
+    router.replace({ pathname: "/security", params: { locale: nextLocale } });
+  }
+
+  async function signOutOtherSessions() {
+    setSessionSaving(true);
+    setMessage(null);
+    const { error } = await supabase.auth.signOut({ scope: "others" });
+    setSessionSaving(false);
+
+    if (error) {
+      setMessage(
+        rtl
+          ? "تعذر تسجيل الخروج من الأجهزة الأخرى الآن. حاول مرة أخرى."
+          : "We could not sign out your other devices right now. Try again.",
+      );
+      return;
+    }
+
+    setMessage(
+      rtl
+        ? "تم تسجيل الخروج من الجلسات الأخرى. سيبقى هذا الجهاز مسجلاً."
+        : "Other sessions have been signed out. This device stays signed in.",
+    );
+  }
+
   const copy = rtl
     ? {
         eyebrow: "الأمان والخصوصية",
@@ -78,6 +130,13 @@ export default function SecurityScreen() {
         note: "بيانات بصمتك لا تصل إلى ميثاق. نظام التشغيل يتحقق منها محلياً ويعيد لنا نتيجة النجاح أو الفشل فقط.",
         enable: "تفعيل الحماية البيومترية",
         disable: "إيقاف الحماية البيومترية",
+        languageTitle: "لغة الحساب",
+        languageBody: "نحفظ اختيارك على حسابك حتى يعود ميثاق بنفس اللغة على أجهزتك.",
+        languageValue: "العربية",
+        languageButton: "استخدام English",
+        sessionsTitle: "الجلسات الأخرى",
+        sessionsBody: "إذا استخدمت ميثاق على جهاز آخر أو لم تعد تثق بجهاز قديم، يمكنك إنهاء كل الجلسات الأخرى مع إبقاء هذا الجهاز مسجلاً.",
+        sessionsButton: "تسجيل الخروج من الأجهزة الأخرى",
         privacyTitle: "الخصوصية والموافقات",
         privacyBody: "راجع سجل موافقاتك، تحكم في التحديثات الاختيارية، واطلب حذف حسابك.",
         privacyButton: "إدارة الخصوصية والموافقات",
@@ -94,6 +153,13 @@ export default function SecurityScreen() {
         note: "Mithaq never receives your biometric data. Your operating system verifies it locally and only returns whether authentication succeeded.",
         enable: "Enable biometric protection",
         disable: "Turn off biometric protection",
+        languageTitle: "Account language",
+        languageBody: "Your choice is saved to your account so Mithaq can return in the same language across your devices.",
+        languageValue: "English",
+        languageButton: "استخدام العربية",
+        sessionsTitle: "Other sessions",
+        sessionsBody: "If you used Mithaq on another device or no longer trust an old device, end every other session while keeping this device signed in.",
+        sessionsButton: "Sign out other devices",
         privacyTitle: "Privacy & consent",
         privacyBody: "Review consent history, control optional updates, and request account deletion.",
         privacyButton: "Manage privacy and consent",
@@ -147,6 +213,25 @@ export default function SecurityScreen() {
 
         <View style={styles.divider} />
 
+        <View style={styles.settingsCard}>
+          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.languageTitle}</Text>
+          <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.languageBody}</Text>
+          <View style={[styles.valuePill, { alignSelf: rtl ? "flex-end" : "flex-start" }]}>
+            <Text style={styles.valuePillText}>{copy.languageValue}</Text>
+          </View>
+          <PrimaryButton tone="quiet" loading={localeSaving} onPress={() => void switchLanguage()}>
+            {copy.languageButton}
+          </PrimaryButton>
+        </View>
+
+        <View style={styles.settingsCard}>
+          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.sessionsTitle}</Text>
+          <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.sessionsBody}</Text>
+          <PrimaryButton tone="quiet" loading={sessionSaving} onPress={() => void signOutOtherSessions()}>
+            {copy.sessionsButton}
+          </PrimaryButton>
+        </View>
+
         <View style={styles.privacyCard}>
           <Text style={[styles.privacyTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyTitle}</Text>
           <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyBody}</Text>
@@ -199,6 +284,25 @@ const styles = StyleSheet.create({
   noteText: { color: colors.muted, fontSize: 13, lineHeight: 21 },
   message: { color: colors.primary, fontSize: 13, lineHeight: 20, fontWeight: "700" },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 4 },
+  settingsCard: {
+    gap: 10,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    padding: 17,
+  },
+  sectionTitle: { color: colors.foreground, fontSize: 17, fontWeight: "800" },
+  sectionBody: { color: colors.muted, fontSize: 13, lineHeight: 21 },
+  valuePill: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.primaryWash,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+  },
+  valuePillText: { color: colors.primary, fontSize: 12, fontWeight: "800" },
   privacyCard: {
     gap: 10,
     borderRadius: radius.lg,
