@@ -40,6 +40,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Capture canonical formatted snapshot
+        run: |
+          pnpm format
+          mkdir -p formatted-snapshot
+          git diff --name-only -z -- . ':!.github/workflows/ci.yml' | while IFS= read -r -d '' file; do
+            mkdir -p "formatted-snapshot/$(dirname "$file")"
+            cp "$file" "formatted-snapshot/$file"
+          done
+
+      - name: Upload canonical formatted snapshot
+        uses: actions/upload-artifact@v7
+        with:
+          name: canonical-formatted-snapshot
+          path: formatted-snapshot
+          retention-days: 1
+
       - name: Run formatting, lint, type, unit, and build checks
         run: pnpm check
 
@@ -67,6 +83,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      # Temporary formatted-snapshot steps above are removed after the canonical files are committed.
       # Milestone 5: pin all third-party actions to reviewed full commit SHAs.
 
   database:
