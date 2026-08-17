@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Mithaq",
+    "slug": "mithaq",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "mithaq",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mithaq.app"
+    },
+    "android": {
+      "package": "com.mithaq.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#F7F3E9"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F7F3E9",
+          "dark": {
+            "backgroundColor": "#F7F3E9"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
