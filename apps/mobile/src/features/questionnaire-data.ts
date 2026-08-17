@@ -24,7 +24,11 @@ export type QuestionnaireDraft = {
   preferredCountries: string[];
   willingIdentityVerification: boolean;
   photoPrivacyPreference:
-    "none" | "blurred" | "after_mutual_interest" | "explicit_approval" | "after_family_involvement";
+    | "none"
+    | "blurred"
+    | "after_mutual_interest"
+    | "explicit_approval"
+    | "after_family_involvement";
   familyInvolvementPreference: "early" | "after_initial_interest" | "later" | "unsure";
 };
 
@@ -150,7 +154,6 @@ export async function saveQuestionnaire(value: QuestionnaireDraft) {
     .upsert(
       {
         user_id: userId,
-        status: existingApplication?.status === "submitted" ? "submitted" : "draft",
         questionnaire_version: "2026-08-17.v1",
         gender: value.gender,
         age_band_id: value.ageBandId,
