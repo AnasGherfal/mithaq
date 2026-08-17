@@ -148,7 +148,29 @@ export default function StatusScreen() {
             future
           />
 
+          <View style={styles.securityCallout}>
+            <View style={styles.securityMark}>
+              <Text style={styles.securityMarkText}>◎</Text>
+            </View>
+            <View style={styles.securityCopy}>
+              <Text style={[styles.securityTitle, { textAlign: rtl ? "right" : "left" }]}>
+                {rtl ? "أمان حسابك" : "Account security"}
+              </Text>
+              <Text style={[styles.securityBody, { textAlign: rtl ? "right" : "left" }]}>
+                {rtl
+                  ? "فعّل بصمة الوجه أو الإصبع لحماية العودة إلى حسابك الخاص."
+                  : "Protect re-entry to your private account with Face ID or fingerprint."}
+              </Text>
+            </View>
+          </View>
+
           <View style={styles.action}>
+            <PrimaryButton
+              tone="quiet"
+              onPress={() => router.push({ pathname: "/security", params: { locale } })}
+            >
+              {rtl ? "إعدادات الأمان" : "Security settings"}
+            </PrimaryButton>
             <PrimaryButton
               onPress={() => router.push({ pathname: "/questionnaire", params: { locale } })}
             >
@@ -293,4 +315,27 @@ const styles = StyleSheet.create({
   badgeComplete: { backgroundColor: colors.primary, borderColor: colors.primary },
   badgeText: { color: colors.muted, fontWeight: "900" },
   badgeTextComplete: { color: colors.white },
+  securityCallout: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    padding: 14,
+    marginTop: 3,
+  },
+  securityMark: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primaryWash,
+  },
+  securityMarkText: { color: colors.primary, fontSize: 20, fontWeight: "900" },
+  securityCopy: { flex: 1 },
+  securityTitle: { color: colors.foreground, fontSize: 14, fontWeight: "800" },
+  securityBody: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 4 },
 });
