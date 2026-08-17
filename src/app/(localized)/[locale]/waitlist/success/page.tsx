@@ -87,11 +87,17 @@ export default async function WaitlistSuccessPage({ params }: PageProps) {
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
           <div className="premium-panel flex items-center gap-3 rounded-2xl p-4">
-            <ShieldCheck className="size-5 shrink-0 text-primary" aria-hidden="true" />
+            <ShieldCheck
+              className="size-5 shrink-0 text-primary"
+              aria-hidden="true"
+            />
             <p className="text-sm font-semibold">{copy.secure}</p>
           </div>
           <div className="premium-panel flex items-center gap-3 rounded-2xl p-4">
-            <UsersRound className="size-5 shrink-0 text-primary" aria-hidden="true" />
+            <UsersRound
+              className="size-5 shrink-0 text-primary"
+              aria-hidden="true"
+            />
             <p className="text-sm font-semibold">{copy.private}</p>
           </div>
         </div>
@@ -118,7 +124,9 @@ export default async function WaitlistSuccessPage({ params }: PageProps) {
 
         <section className="mt-6 rounded-[2rem] border border-primary/10 bg-primary/[0.045] p-6 sm:p-8">
           <h2 className="text-lg font-bold">{copy.next}</h2>
-          <p className="mt-2 leading-7 text-muted-foreground">{copy.nextBody}</p>
+          <p className="mt-2 leading-7 text-muted-foreground">
+            {copy.nextBody}
+          </p>
         </section>
 
         <div className="mt-8 flex justify-center">
