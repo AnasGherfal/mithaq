@@ -29,10 +29,14 @@ export default defineConfig({
     reuseExistingServer: !isCi,
     timeout: 120_000,
     env: {
-      APP_ENV: "local",
-      NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000",
-      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "playwright-public-placeholder",
+      APP_ENV: process.env.APP_ENV ?? "local",
+      NEXT_PUBLIC_SITE_URL:
+        process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3000",
+      NEXT_PUBLIC_SUPABASE_URL:
+        process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+        "playwright-public-placeholder",
     },
   },
 });
