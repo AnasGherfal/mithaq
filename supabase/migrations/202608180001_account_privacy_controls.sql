@@ -111,6 +111,8 @@ begin
       updated_at = v_now
   where user_id = v_user_id;
 
+  perform public.set_communications_consent(false, p_locale);
+
   insert into public.deletion_requests (
     user_id,
     request_scope,
