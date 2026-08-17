@@ -121,7 +121,8 @@ identity.
 ## Repository guide
 
 - [`AGENTS.md`](./AGENTS.md) — implementation rules for coding agents.
-- [`docs/architecture.md`](./docs/architecture.md) — architecture and boundaries.
+- [`docs/architecture.md`](./docs/architecture.md) — architecture and
+  boundaries.
 - [`docs/security-foundation.md`](./docs/security-foundation.md) — security and
   privacy controls.
 - [`docs/decision-log.md`](./docs/decision-log.md) — accepted architectural

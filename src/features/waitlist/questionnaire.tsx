@@ -584,7 +584,7 @@ function Check({
         onChange={(event) => onChange(event.target.checked)}
         className="mt-1 size-5 accent-primary"
       />
-      <span className="text-sm font-medium leading-6">{label}</span>
+      <span className="text-sm leading-6 font-medium">{label}</span>
     </label>
   );
 }

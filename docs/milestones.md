@@ -62,10 +62,10 @@ small-cell suppression, audited exports, and no casual raw-answer browsing.
 
 ## Milestone 5 — Production hardening
 
-Planned: production SMS provider and delivery testing, rate limits, bot controls,
-tested CSP, monitoring, backup/restore, performance, accessibility review, PWA
-install inspection, staging, deployment, and launch checklist. Pin all
-third-party GitHub Actions to reviewed full commit SHAs.
+Planned: production SMS provider and delivery testing, rate limits, bot
+controls, tested CSP, monitoring, backup/restore, performance, accessibility
+review, PWA install inspection, staging, deployment, and launch checklist. Pin
+all third-party GitHub Actions to reviewed full commit SHAs.
 
 ## Milestone 6 — Controlled Stage A launch
 

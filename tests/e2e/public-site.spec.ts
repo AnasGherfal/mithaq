@@ -17,7 +17,9 @@ const publicRoutes = [
 
 for (const locale of ["ar", "en"] as const) {
   for (const route of publicRoutes) {
-    test(`${locale}${route} renders the public experience`, async ({ page }) => {
+    test(`${locale}${route} renders the public experience`, async ({
+      page,
+    }) => {
       const response = await page.goto(`/${locale}${route}`);
 
       expect(response?.ok()).toBe(true);

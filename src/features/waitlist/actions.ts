@@ -9,8 +9,7 @@ import {
 } from "./schema";
 
 export type SaveWaitlistResult =
-  | { ok: true }
-  | { ok: false; reason: "unauthorized" | "invalid" | "database" };
+  { ok: true } | { ok: false; reason: "unauthorized" | "invalid" | "database" };
 
 export async function saveWaitlistQuestionnaire(
   input: WaitlistQuestionnaireInput,
@@ -21,7 +20,8 @@ export async function saveWaitlistQuestionnaire(
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  const { data: claimsData, error: claimsError } =
+    await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
 
   if (claimsError || !userId) {

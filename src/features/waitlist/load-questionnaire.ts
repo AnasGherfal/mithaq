@@ -22,23 +22,24 @@ export async function loadMyWaitlistQuestionnaire(
     return null;
   }
 
-  const [preferencesResult, statusesResult, countriesResult] = await Promise.all([
-    supabase
-      .from("waitlist_preferences")
-      .select(
-        "marriage_timeline, willing_identity_verification, photo_privacy_preference, family_involvement_preference, relocation_willingness, open_to_libya, open_to_diaspora, preferred_partner_age_min, preferred_partner_age_max, accepts_partner_with_children",
-      )
-      .eq("application_id", application.id)
-      .maybeSingle(),
-    supabase
-      .from("waitlist_accepted_marital_statuses")
-      .select("marital_status")
-      .eq("application_id", application.id),
-    supabase
-      .from("waitlist_preferred_countries")
-      .select("country_code")
-      .eq("application_id", application.id),
-  ]);
+  const [preferencesResult, statusesResult, countriesResult] =
+    await Promise.all([
+      supabase
+        .from("waitlist_preferences")
+        .select(
+          "marriage_timeline, willing_identity_verification, photo_privacy_preference, family_involvement_preference, relocation_willingness, open_to_libya, open_to_diaspora, preferred_partner_age_min, preferred_partner_age_max, accepts_partner_with_children",
+        )
+        .eq("application_id", application.id)
+        .maybeSingle(),
+      supabase
+        .from("waitlist_accepted_marital_statuses")
+        .select("marital_status")
+        .eq("application_id", application.id),
+      supabase
+        .from("waitlist_preferred_countries")
+        .select("country_code")
+        .eq("application_id", application.id),
+    ]);
 
   if (
     preferencesResult.error ||
@@ -62,7 +63,9 @@ export async function loadMyWaitlistQuestionnaire(
     marriageTimeline: preferencesResult.data.marriage_timeline,
     preferredPartnerAgeMin: preferencesResult.data.preferred_partner_age_min,
     preferredPartnerAgeMax: preferencesResult.data.preferred_partner_age_max,
-    acceptedMaritalStatuses: statusesResult.data.map((row) => row.marital_status),
+    acceptedMaritalStatuses: statusesResult.data.map(
+      (row) => row.marital_status,
+    ),
     acceptsPartnerWithChildren:
       preferencesResult.data.accepts_partner_with_children,
     openToLibya: preferencesResult.data.open_to_libya,

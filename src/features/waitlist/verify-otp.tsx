@@ -11,7 +11,10 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { waitlistCopy } from "./copy";
 import { recordReferralMilestone } from "./referral-actions";
 
-const otpSchema = z.string().trim().regex(/^\d{6}$/);
+const otpSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{6}$/);
 
 export function VerifyOtp() {
   const locale = useLocale() === "en" ? "en" : "ar";
@@ -60,7 +63,9 @@ export function VerifyOtp() {
       <h1 className="mt-4 text-4xl font-bold tracking-tight text-balance sm:text-5xl">
         {copy.title}
       </h1>
-      <p className="mt-5 text-lg leading-8 text-muted-foreground">{copy.body}</p>
+      <p className="mt-5 text-lg leading-8 text-muted-foreground">
+        {copy.body}
+      </p>
 
       <form
         className="mt-10 space-y-6 rounded-3xl border border-primary/15 bg-card p-6 sm:p-8"
@@ -95,7 +100,12 @@ export function VerifyOtp() {
           </p>
         ) : null}
 
-        <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? copy.verifying : copy.submit}
         </Button>
 

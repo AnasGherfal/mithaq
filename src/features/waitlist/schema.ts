@@ -55,7 +55,8 @@ export const waitlistQuestionnaireSchema = z
       context.addIssue({
         code: "custom",
         path: ["preferredPartnerAgeMax"],
-        message: "Maximum preferred age must be at least the minimum preferred age.",
+        message:
+          "Maximum preferred age must be at least the minimum preferred age.",
       });
     }
 

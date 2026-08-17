@@ -68,7 +68,9 @@ export function WaitlistAuthStart() {
         <h1 className="mt-4 text-4xl font-bold tracking-tight text-balance sm:text-5xl">
           {copy.title}
         </h1>
-        <p className="mt-5 text-lg leading-8 text-muted-foreground">{copy.body}</p>
+        <p className="mt-5 text-lg leading-8 text-muted-foreground">
+          {copy.body}
+        </p>
       </div>
 
       <form
@@ -84,7 +86,7 @@ export function WaitlistAuthStart() {
               onChange={(event) => setAgeConfirmed(event.target.checked)}
               className="mt-1 size-5 accent-primary"
             />
-            <span className="font-medium leading-7">{copy.age}</span>
+            <span className="leading-7 font-medium">{copy.age}</span>
           </label>
           <label className="flex min-h-12 cursor-pointer items-start gap-3 rounded-2xl border border-border p-4">
             <input
@@ -93,7 +95,7 @@ export function WaitlistAuthStart() {
               onChange={(event) => setIntentConfirmed(event.target.checked)}
               className="mt-1 size-5 accent-primary"
             />
-            <span className="font-medium leading-7">{copy.intent}</span>
+            <span className="leading-7 font-medium">{copy.intent}</span>
           </label>
         </fieldset>
 
@@ -101,7 +103,7 @@ export function WaitlistAuthStart() {
           <Label htmlFor="phone">{copy.phone}</Label>
           <div className="relative">
             <Smartphone
-              className="pointer-events-none absolute top-1/2 start-3 size-5 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
               aria-hidden="true"
             />
             <Input

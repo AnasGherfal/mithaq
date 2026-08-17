@@ -20,7 +20,9 @@ export async function captureReferral(code: string) {
   const existingSession = referralSessionSchema.safeParse(
     cookieStore.get(REFERRAL_SESSION_COOKIE)?.value,
   );
-  const sessionId = existingSession.success ? existingSession.data : randomUUID();
+  const sessionId = existingSession.success
+    ? existingSession.data
+    : randomUUID();
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("record_referral_open", {
     p_code: parsedCode.data,

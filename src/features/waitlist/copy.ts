@@ -46,7 +46,8 @@ export const waitlistCopy = {
       age: "I confirm that I am 18 or older",
       intent: "I am joining Mithaq with serious intent for marriage",
       phone: "Phone number",
-      phoneHelp: "Use international format such as +21891… Your number will not be shown to other users.",
+      phoneHelp:
+        "Use international format such as +21891… Your number will not be shown to other users.",
       submit: "Send verification code",
       sending: "Sending…",
       identityNote: "Phone verification is not identity verification.",
@@ -74,7 +75,8 @@ export const waitlistCopy = {
       submit: "Save registration",
       saving: "Saving…",
       success: "Your information has been saved.",
-      error: "We could not save your registration. Review your answers and try again.",
+      error:
+        "We could not save your registration. Review your answers and try again.",
     },
   },
 } as const;

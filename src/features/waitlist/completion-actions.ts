@@ -17,7 +17,8 @@ export async function finalizeWaitlist(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  const { data: claimsData, error: claimsError } =
+    await supabase.auth.getClaims();
 
   if (claimsError || !claimsData?.claims?.sub) {
     redirect(`/${locale}/waitlist?error=session`);
@@ -39,7 +40,8 @@ export async function finalizeWaitlist(formData: FormData) {
 export async function withdrawCommunications(formData: FormData) {
   const locale = localeSchema.parse(formData.get("locale"));
   const supabase = await createSupabaseServerClient();
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  const { data: claimsData, error: claimsError } =
+    await supabase.auth.getClaims();
 
   if (claimsError || !claimsData?.claims?.sub) {
     redirect(`/${locale}/waitlist?error=session`);
@@ -63,7 +65,8 @@ export async function requestDeletion(formData: FormData) {
     .parse(formData.get("scope"));
 
   const supabase = await createSupabaseServerClient();
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  const { data: claimsData, error: claimsError } =
+    await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
 
   if (claimsError || !userId) {

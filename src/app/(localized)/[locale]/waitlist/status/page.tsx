@@ -64,8 +64,7 @@ export default async function WaitlistStatusPage({
     supabase.rpc("get_my_referral_conversion_count"),
   ]);
 
-  const communicationsEnabled =
-    communicationsConsent?.event_type === "granted";
+  const communicationsEnabled = communicationsConsent?.event_type === "granted";
 
   const copy =
     lang === "ar"
@@ -139,7 +138,9 @@ export default async function WaitlistStatusPage({
         />
         <StatusRow
           label={copy.submitted}
-          value={application?.status === "submitted" ? copy.complete : copy.pending}
+          value={
+            application?.status === "submitted" ? copy.complete : copy.pending
+          }
         />
         <StatusRow label={copy.identity} value={copy.unavailable} />
         <StatusRow
@@ -215,21 +216,11 @@ export default async function WaitlistStatusPage({
         <form action={requestDeletion} className="mt-5 space-y-4">
           <input type="hidden" name="locale" value={lang} />
           <label className="flex gap-3">
-            <input
-              type="radio"
-              name="scope"
-              value="waitlist_data"
-              required
-            />
+            <input type="radio" name="scope" value="waitlist_data" required />
             <span>{copy.waitlistData}</span>
           </label>
           <label className="flex gap-3">
-            <input
-              type="radio"
-              name="scope"
-              value="entire_account"
-              required
-            />
+            <input type="radio" name="scope" value="entire_account" required />
             <span>{copy.entireAccount}</span>
           </label>
           <button
