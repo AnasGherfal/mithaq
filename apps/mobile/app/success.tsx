@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.goldWash,
+    backgroundColor: colors.goldSoft,
   },
   infoMarkText: { color: colors.gold, fontSize: 18, fontWeight: "900" },
   copy: { flex: 1 },
