@@ -23,11 +23,16 @@ export function ScreenShell({ eyebrow, title, body, footer, rtl = false, childre
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.topRow}>
-            <View style={styles.brandMark} accessibilityElementsHidden>
+            <View
+              style={styles.brandMark}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            >
               <View style={styles.brandArch} />
               <View style={styles.brandDot} />
             </View>
@@ -40,7 +45,9 @@ export function ScreenShell({ eyebrow, title, body, footer, rtl = false, childre
                 <Text style={[styles.eyebrow, { textAlign }]}>{eyebrow}</Text>
               </View>
             ) : null}
-            <Text style={[styles.title, { textAlign }]}>{title}</Text>
+            <Text accessibilityRole="header" style={[styles.title, { textAlign }]}>
+              {title}
+            </Text>
             {body ? <Text style={[styles.body, { textAlign }]}>{body}</Text> : null}
           </View>
 
