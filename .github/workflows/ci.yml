@@ -73,6 +73,8 @@ jobs:
     name: Mobile foundation checks
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: apps/mobile
@@ -95,9 +97,33 @@ jobs:
         run: npm install
 
       - name: Run mobile TypeScript and formatting checks
+        id: mobile-check
+        continue-on-error: true
         run: npm run check
 
+      - name: Apply canonical mobile formatting once
+        if: steps.mobile-check.outcome == 'failure' && github.event_name == 'pull_request' && github.head_ref == 'agent/mobile-app-foundation'
+        working-directory: .
+        run: |
+          git fetch origin "$GITHUB_HEAD_REF"
+          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
+          cd apps/mobile
+          npx prettier --write .
+          cd ../..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/mobile
+          if ! git diff --cached --quiet; then
+            git commit -m "Format mobile sources"
+            git push origin "HEAD:$GITHUB_HEAD_REF"
+          fi
+
+      - name: Fail when mobile checks still require normalization
+        if: steps.mobile-check.outcome == 'failure'
+        run: exit 1
+
       - name: Validate Expo dependencies and configuration
+        if: steps.mobile-check.outcome == 'success'
         run: npx expo-doctor@latest
 
   database:
