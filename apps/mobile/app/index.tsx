@@ -1,16 +1,54 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { router } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { mobileCopy, type MobileLocale } from "@/i18n";
+import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
 export default function WelcomeScreen() {
   const [locale, setLocale] = useState<MobileLocale>("ar");
+  const [booting, setBooting] = useState(true);
   const copy = mobileCopy[locale];
   const rtl = locale === "ar";
   const textAlign = rtl ? "right" : "left";
+
+  useEffect(() => {
+    let active = true;
+
+    async function restoreSession() {
+      const { data } = await supabase.auth.getSession();
+      if (!active) return;
+
+      if (!data.session) {
+        setBooting(false);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("preferred_locale")
+        .eq("id", data.session.user.id)
+        .maybeSingle();
+
+      const preferredLocale: MobileLocale = profile?.preferred_locale === "en" ? "en" : "ar";
+      router.replace({ pathname: "/status", params: { locale: preferredLocale } });
+    }
+
+    void restoreSession();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (booting) {
+    return (
+      <View style={styles.loadingState}>
+        <ActivityIndicator color={colors.primary} size="large" />
+      </View>
+    );
+  }
 
   return (
     <ScreenShell
@@ -62,6 +100,12 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+  },
   signatureCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -73,25 +117,10 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 18,
   },
-  goldRail: {
-    width: 3,
-    alignSelf: "stretch",
-    borderRadius: 2,
-    backgroundColor: colors.gold,
-  },
-  signatureCopy: {
-    flex: 1,
-  },
-  signatureLabel: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  brand: {
-    color: colors.muted,
-    fontSize: 12,
-    marginTop: 4,
-  },
+  goldRail: { width: 3, alignSelf: "stretch", borderRadius: 2, backgroundColor: colors.gold },
+  signatureCopy: { flex: 1 },
+  signatureLabel: { color: colors.primary, fontSize: 14, fontWeight: "800" },
+  brand: { color: colors.muted, fontSize: 12, marginTop: 4 },
   seal: {
     width: 42,
     height: 42,
@@ -102,12 +131,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.goldSoft,
   },
-  sealInner: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: colors.gold,
-  },
+  sealInner: { width: 14, height: 14, borderRadius: 7, backgroundColor: colors.gold },
   promiseRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -115,25 +139,8 @@ const styles = StyleSheet.create({
     marginBottom: 22,
     paddingHorizontal: 4,
   },
-  promiseItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  promiseDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.primary,
-  },
-  promiseText: {
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  promiseDivider: {
-    width: 1,
-    height: 14,
-    backgroundColor: colors.border,
-  },
+  promiseItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  promiseDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.primary },
+  promiseText: { color: colors.muted, fontSize: 11, fontWeight: "700" },
+  promiseDivider: { width: 1, height: 14, backgroundColor: colors.border },
 });
