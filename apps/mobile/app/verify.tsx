@@ -10,6 +10,7 @@ import { colors, radius } from "@/theme";
 
 const pendingPhoneKey = "mithaq.pending.phone";
 const pendingLocaleKey = "mithaq.pending.locale";
+const resendCooldownSeconds = 60;
 
 export default function VerifyScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
@@ -19,7 +20,10 @@ export default function VerifyScreen() {
   const [phone, setPhone] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendIn, setResendIn] = useState(resendCooldownSeconds);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     SecureStore.getItemAsync(pendingPhoneKey).then((value) => {
@@ -31,6 +35,12 @@ export default function VerifyScreen() {
     });
   }, [locale]);
 
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((value) => Math.max(0, value - 1)), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
+
   async function verifyCode() {
     if (!phone || !/^\d{6}$/.test(code)) {
       setError(copy.invalidCode);
@@ -39,6 +49,7 @@ export default function VerifyScreen() {
 
     setLoading(true);
     setError(null);
+    setNotice(null);
     const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
       phone,
       token: code,
@@ -62,6 +73,41 @@ export default function VerifyScreen() {
     setLoading(false);
     router.replace({ pathname: "/status", params: { locale } });
   }
+
+  async function resendCode() {
+    if (!phone || resendIn > 0 || resending) return;
+
+    setResending(true);
+    setError(null);
+    setNotice(null);
+    const { error: resendError } = await supabase.auth.resend({
+      type: "sms",
+      phone,
+    });
+    setResending(false);
+
+    if (resendError) {
+      setError(
+        rtl
+          ? "تعذر إرسال رمز جديد الآن. انتظر قليلاً ثم حاول مرة أخرى."
+          : "We could not send a new code right now. Wait a moment and try again.",
+      );
+      return;
+    }
+
+    setCode("");
+    setResendIn(resendCooldownSeconds);
+    setNotice(rtl ? "تم إرسال رمز جديد إلى رقمك." : "A new code has been sent to your phone.");
+  }
+
+  const resendLabel =
+    resendIn > 0
+      ? rtl
+        ? `إعادة الإرسال بعد ${resendIn} ثانية`
+        : `Resend in ${resendIn}s`
+      : rtl
+        ? "إرسال رمز جديد"
+        : "Send a new code";
 
   return (
     <ScreenShell
@@ -107,11 +153,28 @@ export default function VerifyScreen() {
         </Text>
       </View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>{error}</Text> : null}
+      {notice ? <Text style={[styles.notice, { textAlign: rtl ? "right" : "left" }]}>{notice}</Text> : null}
 
-      <PrimaryButton disabled={!phone || code.length !== 6} loading={loading} onPress={verifyCode}>
-        {loading ? copy.verifying : copy.verify}
-      </PrimaryButton>
+      <View style={styles.actions}>
+        <PrimaryButton disabled={!phone || code.length !== 6} loading={loading} onPress={verifyCode}>
+          {loading ? copy.verifying : copy.verify}
+        </PrimaryButton>
+        <PrimaryButton
+          tone="quiet"
+          disabled={!phone || resendIn > 0 || loading}
+          loading={resending}
+          onPress={() => void resendCode()}
+        >
+          {resendLabel}
+        </PrimaryButton>
+      </View>
+
+      <Text style={[styles.resendHint, { textAlign: rtl ? "right" : "left" }]}>
+        {rtl
+          ? "نحد من إعادة الإرسال لحماية رقمك ومنع إساءة استخدام الرسائل."
+          : "Resends are throttled to protect your number and prevent SMS abuse."}
+      </Text>
     </ScreenShell>
   );
 }
@@ -156,4 +219,7 @@ const styles = StyleSheet.create({
   },
   hint: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 9 },
   error: { color: colors.danger, fontSize: 13, fontWeight: "700", lineHeight: 20, marginBottom: 14 },
+  notice: { color: colors.primary, fontSize: 13, fontWeight: "700", lineHeight: 20, marginBottom: 14 },
+  actions: { gap: 10 },
+  resendHint: { color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 10 },
 });
