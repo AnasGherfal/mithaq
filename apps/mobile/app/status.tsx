@@ -5,6 +5,7 @@ import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { mobileCopy, type MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
+import { setBiometricLockEnabled } from "@/security/biometric";
 import { colors, radius } from "@/theme";
 
 type RegistrationState = {
@@ -62,7 +63,8 @@ export default function StatusScreen() {
   }, [locale]);
 
   async function signOut() {
-    await supabase.auth.signOut();
+    await setBiometricLockEnabled(false);
+    await supabase.auth.signOut({ scope: "local" });
     router.replace("/");
   }
 
