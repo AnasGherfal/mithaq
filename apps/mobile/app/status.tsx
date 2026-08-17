@@ -10,6 +10,7 @@ import { colors, radius } from "@/theme";
 type RegistrationState = {
   questionnaireComplete: boolean;
   submitted: boolean;
+  deletionPending: boolean;
 };
 
 export default function StatusScreen() {
@@ -21,6 +22,7 @@ export default function StatusScreen() {
   const [registration, setRegistration] = useState<RegistrationState>({
     questionnaireComplete: false,
     submitted: false,
+    deletionPending: false,
   });
 
   useEffect(() => {
@@ -33,16 +35,21 @@ export default function StatusScreen() {
         return;
       }
 
-      const { data: application } = await supabase
-        .from("waitlist_applications")
-        .select("status, questionnaire_completed_at")
-        .eq("user_id", data.session.user.id)
-        .maybeSingle();
+      const [userResult, applicationResult] = await Promise.all([
+        supabase.from("users").select("account_status").eq("id", data.session.user.id).maybeSingle(),
+        supabase
+          .from("waitlist_applications")
+          .select("status, questionnaire_completed_at")
+          .eq("user_id", data.session.user.id)
+          .maybeSingle(),
+      ]);
 
       if (active) {
+        const application = applicationResult.data;
         setRegistration({
           questionnaireComplete: Boolean(application?.questionnaire_completed_at),
           submitted: application?.status === "submitted",
+          deletionPending: userResult.data?.account_status === "deletion_pending",
         });
         setLoading(false);
       }
@@ -87,66 +94,77 @@ export default function StatusScreen() {
         </View>
       ) : (
         <View style={styles.list}>
-          <View style={[styles.overview, { direction: rtl ? "rtl" : "ltr" }]}>
-            <View style={styles.overviewTop}>
-              <View>
-                <Text style={[styles.overviewEyebrow, { textAlign: rtl ? "right" : "left" }]}>
-                  {rtl ? "تقدم عضويتك" : "Your membership progress"}
-                </Text>
-                <Text style={[styles.overviewTitle, { textAlign: rtl ? "right" : "left" }]}>
-                  {completedSteps}/3
-                </Text>
+          {registration.deletionPending ? (
+            <View style={styles.deletionCallout}>
+              <View style={styles.deletionMark}>
+                <Text style={styles.deletionMarkText}>−</Text>
               </View>
-              <View style={styles.overviewSeal}>
-                <Text style={styles.overviewSealText}>{Math.round((completedSteps / 3) * 100)}%</Text>
+              <Text style={[styles.deletionTitle, { textAlign: rtl ? "right" : "left" }]}>
+                {rtl ? "طلب حذف الحساب قيد المعالجة" : "Account deletion is pending"}
+              </Text>
+              <Text style={[styles.deletionBody, { textAlign: rtl ? "right" : "left" }]}>
+                {rtl
+                  ? "تم إيقاف مشاركتك في قائمة الانتظار والتحديثات الاختيارية. يمكنك مراجعة تفاصيل الطلب من مركز الخصوصية."
+                  : "Your waitlist participation and optional updates are stopped. Review the request details in the Privacy Center."}
+              </Text>
+              <PrimaryButton
+                tone="quiet"
+                onPress={() => router.push({ pathname: "/privacy", params: { locale } })}
+              >
+                {rtl ? "عرض مركز الخصوصية" : "Open Privacy Center"}
+              </PrimaryButton>
+            </View>
+          ) : (
+            <>
+              <View style={[styles.overview, { direction: rtl ? "rtl" : "ltr" }]}>
+                <View style={styles.overviewTop}>
+                  <View>
+                    <Text style={[styles.overviewEyebrow, { textAlign: rtl ? "right" : "left" }]}>
+                      {rtl ? "تقدم عضويتك" : "Your membership progress"}
+                    </Text>
+                    <Text style={[styles.overviewTitle, { textAlign: rtl ? "right" : "left" }]}>
+                      {completedSteps}/3
+                    </Text>
+                  </View>
+                  <View style={styles.overviewSeal}>
+                    <Text style={styles.overviewSealText}>{Math.round((completedSteps / 3) * 100)}%</Text>
+                  </View>
+                </View>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: `${(completedSteps / 3) * 100}%` }]} />
+                </View>
               </View>
-            </View>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: `${(completedSteps / 3) * 100}%` }]} />
-            </View>
-          </View>
 
-          <StatusRow
-            rtl={rtl}
-            label={copy.phoneVerified}
-            value={rtl ? "مكتمل" : "Complete"}
-            complete
-          />
-          <StatusRow
-            rtl={rtl}
-            label={rtl ? "الاستبيان" : "Questionnaire"}
-            value={
-              registration.questionnaireComplete
-                ? rtl
-                  ? "مكتمل"
-                  : "Complete"
-                : rtl
-                  ? "قيد الانتظار"
-                  : "Pending"
-            }
-            complete={registration.questionnaireComplete}
-          />
-          <StatusRow
-            rtl={rtl}
-            label={rtl ? "قائمة الانتظار" : "Waitlist"}
-            value={
-              registration.submitted
-                ? rtl
-                  ? "مكتمل"
-                  : "Complete"
-                : rtl
-                  ? "قيد الانتظار"
-                  : "Pending"
-            }
-            complete={registration.submitted}
-          />
-          <StatusRow
-            rtl={rtl}
-            label={copy.identityNotVerified}
-            value={rtl ? "غير متاح بعد" : "Not available yet"}
-            complete={false}
-            future
-          />
+              <StatusRow rtl={rtl} label={copy.phoneVerified} value={rtl ? "مكتمل" : "Complete"} complete />
+              <StatusRow
+                rtl={rtl}
+                label={rtl ? "الاستبيان" : "Questionnaire"}
+                value={
+                  registration.questionnaireComplete
+                    ? rtl
+                      ? "مكتمل"
+                      : "Complete"
+                    : rtl
+                      ? "قيد الانتظار"
+                      : "Pending"
+                }
+                complete={registration.questionnaireComplete}
+              />
+              <StatusRow
+                rtl={rtl}
+                label={rtl ? "قائمة الانتظار" : "Waitlist"}
+                value={registration.submitted ? (rtl ? "مكتمل" : "Complete") : rtl ? "قيد الانتظار" : "Pending"}
+                complete={registration.submitted}
+              />
+              <StatusRow
+                rtl={rtl}
+                label={copy.identityNotVerified}
+                value={rtl ? "غير متاح بعد" : "Not available yet"}
+                complete={false}
+                future
+              />
+            </>
+          )}
 
           <View style={styles.securityCallout}>
             <View style={styles.securityMark}>
@@ -154,12 +172,12 @@ export default function StatusScreen() {
             </View>
             <View style={styles.securityCopy}>
               <Text style={[styles.securityTitle, { textAlign: rtl ? "right" : "left" }]}>
-                {rtl ? "أمان حسابك" : "Account security"}
+                {rtl ? "أمان وخصوصية حسابك" : "Account security & privacy"}
               </Text>
               <Text style={[styles.securityBody, { textAlign: rtl ? "right" : "left" }]}>
                 {rtl
-                  ? "فعّل بصمة الوجه أو الإصبع لحماية العودة إلى حسابك الخاص."
-                  : "Protect re-entry to your private account with Face ID or fingerprint."}
+                  ? "تحكم في القفل البيومتري وموافقات البيانات والتحديثات من مكان واحد."
+                  : "Manage biometric protection, data consents, and optional updates in one place."}
               </Text>
             </View>
           </View>
@@ -169,20 +187,25 @@ export default function StatusScreen() {
               tone="quiet"
               onPress={() => router.push({ pathname: "/security", params: { locale } })}
             >
-              {rtl ? "إعدادات الأمان" : "Security settings"}
+              {rtl ? "الأمان والخصوصية" : "Security & privacy"}
             </PrimaryButton>
-            <PrimaryButton
-              onPress={() => router.push({ pathname: "/questionnaire", params: { locale } })}
-            >
-              {questionnaireLabel}
-            </PrimaryButton>
-            {!registration.submitted && registration.questionnaireComplete ? (
-              <PrimaryButton
-                tone="quiet"
-                onPress={() => router.push({ pathname: "/consent", params: { locale } })}
-              >
-                {rtl ? "متابعة إلى الموافقة" : "Continue to consent"}
-              </PrimaryButton>
+
+            {!registration.deletionPending ? (
+              <>
+                <PrimaryButton
+                  onPress={() => router.push({ pathname: "/questionnaire", params: { locale } })}
+                >
+                  {questionnaireLabel}
+                </PrimaryButton>
+                {!registration.submitted && registration.questionnaireComplete ? (
+                  <PrimaryButton
+                    tone="quiet"
+                    onPress={() => router.push({ pathname: "/consent", params: { locale } })}
+                  >
+                    {rtl ? "متابعة إلى الموافقة" : "Continue to consent"}
+                  </PrimaryButton>
+                ) : null}
+              </>
             ) : null}
           </View>
         </View>
@@ -245,18 +268,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 16,
   },
-  overviewEyebrow: {
-    color: "rgba(255,255,255,0.72)",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  overviewTitle: {
-    color: colors.white,
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: "800",
-    marginTop: 3,
-  },
+  overviewEyebrow: { color: "rgba(255,255,255,0.72)", fontSize: 12, fontWeight: "700" },
+  overviewTitle: { color: colors.white, fontSize: 28, lineHeight: 34, fontWeight: "800", marginTop: 3 },
   overviewSeal: {
     width: 54,
     height: 54,
@@ -315,6 +328,25 @@ const styles = StyleSheet.create({
   badgeComplete: { backgroundColor: colors.primary, borderColor: colors.primary },
   badgeText: { color: colors.muted, fontWeight: "900" },
   badgeTextComplete: { color: colors.white },
+  deletionCallout: {
+    gap: 11,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.goldSoft,
+    backgroundColor: colors.primaryWash,
+    padding: 18,
+  },
+  deletionMark: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+  },
+  deletionMarkText: { color: colors.white, fontSize: 24, fontWeight: "900" },
+  deletionTitle: { color: colors.primary, fontSize: 17, fontWeight: "800" },
+  deletionBody: { color: colors.muted, fontSize: 13, lineHeight: 21 },
   securityCallout: {
     flexDirection: "row",
     alignItems: "center",
