@@ -101,8 +101,13 @@ export async function SiteHeader() {
                   shortLabel={localeSwitcher("short")}
                 />
                 <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                  <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
-                  <span>{locale === "ar" ? "خاص وآمن" : "Private by design"}</span>
+                  <ShieldCheck
+                    className="size-4 text-primary"
+                    aria-hidden="true"
+                  />
+                  <span>
+                    {locale === "ar" ? "خاص وآمن" : "Private by design"}
+                  </span>
                 </div>
               </div>
               <Button className="mt-2" asChild>
