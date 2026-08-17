@@ -25,8 +25,8 @@ export default function AuthScreen() {
   const valid = phonePattern.test(normalizedPhone);
 
   async function sendCode() {
-    if (!valid) {
-      setError(copy.invalidPhone);
+    if (!valid || loading) {
+      if (!valid) setError(copy.invalidPhone);
       return;
     }
 
@@ -41,7 +41,13 @@ export default function AuthScreen() {
     });
 
     if (otpError) {
-      setError(copy.genericError);
+      setError(
+        otpError.status === 429
+          ? rtl
+            ? "تم طلب رموز كثيرة خلال وقت قصير. انتظر قليلاً ثم حاول مرة أخرى."
+            : "Too many codes were requested in a short time. Wait a moment and try again."
+          : copy.genericError,
+      );
       setLoading(false);
       return;
     }
@@ -68,25 +74,29 @@ export default function AuthScreen() {
     >
       <View style={{ direction: rtl ? "rtl" : "ltr" }}>
         <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>{copy.phoneLabel}</Text>
-        <View style={styles.phoneFrame}>
-          <View style={styles.countryBadge}>
-            <Text style={styles.countryBadgeText}>+218</Text>
-          </View>
-          <TextInput
-            accessibilityLabel={copy.phoneLabel}
-            autoComplete="tel"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
-            placeholder={copy.phonePlaceholder}
-            placeholderTextColor={colors.mutedSoft}
-            selectionColor={colors.primary}
-            textAlign="left"
-            style={styles.input}
-          />
-        </View>
+        <TextInput
+          accessibilityLabel={copy.phoneLabel}
+          autoComplete="tel"
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={(value) => {
+            setPhone(value);
+            if (error) setError(null);
+          }}
+          onSubmitEditing={() => {
+            if (valid) void sendCode();
+          }}
+          returnKeyType="done"
+          placeholder={copy.phonePlaceholder}
+          placeholderTextColor={colors.mutedSoft}
+          selectionColor={colors.primary}
+          textAlign="left"
+          style={styles.input}
+        />
         <Text style={[styles.hint, { textAlign: rtl ? "right" : "left" }]}>
-          {rtl ? "استخدم الصيغة الدولية، مثل +218." : "Use international format, for example +218."}
+          {rtl
+            ? "استخدم الصيغة الدولية التي تبدأ بعلامة +. مثال ليبيا: +218910000000."
+            : "Use international format beginning with +. Libya example: +218910000000."}
         </Text>
       </View>
 
@@ -96,14 +106,14 @@ export default function AuthScreen() {
         </View>
         <Text style={[styles.privacyText, { textAlign: rtl ? "right" : "left" }]}>
           {rtl
-            ? "يُستخدم رقمك للتحقق والدخول الآمن فقط."
-            : "Your number is used for verification and secure access only."}
+            ? "يُستخدم رقمك للتحقق والدخول الآمن فقط، ويمكن أن يكون رقماً ليبياً أو دولياً."
+            : "Your number is used for verification and secure access only, and can be Libyan or international."}
         </Text>
       </View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>{error}</Text> : null}
 
-      <PrimaryButton disabled={!valid} loading={loading} onPress={sendCode}>
+      <PrimaryButton disabled={!valid} loading={loading} onPress={() => void sendCode()}>
         {loading ? copy.sending : copy.sendCode}
       </PrimaryButton>
     </ScreenShell>
@@ -117,34 +127,15 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginBottom: 9,
   },
-  phoneFrame: {
+  input: {
     minHeight: 62,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceRaised,
-    paddingHorizontal: 10,
-  },
-  countryBadge: {
-    borderRadius: radius.sm,
-    backgroundColor: colors.primaryWash,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-  },
-  countryBadgeText: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  input: {
-    flex: 1,
-    minHeight: 58,
     color: colors.foreground,
     fontSize: 18,
-    paddingHorizontal: 4,
+    paddingHorizontal: 16,
   },
   hint: {
     marginTop: 8,
