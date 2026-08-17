@@ -10,6 +10,7 @@ export default function WelcomeScreen() {
   const [locale, setLocale] = useState<MobileLocale>("ar");
   const copy = mobileCopy[locale];
   const rtl = locale === "ar";
+  const textAlign = rtl ? "right" : "left";
 
   return (
     <ScreenShell
@@ -18,31 +19,42 @@ export default function WelcomeScreen() {
       body={copy.welcomeBody}
       rtl={rtl}
       footer={
-        <PrimaryButton
-          tone="quiet"
-          onPress={() => setLocale(rtl ? "en" : "ar")}
-        >
+        <PrimaryButton tone="quiet" onPress={() => setLocale(rtl ? "en" : "ar")}>
           {copy.switchLanguage}
         </PrimaryButton>
       }
     >
-      <View style={[styles.trustRow, { direction: rtl ? "rtl" : "ltr" }]}>
-        <View style={styles.trustDot} />
-        <View style={styles.trustCopy}>
-          <Text style={[styles.trustTitle, { textAlign: rtl ? "right" : "left" }]}>
-            {copy.privateByDesign}
-          </Text>
-          <Text style={[styles.brand, { textAlign: rtl ? "right" : "left" }]}>
+      <View style={[styles.signatureCard, { direction: rtl ? "rtl" : "ltr" }]}>
+        <View style={styles.goldRail} />
+        <View style={styles.signatureCopy}>
+          <Text style={[styles.signatureLabel, { textAlign }]}>{copy.privateByDesign}</Text>
+          <Text style={[styles.brand, { textAlign }]}>
             {copy.brand} · {copy.brandLatin}
           </Text>
         </View>
+        <View style={styles.seal}>
+          <View style={styles.sealInner} />
+        </View>
       </View>
 
-      <PrimaryButton
-        onPress={() =>
-          router.push({ pathname: "/auth", params: { locale } })
-        }
-      >
+      <View style={styles.promiseRow}>
+        <View style={styles.promiseItem}>
+          <View style={styles.promiseDot} />
+          <Text style={styles.promiseText}>Private</Text>
+        </View>
+        <View style={styles.promiseDivider} />
+        <View style={styles.promiseItem}>
+          <View style={styles.promiseDot} />
+          <Text style={styles.promiseText}>Intentional</Text>
+        </View>
+        <View style={styles.promiseDivider} />
+        <View style={styles.promiseItem}>
+          <View style={styles.promiseDot} />
+          <Text style={styles.promiseText}>Respectful</Text>
+        </View>
+      </View>
+
+      <PrimaryButton onPress={() => router.push({ pathname: "/auth", params: { locale } })}>
         {copy.continue}
       </PrimaryButton>
     </ScreenShell>
@@ -50,25 +62,27 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  trustRow: {
+  signatureCard: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    borderRadius: radius.md,
-    backgroundColor: colors.primarySoft,
-    padding: 14,
+    gap: 14,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primaryWash,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
     marginBottom: 18,
   },
-  trustDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.primary,
+  goldRail: {
+    width: 3,
+    alignSelf: "stretch",
+    borderRadius: 2,
+    backgroundColor: colors.gold,
   },
-  trustCopy: {
+  signatureCopy: {
     flex: 1,
   },
-  trustTitle: {
+  signatureLabel: {
     color: colors.primary,
     fontSize: 14,
     fontWeight: "800",
@@ -76,6 +90,50 @@ const styles = StyleSheet.create({
   brand: {
     color: colors.muted,
     fontSize: 12,
-    marginTop: 3,
+    marginTop: 4,
+  },
+  seal: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.goldSoft,
+  },
+  sealInner: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: colors.gold,
+  },
+  promiseRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 22,
+    paddingHorizontal: 4,
+  },
+  promiseItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  promiseDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+  },
+  promiseText: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  promiseDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: colors.border,
   },
 });
