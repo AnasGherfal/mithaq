@@ -100,10 +100,6 @@ jobs:
       - name: Run mobile TypeScript and formatting checks
         run: npm run check
 
-      - name: Print canonical security formatting on failure
-        if: failure()
-        run: npx prettier app/security.tsx
-
       - name: Validate Expo dependencies and configuration
         run: npx expo-doctor@latest
 
