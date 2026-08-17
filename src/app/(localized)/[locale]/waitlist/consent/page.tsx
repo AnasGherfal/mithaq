@@ -110,7 +110,10 @@ export default async function WaitlistConsentPage({
           </label>
 
           <div className="flex items-start gap-3 rounded-2xl bg-primary/[0.045] p-4">
-            <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+            <ShieldCheck
+              className="mt-0.5 size-5 shrink-0 text-primary"
+              aria-hidden="true"
+            />
             <div>
               <p className="text-sm font-semibold">{copy.privacyTitle}</p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
@@ -121,11 +124,17 @@ export default async function WaitlistConsentPage({
 
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <LockKeyhole className="size-4 text-primary" aria-hidden="true" />
-            <Link className="font-medium underline underline-offset-4" href="/terms">
+            <Link
+              className="font-medium underline underline-offset-4"
+              href="/terms"
+            >
               {copy.terms}
             </Link>
             <span aria-hidden="true">·</span>
-            <Link className="font-medium underline underline-offset-4" href="/privacy">
+            <Link
+              className="font-medium underline underline-offset-4"
+              href="/privacy"
+            >
               {copy.privacy}
             </Link>
           </div>
