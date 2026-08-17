@@ -29,12 +29,12 @@ export function PrimaryButton({
     <Pressable
       accessibilityRole="button"
       disabled={inactive}
-      style={({ pressed }) => [
+      style={(state) => [
         styles.base,
         tone === "primary" ? styles.primary : styles.quiet,
-        pressed && !inactive ? styles.pressed : null,
+        state.pressed && !inactive ? styles.pressed : null,
         inactive ? styles.disabled : null,
-        typeof style === "function" ? style({ pressed }) : style,
+        typeof style === "function" ? style(state) : style,
       ]}
       {...props}
     >
