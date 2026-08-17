@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { waitlistCopy } from "./copy";
+import { recordReferralMilestone } from "./referral-actions";
 
 const otpSchema = z.string().trim().regex(/^\d{6}$/);
 
@@ -54,6 +55,7 @@ export function VerifyOtp() {
       return;
     }
 
+    await recordReferralMilestone("phone_verified");
     router.replace(`/${locale}/waitlist/questionnaire`);
     router.refresh();
   }
@@ -61,10 +63,15 @@ export function VerifyOtp() {
   return (
     <main className="mx-auto w-full max-w-xl px-4 py-14 sm:px-6 sm:py-18 lg:px-8">
       <p className="text-sm font-semibold text-primary">{copy.eyebrow}</p>
-      <h1 className="mt-4 text-4xl font-bold tracking-tight text-balance sm:text-5xl">{copy.title}</h1>
+      <h1 className="mt-4 text-4xl font-bold tracking-tight text-balance sm:text-5xl">
+        {copy.title}
+      </h1>
       <p className="mt-5 text-lg leading-8 text-muted-foreground">{copy.body}</p>
 
-      <form className="mt-10 space-y-6 rounded-3xl border border-primary/15 bg-card p-6 sm:p-8" onSubmit={handleSubmit}>
+      <form
+        className="mt-10 space-y-6 rounded-3xl border border-primary/15 bg-card p-6 sm:p-8"
+        onSubmit={handleSubmit}
+      >
         <div className="space-y-2">
           <Label htmlFor="otp">{copy.code}</Label>
           <Input
@@ -77,24 +84,43 @@ export function VerifyOtp() {
             pattern="[0-9]{6}"
             maxLength={6}
             value={code}
-            onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+            onChange={(event) =>
+              setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+            }
             className="text-center text-2xl tracking-[0.4em]"
             required
           />
-          {phone ? <p className="text-sm text-muted-foreground" dir="ltr">{phone}</p> : null}
+          {phone ? (
+            <p className="text-sm text-muted-foreground" dir="ltr">
+              {phone}
+            </p>
+          ) : null}
         </div>
 
         {error ? (
-          <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+          <p
+            role="alert"
+            className="rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+          >
             {error}
           </p>
         ) : null}
 
-        <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || !phone}>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={isSubmitting || !phone}
+        >
           {isSubmitting ? copy.verifying : copy.submit}
         </Button>
 
-        <Button type="button" variant="ghost" className="w-full" onClick={() => router.push(`/${locale}/waitlist`)}>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full"
+          onClick={() => router.push(`/${locale}/waitlist`)}
+        >
           {copy.back}
         </Button>
       </form>
