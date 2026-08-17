@@ -42,7 +42,8 @@ begin
     document_version,
     document_sha256,
     locale,
-    supersedes_id
+    supersedes_id,
+    recorded_at
   ) values (
     v_user_id,
     'communications',
@@ -53,7 +54,8 @@ begin
       encode(digest('mithaq-communications-2026-08-17.v1', 'sha256'), 'hex')
     ),
     p_locale,
-    v_latest.id
+    v_latest.id,
+    clock_timestamp()
   );
 
   return true;
