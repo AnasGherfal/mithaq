@@ -1,5 +1,7 @@
 "use server";
 
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   waitlistQuestionnaireSchema,
@@ -124,5 +126,8 @@ export async function saveWaitlistQuestionnaire(
     }
   }
 
-  return { ok: true };
+  const requestHeaders = await headers();
+  const referer = requestHeaders.get("referer") ?? "";
+  const locale = referer.includes("/en/") ? "en" : "ar";
+  redirect(`/${locale}/waitlist/consent`);
 }
