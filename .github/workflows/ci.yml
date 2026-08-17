@@ -69,6 +69,37 @@ jobs:
 
       # Milestone 5: pin all third-party actions to reviewed full commit SHAs.
 
+  mobile:
+    name: Mobile foundation checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/mobile
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Install pnpm and Node.js 24
+        uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: false
+          install: false
+
+      - name: Install mobile dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run mobile formatting and TypeScript checks
+        run: pnpm check
+
+      - name: Validate Expo dependencies and configuration
+        run: pnpm dlx expo-doctor@latest
+
   database:
     name: Supabase database and waitlist integration
     runs-on: ubuntu-latest
