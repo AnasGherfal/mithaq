@@ -15,13 +15,18 @@ export function PrimaryButton({
   tone = "primary",
   disabled,
   style,
+  accessibilityLabel,
+  accessibilityState,
   ...props
 }: PrimaryButtonProps) {
   const inactive = disabled || loading;
+  const derivedAccessibilityLabel = accessibilityLabel ?? (typeof children === "string" ? children : undefined);
 
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={derivedAccessibilityLabel}
+      accessibilityState={{ ...accessibilityState, disabled: Boolean(inactive), busy: loading }}
       disabled={inactive}
       style={(state) => [
         styles.base,
