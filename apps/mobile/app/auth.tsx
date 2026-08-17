@@ -21,10 +21,7 @@ export default function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const normalizedPhone = useMemo(
-    () => phone.replace(/[\s()-]/g, ""),
-    [phone],
-  );
+  const normalizedPhone = useMemo(() => phone.replace(/[\s()-]/g, ""), [phone]);
   const valid = phonePattern.test(normalizedPhone);
 
   async function sendCode() {
@@ -73,21 +70,36 @@ export default function AuthScreen() {
         <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>
           {copy.phoneLabel}
         </Text>
-        <TextInput
-          accessibilityLabel={copy.phoneLabel}
-          autoComplete="tel"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-          placeholder={copy.phonePlaceholder}
-          placeholderTextColor={colors.muted}
-          textAlign="left"
-          style={styles.input}
-        />
+        <View style={styles.phoneFrame}>
+          <View style={styles.countryBadge}>
+            <Text style={styles.countryBadgeText}>+218</Text>
+          </View>
+          <TextInput
+            accessibilityLabel={copy.phoneLabel}
+            autoComplete="tel"
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={setPhone}
+            placeholder={copy.phonePlaceholder}
+            placeholderTextColor={colors.mutedSoft}
+            selectionColor={colors.primary}
+            textAlign="left"
+            style={styles.input}
+          />
+        </View>
         <Text style={[styles.hint, { textAlign: rtl ? "right" : "left" }]}>
+          {rtl ? "استخدم الصيغة الدولية، مثل +218." : "Use international format, for example +218."}
+        </Text>
+      </View>
+
+      <View style={[styles.privacyNote, { direction: rtl ? "rtl" : "ltr" }]}>
+        <View style={styles.privacyIcon}>
+          <View style={styles.privacyIconCore} />
+        </View>
+        <Text style={[styles.privacyText, { textAlign: rtl ? "right" : "left" }]}>
           {rtl
-            ? "استخدم الصيغة الدولية، مثل +218."
-            : "Use international format, for example +218."}
+            ? "يُستخدم رقمك للتحقق والدخول الآمن فقط."
+            : "Your number is used for verification and secure access only."}
         </Text>
       </View>
 
@@ -105,17 +117,36 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     fontSize: 14,
     fontWeight: "800",
-    marginBottom: 8,
+    marginBottom: 9,
+  },
+  phoneFrame: {
+    minHeight: 62,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceRaised,
+    paddingHorizontal: 10,
+  },
+  countryBadge: {
+    borderRadius: radius.sm,
+    backgroundColor: colors.primaryWash,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+  },
+  countryBadgeText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "800",
   },
   input: {
+    flex: 1,
     minHeight: 58,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.background,
     color: colors.foreground,
     fontSize: 18,
-    paddingHorizontal: 16,
+    paddingHorizontal: 4,
   },
   hint: {
     marginTop: 8,
@@ -123,11 +154,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 19,
   },
+  privacyNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 18,
+    marginBottom: 18,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
+    padding: 13,
+  },
+  privacyIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.goldSoft,
+  },
+  privacyIconCore: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.gold,
+  },
+  privacyText: {
+    flex: 1,
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 19,
+    fontWeight: "600",
+  },
   error: {
     color: colors.danger,
     fontSize: 13,
     fontWeight: "700",
     lineHeight: 20,
-    marginVertical: 14,
+    marginBottom: 14,
   },
 });
