@@ -13,9 +13,7 @@ test.describe("Milestone 3 verified waitlist", () => {
   }) => {
     await page.goto("/en/waitlist");
 
-    await page
-      .getByLabel("I confirm that I am 18 or older")
-      .check();
+    await page.getByLabel("I confirm that I am 18 or older").check();
     await page
       .getByLabel("I am joining Mithaq with serious intent for marriage")
       .check();
@@ -34,7 +32,9 @@ test.describe("Milestone 3 verified waitlist", () => {
 
     await expect(page).toHaveURL(/\/en\/waitlist\/consent\/?$/);
     await page
-      .getByLabel(/I agree to the Terms, Privacy Policy and waitlist data processing/)
+      .getByLabel(
+        /I agree to the Terms, Privacy Policy and waitlist data processing/,
+      )
       .check();
     await page
       .getByLabel("I would like Mithaq waitlist and launch updates.")
@@ -43,9 +43,13 @@ test.describe("Milestone 3 verified waitlist", () => {
 
     await expect(page).toHaveURL(/\/en\/waitlist\/success\/?$/);
     await expect(
-      page.getByRole("heading", { name: "You are now on the Mithaq waitlist" }),
+      page.getByRole("heading", {
+        name: "You are now on the Mithaq waitlist",
+      }),
     ).toBeVisible();
-    await expect(page.getByText(/does not mean your identity is verified/i)).toBeVisible();
+    await expect(
+      page.getByText(/does not mean your identity is verified/i),
+    ).toBeVisible();
     await expect(page.getByText("Your private referral link")).toBeVisible();
 
     await page.getByRole("link", { name: "View registration status" }).click();
@@ -54,7 +58,9 @@ test.describe("Milestone 3 verified waitlist", () => {
     await expect(page.getByText("Identity verification")).toBeVisible();
     await expect(page.getByText("Not available yet")).toBeVisible();
 
-    await page.getByRole("link", { name: "Edit questionnaire" }).click();
+    await page
+      .getByRole("link", { name: "Edit questionnaire answers" })
+      .click();
     await expect(page).toHaveURL(/\/en\/waitlist\/questionnaire\/?$/);
     await expect(page.getByLabel("Current city")).toHaveValue("Tripoli");
   });
