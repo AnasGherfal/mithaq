@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { colors, radius } from "@/theme";
+import { colors, radius, shadows } from "@/theme";
 
 export function textAlign(rtl: boolean) {
   return { textAlign: rtl ? ("right" as const) : ("left" as const) };
@@ -8,9 +8,12 @@ export function textAlign(rtl: boolean) {
 
 export function SectionTitle({ title, body, rtl }: { title: string; body: string; rtl: boolean }) {
   return (
-    <View>
-      <Text style={[styles.sectionTitle, textAlign(rtl)]}>{title}</Text>
-      <Text style={[styles.sectionBody, textAlign(rtl)]}>{body}</Text>
+    <View style={styles.sectionHeading}>
+      <View style={[styles.sectionAccent, rtl ? styles.sectionAccentRtl : null]} />
+      <View style={styles.sectionCopy}>
+        <Text style={[styles.sectionTitle, textAlign(rtl)]}>{title}</Text>
+        <Text style={[styles.sectionBody, textAlign(rtl)]}>{body}</Text>
+      </View>
     </View>
   );
 }
@@ -48,8 +51,16 @@ export function Choice({
         pressed ? styles.pressed : null,
       ]}
     >
-      <View style={[styles.choiceIndicator, selected ? styles.choiceIndicatorSelected : null]} />
-      <Text style={[styles.choiceText, selected ? styles.choiceTextSelected : null, textAlign(rtl)]}>
+      <View style={[styles.choiceIndicator, selected ? styles.choiceIndicatorSelected : null]}>
+        {selected ? <View style={styles.choiceIndicatorCore} /> : null}
+      </View>
+      <Text
+        style={[
+          styles.choiceText,
+          selected ? styles.choiceTextSelected : null,
+          textAlign(rtl),
+        ]}
+      >
         {label}
       </Text>
     </Pressable>
@@ -78,10 +89,20 @@ export function ToggleCard({
         pressed ? styles.pressed : null,
       ]}
     >
-      <Text style={[styles.choiceText, value ? styles.choiceTextSelected : null, textAlign(rtl)]}>
+      <Text
+        style={[
+          styles.choiceText,
+          value ? styles.choiceTextSelected : null,
+          textAlign(rtl),
+        ]}
+      >
         {label}
       </Text>
-      <Text style={styles.checkMark}>{value ? "✓" : "○"}</Text>
+      <View style={[styles.toggleMark, value ? styles.toggleMarkActive : null]}>
+        <Text style={[styles.checkMark, value ? styles.checkMarkActive : null]}>
+          {value ? "✓" : ""}
+        </Text>
+      </View>
     </Pressable>
   );
 }
@@ -112,7 +133,8 @@ export function Field({
         autoCapitalize={autoCapitalize}
         keyboardType={keyboardType}
         style={[styles.input, textAlign(rtl)]}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.mutedSoft}
+        selectionColor={colors.primary}
       />
       {helper ? <Text style={[styles.helper, textAlign(rtl)]}>{helper}</Text> : null}
     </View>
@@ -122,62 +144,114 @@ export function Field({
 export function Progress({ step, rtl, labels }: { step: number; rtl: boolean; labels: string[] }) {
   return (
     <View style={[styles.progress, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-      {labels.map((label, index) => (
-        <View key={label} style={styles.progressItem}>
-          <View style={[styles.progressDot, index + 1 <= step ? styles.progressDotActive : null]} />
-          <Text
-            numberOfLines={1}
-            style={[styles.progressLabel, index + 1 === step ? styles.progressLabelActive : null]}
-          >
-            {label}
-          </Text>
-        </View>
-      ))}
+      {labels.map((label, index) => {
+        const complete = index + 1 < step;
+        const active = index + 1 === step;
+
+        return (
+          <View key={label} style={styles.progressItem}>
+            <View
+              style={[
+                styles.progressDot,
+                complete || active ? styles.progressDotActive : null,
+                active ? styles.progressDotCurrent : null,
+              ]}
+            />
+            <Text
+              numberOfLines={1}
+              style={[styles.progressLabel, active ? styles.progressLabelActive : null]}
+            >
+              {label}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
 
 export const questionnaireStyles = StyleSheet.create({
-  content: { gap: 24 },
-  section: { gap: 16 },
-  choiceStack: { gap: 8 },
-  chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  ageRow: { flexDirection: "row", gap: 10 },
+  content: { gap: 28 },
+  section: { gap: 18 },
+  choiceStack: { gap: 10 },
+  chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
+  ageRow: { flexDirection: "row", gap: 12 },
   ageField: { flex: 1 },
-  reassurance: { borderRadius: radius.md, backgroundColor: colors.primarySoft, padding: 16 },
+  reassurance: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.primaryWash,
+    padding: 18,
+  },
   reassuranceTitle: { color: colors.primary, fontSize: 14, fontWeight: "800" },
-  reassuranceBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 6 },
-  error: { color: "#A33A3A", fontSize: 13, lineHeight: 20, fontWeight: "700" },
-  footerButtons: { gap: 10 },
+  reassuranceBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 7 },
+  error: { color: colors.danger, fontSize: 13, lineHeight: 20, fontWeight: "700" },
+  footerButtons: { gap: 12 },
 });
 
 const styles = StyleSheet.create({
-  sectionTitle: { color: colors.foreground, fontSize: 21, fontWeight: "800" },
-  sectionBody: { color: colors.muted, fontSize: 14, lineHeight: 22, marginTop: 5 },
-  label: { color: colors.foreground, fontSize: 13, fontWeight: "800", marginBottom: 8 },
-  choiceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  sectionHeading: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "stretch",
+  },
+  sectionAccent: {
+    width: 3,
+    borderRadius: 2,
+    backgroundColor: colors.gold,
+  },
+  sectionAccentRtl: { order: 2 },
+  sectionCopy: { flex: 1 },
+  sectionTitle: { color: colors.foreground, fontSize: 22, lineHeight: 29, fontWeight: "800" },
+  sectionBody: { color: colors.muted, fontSize: 14, lineHeight: 23, marginTop: 6 },
+  label: { color: colors.foreground, fontSize: 13, fontWeight: "800", marginBottom: 9 },
+  choiceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   choice: {
-    minHeight: 50,
+    minHeight: 54,
     flexGrow: 1,
     flexBasis: "46%",
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 11,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    backgroundColor: colors.background,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    backgroundColor: colors.surfaceMuted,
   },
-  choiceCompact: { flexGrow: 0, flexBasis: "auto", minHeight: 42 },
-  choiceSelected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
-  choiceIndicator: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: colors.border },
-  choiceIndicatorSelected: { borderColor: colors.primary, backgroundColor: colors.primary },
+  choiceCompact: { flexGrow: 0, flexBasis: "auto", minHeight: 44 },
+  choiceSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryWash,
+    ...shadows.card,
+    shadowOpacity: 0.045,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 1,
+  },
+  choiceIndicator: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceRaised,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  choiceIndicatorSelected: { borderColor: colors.primary },
+  choiceIndicatorCore: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: colors.primary,
+  },
   choiceText: { flexShrink: 1, color: colors.foreground, fontSize: 14, fontWeight: "600" },
   choiceTextSelected: { color: colors.primary, fontWeight: "800" },
   toggle: {
-    minHeight: 54,
+    minHeight: 58,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -185,26 +259,50 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    padding: 14,
-    backgroundColor: colors.background,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+    backgroundColor: colors.surfaceMuted,
   },
-  checkMark: { color: colors.primary, fontSize: 20, fontWeight: "800" },
-  pressed: { opacity: 0.82 },
+  toggleMark: {
+    width: 27,
+    height: 27,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceRaised,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toggleMarkActive: { borderColor: colors.primary, backgroundColor: colors.primary },
+  checkMark: { color: colors.muted, fontSize: 14, fontWeight: "900" },
+  checkMarkActive: { color: colors.white },
+  pressed: { opacity: 0.84, transform: [{ scale: 0.99 }] },
   input: {
-    minHeight: 52,
+    minHeight: 56,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    paddingHorizontal: 14,
+    paddingHorizontal: 15,
     color: colors.foreground,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surfaceRaised,
     fontSize: 16,
   },
-  helper: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 6 },
-  progress: { gap: 8 },
-  progressItem: { flex: 1, alignItems: "center", gap: 7 },
-  progressDot: { width: "100%", height: 4, borderRadius: 2, backgroundColor: colors.border },
+  helper: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 7 },
+  progress: {
+    gap: 9,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceMuted,
+    padding: 12,
+  },
+  progressItem: { flex: 1, alignItems: "center", gap: 8 },
+  progressDot: {
+    width: "100%",
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.border,
+  },
   progressDotActive: { backgroundColor: colors.primary },
+  progressDotCurrent: { backgroundColor: colors.gold },
   progressLabel: { color: colors.muted, fontSize: 11, fontWeight: "700" },
-  progressLabelActive: { color: colors.primary },
+  progressLabelActive: { color: colors.foreground, fontWeight: "800" },
 });
