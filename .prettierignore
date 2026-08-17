@@ -1,5 +1,6 @@
 .next
 node_modules
+apps/mobile
 coverage
 playwright-report
 test-results
