@@ -86,6 +86,19 @@ Optional:
 
 Each event records document version, document SHA-256, locale shown, event type, timestamp, request correlation ID, and optional retention-controlled security hashes.
 
+If communications consent is later withdrawn, Mithaq appends a `withdrawn` event that references the consent event it supersedes. The original grant remains immutable.
+
+## Referral attribution
+
+Referral attribution is privacy-safe and first-party only.
+
+- Opening a valid referral link creates an opaque random session identifier.
+- The opaque identifier is kept in an HttpOnly, SameSite=Lax cookie for at most 30 days.
+- Referral events may record `opened`, `started`, `phone_verified`, and `submitted` milestones.
+- The authenticated user ID is attached internally only after authentication is established.
+- Referrers can see only an aggregate completed-registration count plus their own referral code.
+- Referrers must never receive the identity, phone number, questionnaire answers, or application record of anyone they referred.
+
 ## Success state
 
 Show:
@@ -102,6 +115,8 @@ Do not expose a public queue position.
 ## Returning-user permissions
 
 A waitlist user may read and edit only their own permitted waitlist fields, read their own consent history, see their own referral code and aggregate referral conversion count, withdraw optional communications consent, and request deletion.
+
+Editing a submitted questionnaire must preserve the submitted waitlist state and must not silently create duplicate policy-consent events.
 
 They must never be able to enumerate another user's application, preferences, phone information, consent history, referral identity, or deletion request.
 
