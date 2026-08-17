@@ -40,18 +40,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Capture canonical formatting for Milestone 3
-        run: |
-          pnpm format
-          git diff --binary > milestone-3-format.patch
-
-      - name: Upload Milestone 3 formatting patch
-        uses: actions/upload-artifact@v7
-        with:
-          name: milestone-3-format-patch
-          path: milestone-3-format.patch
-          retention-days: 1
-
       - name: Run formatting, lint, type, unit, and build checks
         run: pnpm check
 
@@ -79,7 +67,6 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      # Temporary formatter-capture steps above will be removed after the patch is applied.
       # Milestone 5: pin all third-party actions to reviewed full commit SHAs.
 
   database:
