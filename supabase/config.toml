@@ -40,8 +40,14 @@ double_confirm_changes = true
 enable_confirmations = false
 
 [auth.sms]
-enable_signup = false
-enable_confirmations = false
+enable_signup = true
+enable_confirmations = true
+template = "Your Mithaq verification code is {{ .Code }}"
+max_frequency = "60s"
+
+[auth.sms.test_otp]
+"+218910000001" = "123456"
+"+218910000002" = "123456"
 
 [storage]
 enabled = true
