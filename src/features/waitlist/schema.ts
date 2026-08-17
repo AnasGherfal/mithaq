@@ -10,11 +10,18 @@ export const waitlistQuestionnaireSchema = z
     libyanOriginRegion: z.string().trim().max(100).optional(),
     maritalStatus: z.enum(["never_married", "divorced", "widowed"]),
     hasChildren: z.boolean(),
-    libyanSelfAttestation: z.literal(true),
-    marriageTimeline: z.enum(["within_6_months", "6_to_12_months", "1_to_2_years", "unsure"]),
+    libyanSelfAttestation: z.boolean(),
+    marriageTimeline: z.enum([
+      "within_6_months",
+      "6_to_12_months",
+      "1_to_2_years",
+      "unsure",
+    ]),
     preferredPartnerAgeMin: z.number().int().min(18).max(100),
     preferredPartnerAgeMax: z.number().int().min(18).max(100),
-    acceptedMaritalStatuses: z.array(z.enum(["never_married", "divorced", "widowed"])).min(1),
+    acceptedMaritalStatuses: z
+      .array(z.enum(["never_married", "divorced", "widowed"]))
+      .min(1),
     acceptsPartnerWithChildren: z.enum(["yes", "no", "depends"]),
     openToLibya: z.boolean(),
     openToDiaspora: z.boolean(),
@@ -28,9 +35,22 @@ export const waitlistQuestionnaireSchema = z
       "explicit_approval",
       "after_family_involvement",
     ]),
-    familyInvolvementPreference: z.enum(["early", "after_initial_interest", "later", "unsure"]),
+    familyInvolvementPreference: z.enum([
+      "early",
+      "after_initial_interest",
+      "later",
+      "unsure",
+    ]),
   })
   .superRefine((value, context) => {
+    if (!value.libyanSelfAttestation) {
+      context.addIssue({
+        code: "custom",
+        path: ["libyanSelfAttestation"],
+        message: "Libyan origin self-attestation is required.",
+      });
+    }
+
     if (value.preferredPartnerAgeMax < value.preferredPartnerAgeMin) {
       context.addIssue({
         code: "custom",
@@ -48,4 +68,6 @@ export const waitlistQuestionnaireSchema = z
     }
   });
 
-export type WaitlistQuestionnaireInput = z.infer<typeof waitlistQuestionnaireSchema>;
+export type WaitlistQuestionnaireInput = z.infer<
+  typeof waitlistQuestionnaireSchema
+>;
