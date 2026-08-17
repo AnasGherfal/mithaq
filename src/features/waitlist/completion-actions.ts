@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { recordReferralMilestone } from "./referral-actions";
 
 const localeSchema = z.enum(["ar", "en"]);
 
@@ -31,7 +32,28 @@ export async function finalizeWaitlist(formData: FormData) {
     redirect(`/${locale}/waitlist/consent?error=finalize`);
   }
 
+  await recordReferralMilestone("submitted");
   redirect(`/${locale}/waitlist/success`);
+}
+
+export async function withdrawCommunications(formData: FormData) {
+  const locale = localeSchema.parse(formData.get("locale"));
+  const supabase = await createSupabaseServerClient();
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+
+  if (claimsError || !claimsData?.claims?.sub) {
+    redirect(`/${locale}/waitlist?error=session`);
+  }
+
+  const { error } = await supabase.rpc("withdraw_communications_consent", {
+    p_locale: locale,
+  });
+
+  if (error) {
+    redirect(`/${locale}/waitlist/status?error=communications`);
+  }
+
+  redirect(`/${locale}/waitlist/status?communications=withdrawn`);
 }
 
 export async function requestDeletion(formData: FormData) {
