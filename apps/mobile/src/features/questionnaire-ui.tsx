@@ -54,15 +54,7 @@ export function Choice({
       <View style={[styles.choiceIndicator, selected ? styles.choiceIndicatorSelected : null]}>
         {selected ? <View style={styles.choiceIndicatorCore} /> : null}
       </View>
-      <Text
-        style={[
-          styles.choiceText,
-          selected ? styles.choiceTextSelected : null,
-          textAlign(rtl),
-        ]}
-      >
-        {label}
-      </Text>
+      <Text style={[styles.choiceText, selected ? styles.choiceTextSelected : null, textAlign(rtl)]}>{label}</Text>
     </Pressable>
   );
 }
@@ -83,25 +75,11 @@ export function ToggleCard({
       accessibilityRole="checkbox"
       accessibilityState={{ checked: value }}
       onPress={() => onChange(!value)}
-      style={({ pressed }) => [
-        styles.toggle,
-        value ? styles.toggleSelected : null,
-        pressed ? styles.pressed : null,
-      ]}
+      style={({ pressed }) => [styles.toggle, value ? styles.toggleSelected : null, pressed ? styles.pressed : null]}
     >
-      <Text
-        style={[
-          styles.choiceText,
-          value ? styles.choiceTextSelected : null,
-          textAlign(rtl),
-        ]}
-      >
-        {label}
-      </Text>
+      <Text style={[styles.choiceText, value ? styles.choiceTextSelected : null, textAlign(rtl)]}>{label}</Text>
       <View style={[styles.toggleMark, value ? styles.toggleMarkActive : null]}>
-        <Text style={[styles.checkMark, value ? styles.checkMarkActive : null]}>
-          {value ? "✓" : ""}
-        </Text>
+        <Text style={[styles.checkMark, value ? styles.checkMarkActive : null]}>{value ? "✓" : ""}</Text>
       </View>
     </Pressable>
   );
@@ -157,10 +135,7 @@ export function Progress({ step, rtl, labels }: { step: number; rtl: boolean; la
                 active ? styles.progressDotCurrent : null,
               ]}
             />
-            <Text
-              numberOfLines={1}
-              style={[styles.progressLabel, active ? styles.progressLabelActive : null]}
-            >
+            <Text numberOfLines={1} style={[styles.progressLabel, active ? styles.progressLabelActive : null]}>
               {label}
             </Text>
           </View>

@@ -14,11 +14,7 @@ function chunkKey(key: string, index: number) {
 }
 
 async function removeChunks(key: string, count: number) {
-  await Promise.all(
-    Array.from({ length: count }, (_, index) =>
-      SecureStore.deleteItemAsync(chunkKey(key, index)),
-    ),
-  );
+  await Promise.all(Array.from({ length: count }, (_, index) => SecureStore.deleteItemAsync(chunkKey(key, index))));
 }
 
 export const secureSessionStorage = {
@@ -30,9 +26,7 @@ export const secureSessionStorage = {
     if (!Number.isInteger(count) || count < 1) return null;
 
     const chunks = await Promise.all(
-      Array.from({ length: count }, (_, index) =>
-        SecureStore.getItemAsync(chunkKey(key, index)),
-      ),
+      Array.from({ length: count }, (_, index) => SecureStore.getItemAsync(chunkKey(key, index))),
     );
 
     if (chunks.some((chunk) => chunk === null)) return null;
@@ -40,28 +34,18 @@ export const secureSessionStorage = {
   },
 
   async setItem(key: string, value: string) {
-    const previousCount = Number(
-      (await SecureStore.getItemAsync(countKey(key))) ?? "0",
-    );
+    const previousCount = Number((await SecureStore.getItemAsync(countKey(key))) ?? "0");
     const chunks = value.match(new RegExp(`.{1,${chunkSize}}`, "gs")) ?? [""];
 
     await Promise.all(
-      chunks.map((chunk, index) =>
-        SecureStore.setItemAsync(chunkKey(key, index), chunk, secureOptions),
-      ),
+      chunks.map((chunk, index) => SecureStore.setItemAsync(chunkKey(key, index), chunk, secureOptions)),
     );
-    await SecureStore.setItemAsync(
-      countKey(key),
-      String(chunks.length),
-      secureOptions,
-    );
+    await SecureStore.setItemAsync(countKey(key), String(chunks.length), secureOptions);
 
     if (previousCount > chunks.length) {
       await Promise.all(
-        Array.from(
-          { length: previousCount - chunks.length },
-          (_, offset) =>
-            SecureStore.deleteItemAsync(chunkKey(key, chunks.length + offset)),
+        Array.from({ length: previousCount - chunks.length }, (_, offset) =>
+          SecureStore.deleteItemAsync(chunkKey(key, chunks.length + offset)),
         ),
       );
     }

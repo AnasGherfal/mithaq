@@ -151,75 +151,266 @@ export default function QuestionnaireScreen() {
   );
 }
 
-function StepOne({ copy, rtl, draft, update }: { copy: Copy; rtl: boolean; draft: QuestionnaireDraft; update: Update }) {
+function StepOne({
+  copy,
+  rtl,
+  draft,
+  update,
+}: {
+  copy: Copy;
+  rtl: boolean;
+  draft: QuestionnaireDraft;
+  update: Update;
+}) {
   const statuses: MaritalStatus[] = ["never_married", "divorced", "widowed"];
   return (
     <View style={styles.section}>
       <SectionTitle rtl={rtl} title={copy.aboutYou} body={copy.aboutYouBody} />
       <ChoiceGrid>
-        <Choice label={copy.woman} selected={draft.gender === "woman"} rtl={rtl} onPress={() => update("gender", "woman")} />
+        <Choice
+          label={copy.woman}
+          selected={draft.gender === "woman"}
+          rtl={rtl}
+          onPress={() => update("gender", "woman")}
+        />
         <Choice label={copy.man} selected={draft.gender === "man"} rtl={rtl} onPress={() => update("gender", "man")} />
       </ChoiceGrid>
       <Label rtl={rtl}>{copy.ageRange}</Label>
       <View style={styles.chipWrap}>
         {ageBands.map((label, index) => (
-          <Choice key={label} compact label={label} selected={draft.ageBandId === index + 1} rtl={rtl} onPress={() => update("ageBandId", index + 1)} />
+          <Choice
+            key={label}
+            compact
+            label={label}
+            selected={draft.ageBandId === index + 1}
+            rtl={rtl}
+            onPress={() => update("ageBandId", index + 1)}
+          />
         ))}
       </View>
       <Label rtl={rtl}>{copy.residence}</Label>
       <ChoiceGrid>
-        <Choice label={copy.libya} selected={draft.residencyType === "libya"} rtl={rtl} onPress={() => update("residencyType", "libya")} />
-        <Choice label={copy.diaspora} selected={draft.residencyType === "diaspora"} rtl={rtl} onPress={() => update("residencyType", "diaspora")} />
+        <Choice
+          label={copy.libya}
+          selected={draft.residencyType === "libya"}
+          rtl={rtl}
+          onPress={() => update("residencyType", "libya")}
+        />
+        <Choice
+          label={copy.diaspora}
+          selected={draft.residencyType === "diaspora"}
+          rtl={rtl}
+          onPress={() => update("residencyType", "diaspora")}
+        />
       </ChoiceGrid>
-      <Field label={copy.country} rtl={rtl} value={draft.currentCountryCode} onChange={(value) => update("currentCountryCode", value.slice(0, 2))} autoCapitalize="characters" />
+      <Field
+        label={copy.country}
+        rtl={rtl}
+        value={draft.currentCountryCode}
+        onChange={(value) => update("currentCountryCode", value.slice(0, 2))}
+        autoCapitalize="characters"
+      />
       <Field label={copy.city} rtl={rtl} value={draft.currentCity} onChange={(value) => update("currentCity", value)} />
-      <Field label={copy.region} rtl={rtl} value={draft.libyanOriginRegion} onChange={(value) => update("libyanOriginRegion", value)} />
+      <Field
+        label={copy.region}
+        rtl={rtl}
+        value={draft.libyanOriginRegion}
+        onChange={(value) => update("libyanOriginRegion", value)}
+      />
       <Label rtl={rtl}>{copy.marital}</Label>
       <View style={styles.choiceStack}>
         {statuses.map((status) => (
-          <Choice key={status} label={copy.status[status]} selected={draft.maritalStatus === status} rtl={rtl} onPress={() => update("maritalStatus", status)} />
+          <Choice
+            key={status}
+            label={copy.status[status]}
+            selected={draft.maritalStatus === status}
+            rtl={rtl}
+            onPress={() => update("maritalStatus", status)}
+          />
         ))}
       </View>
-      <ToggleCard label={copy.children} value={draft.hasChildren} rtl={rtl} onChange={(value) => update("hasChildren", value)} />
-      <ToggleCard label={copy.libyanAttestation} value={draft.libyanSelfAttestation} rtl={rtl} onChange={(value) => update("libyanSelfAttestation", value)} />
+      <ToggleCard
+        label={copy.children}
+        value={draft.hasChildren}
+        rtl={rtl}
+        onChange={(value) => update("hasChildren", value)}
+      />
+      <ToggleCard
+        label={copy.libyanAttestation}
+        value={draft.libyanSelfAttestation}
+        rtl={rtl}
+        onChange={(value) => update("libyanSelfAttestation", value)}
+      />
     </View>
   );
 }
 
-function StepTwo({ copy, rtl, draft, update, toggleStatus, countries, setCountries }: { copy: Copy; rtl: boolean; draft: QuestionnaireDraft; update: Update; toggleStatus: (status: MaritalStatus) => void; countries: string; setCountries: (value: string) => void }) {
-  const timelines: QuestionnaireDraft["marriageTimeline"][] = ["within_6_months", "6_to_12_months", "1_to_2_years", "unsure"];
+function StepTwo({
+  copy,
+  rtl,
+  draft,
+  update,
+  toggleStatus,
+  countries,
+  setCountries,
+}: {
+  copy: Copy;
+  rtl: boolean;
+  draft: QuestionnaireDraft;
+  update: Update;
+  toggleStatus: (status: MaritalStatus) => void;
+  countries: string;
+  setCountries: (value: string) => void;
+}) {
+  const timelines: QuestionnaireDraft["marriageTimeline"][] = [
+    "within_6_months",
+    "6_to_12_months",
+    "1_to_2_years",
+    "unsure",
+  ];
   const statuses: MaritalStatus[] = ["never_married", "divorced", "widowed"];
   return (
     <View style={styles.section}>
       <SectionTitle rtl={rtl} title={copy.preferences} body={copy.preferencesBody} />
       <Label rtl={rtl}>{copy.timeline}</Label>
-      <View style={styles.choiceStack}>{timelines.map((value) => <Choice key={value} label={copy.timelineValues[value]} selected={draft.marriageTimeline === value} rtl={rtl} onPress={() => update("marriageTimeline", value)} />)}</View>
+      <View style={styles.choiceStack}>
+        {timelines.map((value) => (
+          <Choice
+            key={value}
+            label={copy.timelineValues[value]}
+            selected={draft.marriageTimeline === value}
+            rtl={rtl}
+            onPress={() => update("marriageTimeline", value)}
+          />
+        ))}
+      </View>
       <View style={styles.ageRow}>
-        <View style={styles.ageField}><Field label={copy.minAge} rtl={rtl} keyboardType="number-pad" value={String(draft.preferredPartnerAgeMin)} onChange={(value) => update("preferredPartnerAgeMin", Number(value.replace(/\D/g, "")) || 0)} /></View>
-        <View style={styles.ageField}><Field label={copy.maxAge} rtl={rtl} keyboardType="number-pad" value={String(draft.preferredPartnerAgeMax)} onChange={(value) => update("preferredPartnerAgeMax", Number(value.replace(/\D/g, "")) || 0)} /></View>
+        <View style={styles.ageField}>
+          <Field
+            label={copy.minAge}
+            rtl={rtl}
+            keyboardType="number-pad"
+            value={String(draft.preferredPartnerAgeMin)}
+            onChange={(value) => update("preferredPartnerAgeMin", Number(value.replace(/\D/g, "")) || 0)}
+          />
+        </View>
+        <View style={styles.ageField}>
+          <Field
+            label={copy.maxAge}
+            rtl={rtl}
+            keyboardType="number-pad"
+            value={String(draft.preferredPartnerAgeMax)}
+            onChange={(value) => update("preferredPartnerAgeMax", Number(value.replace(/\D/g, "")) || 0)}
+          />
+        </View>
       </View>
       <Label rtl={rtl}>{copy.accepted}</Label>
-      <View style={styles.choiceStack}>{statuses.map((status) => <Choice key={status} label={copy.status[status]} selected={draft.acceptedMaritalStatuses.includes(status)} rtl={rtl} onPress={() => toggleStatus(status)} />)}</View>
-      <TriChoice label={copy.partnerChildren} value={draft.acceptsPartnerWithChildren} copy={copy} rtl={rtl} onChange={(value) => update("acceptsPartnerWithChildren", value)} />
-      <ToggleCard label={copy.openLibya} value={draft.openToLibya} rtl={rtl} onChange={(value) => update("openToLibya", value)} />
-      <ToggleCard label={copy.openDiaspora} value={draft.openToDiaspora} rtl={rtl} onChange={(value) => update("openToDiaspora", value)} />
-      <TriChoice label={copy.relocation} value={draft.relocationWillingness} copy={copy} rtl={rtl} onChange={(value) => update("relocationWillingness", value)} />
-      <Field label={copy.countries} helper={copy.countriesHelp} rtl={rtl} value={countries} onChange={setCountries} autoCapitalize="characters" />
+      <View style={styles.choiceStack}>
+        {statuses.map((status) => (
+          <Choice
+            key={status}
+            label={copy.status[status]}
+            selected={draft.acceptedMaritalStatuses.includes(status)}
+            rtl={rtl}
+            onPress={() => toggleStatus(status)}
+          />
+        ))}
+      </View>
+      <TriChoice
+        label={copy.partnerChildren}
+        value={draft.acceptsPartnerWithChildren}
+        copy={copy}
+        rtl={rtl}
+        onChange={(value) => update("acceptsPartnerWithChildren", value)}
+      />
+      <ToggleCard
+        label={copy.openLibya}
+        value={draft.openToLibya}
+        rtl={rtl}
+        onChange={(value) => update("openToLibya", value)}
+      />
+      <ToggleCard
+        label={copy.openDiaspora}
+        value={draft.openToDiaspora}
+        rtl={rtl}
+        onChange={(value) => update("openToDiaspora", value)}
+      />
+      <TriChoice
+        label={copy.relocation}
+        value={draft.relocationWillingness}
+        copy={copy}
+        rtl={rtl}
+        onChange={(value) => update("relocationWillingness", value)}
+      />
+      <Field
+        label={copy.countries}
+        helper={copy.countriesHelp}
+        rtl={rtl}
+        value={countries}
+        onChange={setCountries}
+        autoCapitalize="characters"
+      />
     </View>
   );
 }
 
-function StepThree({ copy, rtl, draft, update }: { copy: Copy; rtl: boolean; draft: QuestionnaireDraft; update: Update }) {
-  const photos: QuestionnaireDraft["photoPrivacyPreference"][] = ["none", "blurred", "after_mutual_interest", "explicit_approval", "after_family_involvement"];
-  const families: QuestionnaireDraft["familyInvolvementPreference"][] = ["early", "after_initial_interest", "later", "unsure"];
+function StepThree({
+  copy,
+  rtl,
+  draft,
+  update,
+}: {
+  copy: Copy;
+  rtl: boolean;
+  draft: QuestionnaireDraft;
+  update: Update;
+}) {
+  const photos: QuestionnaireDraft["photoPrivacyPreference"][] = [
+    "none",
+    "blurred",
+    "after_mutual_interest",
+    "explicit_approval",
+    "after_family_involvement",
+  ];
+  const families: QuestionnaireDraft["familyInvolvementPreference"][] = [
+    "early",
+    "after_initial_interest",
+    "later",
+    "unsure",
+  ];
   return (
     <View style={styles.section}>
       <SectionTitle rtl={rtl} title={copy.privacyTitle} body={copy.privacyBody} />
-      <ToggleCard label={copy.identity} value={draft.willingIdentityVerification} rtl={rtl} onChange={(value) => update("willingIdentityVerification", value)} />
+      <ToggleCard
+        label={copy.identity}
+        value={draft.willingIdentityVerification}
+        rtl={rtl}
+        onChange={(value) => update("willingIdentityVerification", value)}
+      />
       <Label rtl={rtl}>{copy.photo}</Label>
-      <View style={styles.choiceStack}>{photos.map((value) => <Choice key={value} label={copy.photoValues[value]} selected={draft.photoPrivacyPreference === value} rtl={rtl} onPress={() => update("photoPrivacyPreference", value)} />)}</View>
+      <View style={styles.choiceStack}>
+        {photos.map((value) => (
+          <Choice
+            key={value}
+            label={copy.photoValues[value]}
+            selected={draft.photoPrivacyPreference === value}
+            rtl={rtl}
+            onPress={() => update("photoPrivacyPreference", value)}
+          />
+        ))}
+      </View>
       <Label rtl={rtl}>{copy.family}</Label>
-      <View style={styles.choiceStack}>{families.map((value) => <Choice key={value} label={copy.familyValues[value]} selected={draft.familyInvolvementPreference === value} rtl={rtl} onPress={() => update("familyInvolvementPreference", value)} />)}</View>
+      <View style={styles.choiceStack}>
+        {families.map((value) => (
+          <Choice
+            key={value}
+            label={copy.familyValues[value]}
+            selected={draft.familyInvolvementPreference === value}
+            rtl={rtl}
+            onPress={() => update("familyInvolvementPreference", value)}
+          />
+        ))}
+      </View>
       <View style={styles.reassurance}>
         <Text style={[styles.reassuranceTitle, textAlign(rtl)]}>{copy.reassuranceTitle}</Text>
         <Text style={[styles.reassuranceBody, textAlign(rtl)]}>{copy.reassuranceBody}</Text>
@@ -228,12 +419,35 @@ function StepThree({ copy, rtl, draft, update }: { copy: Copy; rtl: boolean; dra
   );
 }
 
-function TriChoice({ label, value, onChange, copy, rtl }: { label: string; value: YesNoDepends; onChange: (value: YesNoDepends) => void; copy: Copy; rtl: boolean }) {
+function TriChoice({
+  label,
+  value,
+  onChange,
+  copy,
+  rtl,
+}: {
+  label: string;
+  value: YesNoDepends;
+  onChange: (value: YesNoDepends) => void;
+  copy: Copy;
+  rtl: boolean;
+}) {
   const options: YesNoDepends[] = ["yes", "no", "depends"];
   return (
     <View>
       <Label rtl={rtl}>{label}</Label>
-      <ChoiceGrid>{options.map((option) => <Choice key={option} compact label={copy.tri[option]} selected={value === option} rtl={rtl} onPress={() => onChange(option)} />)}</ChoiceGrid>
+      <ChoiceGrid>
+        {options.map((option) => (
+          <Choice
+            key={option}
+            compact
+            label={copy.tri[option]}
+            selected={value === option}
+            rtl={rtl}
+            onPress={() => onChange(option)}
+          />
+        ))}
+      </ChoiceGrid>
     </View>
   );
 }

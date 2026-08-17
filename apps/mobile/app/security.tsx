@@ -25,14 +25,12 @@ export default function SecurityScreen() {
   useEffect(() => {
     let active = true;
 
-    void Promise.all([getBiometricLockEnabled(), getBiometricAvailability()]).then(
-      ([currentEnabled, availability]) => {
-        if (!active) return;
-        setEnabled(currentEnabled);
-        setAvailable(availability.available);
-        setLoading(false);
-      },
-    );
+    void Promise.all([getBiometricLockEnabled(), getBiometricAvailability()]).then(([currentEnabled, availability]) => {
+      if (!active) return;
+      setEnabled(currentEnabled);
+      setAvailable(availability.available);
+      setLoading(false);
+    });
 
     return () => {
       active = false;
@@ -120,13 +118,7 @@ export default function SecurityScreen() {
             <Text style={styles.icon}>◎</Text>
           </View>
           <Text style={[styles.cardTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.cardTitle}</Text>
-          <Text
-            style={[
-              styles.status,
-              enabled ? styles.statusEnabled : null,
-              { textAlign: rtl ? "right" : "left" },
-            ]}
-          >
+          <Text style={[styles.status, enabled ? styles.statusEnabled : null, { textAlign: rtl ? "right" : "left" }]}>
             {enabled ? copy.enabled : copy.disabled}
           </Text>
         </View>
@@ -158,10 +150,7 @@ export default function SecurityScreen() {
         <View style={styles.privacyCard}>
           <Text style={[styles.privacyTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyTitle}</Text>
           <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyBody}</Text>
-          <PrimaryButton
-            tone="quiet"
-            onPress={() => router.push({ pathname: "/privacy", params: { locale } })}
-          >
+          <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/privacy", params: { locale } })}>
             {copy.privacyButton}
           </PrimaryButton>
         </View>

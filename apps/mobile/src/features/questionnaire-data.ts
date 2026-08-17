@@ -13,11 +13,7 @@ export type QuestionnaireDraft = {
   maritalStatus: MaritalStatus;
   hasChildren: boolean;
   libyanSelfAttestation: boolean;
-  marriageTimeline:
-    | "within_6_months"
-    | "6_to_12_months"
-    | "1_to_2_years"
-    | "unsure";
+  marriageTimeline: "within_6_months" | "6_to_12_months" | "1_to_2_years" | "unsure";
   preferredPartnerAgeMin: number;
   preferredPartnerAgeMax: number;
   acceptedMaritalStatuses: MaritalStatus[];
@@ -28,16 +24,8 @@ export type QuestionnaireDraft = {
   preferredCountries: string[];
   willingIdentityVerification: boolean;
   photoPrivacyPreference:
-    | "none"
-    | "blurred"
-    | "after_mutual_interest"
-    | "explicit_approval"
-    | "after_family_involvement";
-  familyInvolvementPreference:
-    | "early"
-    | "after_initial_interest"
-    | "later"
-    | "unsure";
+    "none" | "blurred" | "after_mutual_interest" | "explicit_approval" | "after_family_involvement";
+  familyInvolvementPreference: "early" | "after_initial_interest" | "later" | "unsure";
 };
 
 export const defaultQuestionnaire: QuestionnaireDraft = {
@@ -80,11 +68,7 @@ export function validateQuestionnaire(value: QuestionnaireDraft): string | null 
   }
   if (value.acceptedMaritalStatuses.length === 0) return "status";
   if (!value.openToLibya && !value.openToDiaspora) return "location";
-  if (
-    value.preferredCountries.some(
-      (country) => !/^[A-Z]{2}$/.test(country.trim().toUpperCase()),
-    )
-  ) {
+  if (value.preferredCountries.some((country) => !/^[A-Z]{2}$/.test(country.trim().toUpperCase()))) {
     return "countries";
   }
   return null;
@@ -113,14 +97,8 @@ export async function loadQuestionnaire(): Promise<QuestionnaireDraft | null> {
       )
       .eq("application_id", application.id)
       .maybeSingle(),
-    supabase
-      .from("waitlist_accepted_marital_statuses")
-      .select("marital_status")
-      .eq("application_id", application.id),
-    supabase
-      .from("waitlist_preferred_countries")
-      .select("country_code")
-      .eq("application_id", application.id),
+    supabase.from("waitlist_accepted_marital_statuses").select("marital_status").eq("application_id", application.id),
+    supabase.from("waitlist_preferred_countries").select("country_code").eq("application_id", application.id),
   ]);
 
   const preferences = preferencesResult.data;
@@ -139,18 +117,14 @@ export async function loadQuestionnaire(): Promise<QuestionnaireDraft | null> {
     marriageTimeline: preferences.marriage_timeline as QuestionnaireDraft["marriageTimeline"],
     preferredPartnerAgeMin: preferences.preferred_partner_age_min,
     preferredPartnerAgeMax: preferences.preferred_partner_age_max,
-    acceptedMaritalStatuses: (statusesResult.data ?? []).map(
-      (row) => row.marital_status as MaritalStatus,
-    ),
-    acceptsPartnerWithChildren:
-      preferences.accepts_partner_with_children as YesNoDepends,
+    acceptedMaritalStatuses: (statusesResult.data ?? []).map((row) => row.marital_status as MaritalStatus),
+    acceptsPartnerWithChildren: preferences.accepts_partner_with_children as YesNoDepends,
     openToLibya: preferences.open_to_libya,
     openToDiaspora: preferences.open_to_diaspora,
     relocationWillingness: preferences.relocation_willingness as YesNoDepends,
     preferredCountries: (countriesResult.data ?? []).map((row) => row.country_code),
     willingIdentityVerification: preferences.willing_identity_verification,
-    photoPrivacyPreference:
-      preferences.photo_privacy_preference as QuestionnaireDraft["photoPrivacyPreference"],
+    photoPrivacyPreference: preferences.photo_privacy_preference as QuestionnaireDraft["photoPrivacyPreference"],
     familyInvolvementPreference:
       preferences.family_involvement_preference as QuestionnaireDraft["familyInvolvementPreference"],
   };
@@ -199,22 +173,20 @@ export async function saveQuestionnaire(value: QuestionnaireDraft) {
     return { ok: false as const, reason: "database" };
   }
 
-  const { error: preferencesError } = await supabase
-    .from("waitlist_preferences")
-    .upsert({
-      application_id: application.id,
-      marriage_timeline: value.marriageTimeline,
-      willing_identity_verification: value.willingIdentityVerification,
-      photo_privacy_preference: value.photoPrivacyPreference,
-      family_involvement_preference: value.familyInvolvementPreference,
-      relocation_willingness: value.relocationWillingness,
-      open_to_libya: value.openToLibya,
-      open_to_diaspora: value.openToDiaspora,
-      preferred_partner_age_min: value.preferredPartnerAgeMin,
-      preferred_partner_age_max: value.preferredPartnerAgeMax,
-      accepts_partner_with_children: value.acceptsPartnerWithChildren,
-      updated_at: now,
-    });
+  const { error: preferencesError } = await supabase.from("waitlist_preferences").upsert({
+    application_id: application.id,
+    marriage_timeline: value.marriageTimeline,
+    willing_identity_verification: value.willingIdentityVerification,
+    photo_privacy_preference: value.photoPrivacyPreference,
+    family_involvement_preference: value.familyInvolvementPreference,
+    relocation_willingness: value.relocationWillingness,
+    open_to_libya: value.openToLibya,
+    open_to_diaspora: value.openToDiaspora,
+    preferred_partner_age_min: value.preferredPartnerAgeMin,
+    preferred_partner_age_max: value.preferredPartnerAgeMax,
+    accepts_partner_with_children: value.acceptsPartnerWithChildren,
+    updated_at: now,
+  });
 
   if (preferencesError) return { ok: false as const, reason: "database" };
 
@@ -224,14 +196,12 @@ export async function saveQuestionnaire(value: QuestionnaireDraft) {
     .eq("application_id", application.id);
   if (deleteStatusesError) return { ok: false as const, reason: "database" };
 
-  const { error: statusesError } = await supabase
-    .from("waitlist_accepted_marital_statuses")
-    .insert(
-      value.acceptedMaritalStatuses.map((maritalStatus) => ({
-        application_id: application.id,
-        marital_status: maritalStatus,
-      })),
-    );
+  const { error: statusesError } = await supabase.from("waitlist_accepted_marital_statuses").insert(
+    value.acceptedMaritalStatuses.map((maritalStatus) => ({
+      application_id: application.id,
+      marital_status: maritalStatus,
+    })),
+  );
   if (statusesError) return { ok: false as const, reason: "database" };
 
   const { error: deleteCountriesError } = await supabase
@@ -241,14 +211,12 @@ export async function saveQuestionnaire(value: QuestionnaireDraft) {
   if (deleteCountriesError) return { ok: false as const, reason: "database" };
 
   if (value.preferredCountries.length > 0) {
-    const { error: countriesError } = await supabase
-      .from("waitlist_preferred_countries")
-      .insert(
-        value.preferredCountries.map((countryCode) => ({
-          application_id: application.id,
-          country_code: countryCode.trim().toUpperCase(),
-        })),
-      );
+    const { error: countriesError } = await supabase.from("waitlist_preferred_countries").insert(
+      value.preferredCountries.map((countryCode) => ({
+        application_id: application.id,
+        country_code: countryCode.trim().toUpperCase(),
+      })),
+    );
     if (countriesError) return { ok: false as const, reason: "database" };
   }
 

@@ -109,10 +109,7 @@ export default function StatusScreen() {
                   ? "تم إيقاف مشاركتك في قائمة الانتظار والتحديثات الاختيارية. يمكنك مراجعة تفاصيل الطلب من مركز الخصوصية."
                   : "Your waitlist participation and optional updates are stopped. Review the request details in the Privacy Center."}
               </Text>
-              <PrimaryButton
-                tone="quiet"
-                onPress={() => router.push({ pathname: "/privacy", params: { locale } })}
-              >
+              <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/privacy", params: { locale } })}>
                 {rtl ? "عرض مركز الخصوصية" : "Open Privacy Center"}
               </PrimaryButton>
             </View>
@@ -142,13 +139,7 @@ export default function StatusScreen() {
                 rtl={rtl}
                 label={rtl ? "الاستبيان" : "Questionnaire"}
                 value={
-                  registration.questionnaireComplete
-                    ? rtl
-                      ? "مكتمل"
-                      : "Complete"
-                    : rtl
-                      ? "قيد الانتظار"
-                      : "Pending"
+                  registration.questionnaireComplete ? (rtl ? "مكتمل" : "Complete") : rtl ? "قيد الانتظار" : "Pending"
                 }
                 complete={registration.questionnaireComplete}
               />
@@ -185,25 +176,17 @@ export default function StatusScreen() {
           </View>
 
           <View style={styles.action}>
-            <PrimaryButton
-              tone="quiet"
-              onPress={() => router.push({ pathname: "/security", params: { locale } })}
-            >
+            <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/security", params: { locale } })}>
               {rtl ? "الأمان والخصوصية" : "Security & privacy"}
             </PrimaryButton>
 
             {!registration.deletionPending ? (
               <>
-                <PrimaryButton
-                  onPress={() => router.push({ pathname: "/questionnaire", params: { locale } })}
-                >
+                <PrimaryButton onPress={() => router.push({ pathname: "/questionnaire", params: { locale } })}>
                   {questionnaireLabel}
                 </PrimaryButton>
                 {!registration.submitted && registration.questionnaireComplete ? (
-                  <PrimaryButton
-                    tone="quiet"
-                    onPress={() => router.push({ pathname: "/consent", params: { locale } })}
-                  >
+                  <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/consent", params: { locale } })}>
                     {rtl ? "متابعة إلى الموافقة" : "Continue to consent"}
                   </PrimaryButton>
                 ) : null}
@@ -246,9 +229,7 @@ function StatusRow({
         <Text style={[styles.rowValue, { textAlign: rtl ? "right" : "left" }]}>{value}</Text>
       </View>
       <View style={[styles.badge, complete ? styles.badgeComplete : null]}>
-        <Text style={[styles.badgeText, complete ? styles.badgeTextComplete : null]}>
-          {complete ? "✓" : "•"}
-        </Text>
+        <Text style={[styles.badgeText, complete ? styles.badgeTextComplete : null]}>{complete ? "✓" : "•"}</Text>
       </View>
     </View>
   );

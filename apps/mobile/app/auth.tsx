@@ -67,9 +67,7 @@ export default function AuthScreen() {
       }
     >
       <View style={{ direction: rtl ? "rtl" : "ltr" }}>
-        <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>
-          {copy.phoneLabel}
-        </Text>
+        <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>{copy.phoneLabel}</Text>
         <View style={styles.phoneFrame}>
           <View style={styles.countryBadge}>
             <Text style={styles.countryBadgeText}>+218</Text>

@@ -6,8 +6,7 @@ export const mobileCopy = {
     brandLatin: "Mithaq",
     welcomeEyebrow: "زواج جاد. بخصوصية من البداية.",
     welcomeTitle: "مساحة خاصة للتعارف الجاد بين الليبيين",
-    welcomeBody:
-      "ابدأ بتأكيد رقم هاتفك. لا ملفات عامة، ولا تصفح للأعضاء، ولا نعرض رقمك لأي مستخدم آخر.",
+    welcomeBody: "ابدأ بتأكيد رقم هاتفك. لا ملفات عامة، ولا تصفح للأعضاء، ولا نعرض رقمك لأي مستخدم آخر.",
     continue: "ابدأ التسجيل الخاص",
     switchLanguage: "English",
     privateByDesign: "خاص من البداية",
@@ -57,7 +56,8 @@ export const mobileCopy = {
     back: "Back",
     statusEyebrow: "Your private account",
     statusTitle: "Welcome to Mithaq",
-    statusBody: "Your phone number is confirmed. We will move the rest of the existing registration journey into the app step by step.",
+    statusBody:
+      "Your phone number is confirmed. We will move the rest of the existing registration journey into the app step by step.",
     phoneVerified: "Phone number verified",
     identityNotVerified: "Identity not verified yet",
     signOut: "Sign out",

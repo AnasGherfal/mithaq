@@ -58,10 +58,7 @@ export default function VerifyScreen() {
         .eq("id", verifyData.user.id);
     }
 
-    await Promise.all([
-      SecureStore.deleteItemAsync(pendingPhoneKey),
-      SecureStore.deleteItemAsync(pendingLocaleKey),
-    ]);
+    await Promise.all([SecureStore.deleteItemAsync(pendingPhoneKey), SecureStore.deleteItemAsync(pendingLocaleKey)]);
     setLoading(false);
     router.replace({ pathname: "/status", params: { locale } });
   }

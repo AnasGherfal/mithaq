@@ -155,9 +155,7 @@ export default function PrivacyScreen() {
                 <Text style={[styles.preferenceLabel, { textAlign: rtl ? "right" : "left" }]}>
                   {communicationsEnabled ? copy.updatesOn : copy.updatesOff}
                 </Text>
-                <Text style={[styles.preferenceMeta, { textAlign: rtl ? "right" : "left" }]}>
-                  {copy.updatesMeta}
-                </Text>
+                <Text style={[styles.preferenceMeta, { textAlign: rtl ? "right" : "left" }]}>{copy.updatesMeta}</Text>
               </View>
               <Pressable
                 accessibilityRole="switch"
@@ -170,12 +168,7 @@ export default function PrivacyScreen() {
                   saving || deletionRequest ? styles.disabled : null,
                 ]}
               >
-                <View
-                  style={[
-                    styles.switchThumb,
-                    communicationsEnabled ? styles.switchThumbEnabled : null,
-                  ]}
-                />
+                <View style={[styles.switchThumb, communicationsEnabled ? styles.switchThumbEnabled : null]} />
               </Pressable>
             </View>
           </View>
@@ -274,8 +267,10 @@ function privacyCopy(locale: MobileLocale) {
       updatesEnabled: "تم تفعيل تحديثات ميثاق.",
       updatesDisabled: "تم إيقاف تحديثات ميثاق.",
       deleteTitle: "حذف الحساب",
-      deleteBody: "طلب الحذف يوقف مشاركتك في قائمة الانتظار والتحديثات الاختيارية فوراً، ثم ينتقل الحساب لمعالجة الحذف.",
-      deletePendingBody: "طلب حذف حسابك مسجل. مشاركتك في قائمة الانتظار والتحديثات الاختيارية متوقفة أثناء معالجة الطلب.",
+      deleteBody:
+        "طلب الحذف يوقف مشاركتك في قائمة الانتظار والتحديثات الاختيارية فوراً، ثم ينتقل الحساب لمعالجة الحذف.",
+      deletePendingBody:
+        "طلب حذف حسابك مسجل. مشاركتك في قائمة الانتظار والتحديثات الاختيارية متوقفة أثناء معالجة الطلب.",
       deleteButton: "طلب حذف حسابي",
       confirmDelete: "هل أنت متأكد؟ ستُسحب مشاركتك من قائمة الانتظار فور تأكيد هذا الطلب.",
       confirmDeleteButton: "نعم، اطلب حذف الحساب",
@@ -302,8 +297,10 @@ function privacyCopy(locale: MobileLocale) {
     updatesEnabled: "Mithaq updates are enabled.",
     updatesDisabled: "Mithaq updates are turned off.",
     deleteTitle: "Delete account",
-    deleteBody: "A deletion request immediately stops your waitlist participation and optional updates, then moves the account into deletion processing.",
-    deletePendingBody: "Your deletion request is recorded. Waitlist participation and optional updates are stopped while the request is processed.",
+    deleteBody:
+      "A deletion request immediately stops your waitlist participation and optional updates, then moves the account into deletion processing.",
+    deletePendingBody:
+      "Your deletion request is recorded. Waitlist participation and optional updates are stopped while the request is processed.",
     deleteButton: "Request account deletion",
     confirmDelete: "Are you sure? Your waitlist participation will be withdrawn as soon as you confirm this request.",
     confirmDeleteButton: "Yes, request account deletion",

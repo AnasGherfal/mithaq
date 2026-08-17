@@ -1,12 +1,5 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, radius, shadows, spacing } from "@/theme";
 
@@ -18,14 +11,7 @@ type ScreenShellProps = PropsWithChildren<{
   rtl?: boolean;
 }>;
 
-export function ScreenShell({
-  eyebrow,
-  title,
-  body,
-  footer,
-  rtl = false,
-  children,
-}: ScreenShellProps) {
+export function ScreenShell({ eyebrow, title, body, footer, rtl = false, children }: ScreenShellProps) {
   const direction = rtl ? "rtl" : "ltr";
   const textAlign = rtl ? "right" : "left";
 
@@ -34,10 +20,7 @@ export function ScreenShell({
       <View style={styles.orbTop} pointerEvents="none" />
       <View style={styles.orbBottom} pointerEvents="none" />
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"

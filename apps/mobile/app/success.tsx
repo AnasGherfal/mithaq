@@ -52,27 +52,17 @@ export default function SuccessScreen() {
             <Text style={styles.infoMarkText}>✦</Text>
           </View>
           <View style={styles.copy}>
-            <Text style={[styles.heading, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.privateTitle}
-            </Text>
-            <Text style={[styles.body, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.privateBody}
-            </Text>
+            <Text style={[styles.heading, { textAlign: rtl ? "right" : "left" }]}>{copy.privateTitle}</Text>
+            <Text style={[styles.body, { textAlign: rtl ? "right" : "left" }]}>{copy.privateBody}</Text>
           </View>
         </View>
 
         <View style={styles.next}>
-          <Text style={[styles.heading, { textAlign: rtl ? "right" : "left" }]}>
-            {copy.nextTitle}
-          </Text>
-          <Text style={[styles.body, { textAlign: rtl ? "right" : "left" }]}>
-            {copy.nextBody}
-          </Text>
+          <Text style={[styles.heading, { textAlign: rtl ? "right" : "left" }]}>{copy.nextTitle}</Text>
+          <Text style={[styles.body, { textAlign: rtl ? "right" : "left" }]}>{copy.nextBody}</Text>
         </View>
 
-        <PrimaryButton
-          onPress={() => router.replace({ pathname: "/status", params: { locale } })}
-        >
+        <PrimaryButton onPress={() => router.replace({ pathname: "/status", params: { locale } })}>
           {copy.button}
         </PrimaryButton>
       </View>

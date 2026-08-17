@@ -1,11 +1,5 @@
 import type { PropsWithChildren } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  type PressableProps,
-} from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } from "react-native";
 import { colors, radius, shadows } from "@/theme";
 
 type PrimaryButtonProps = PropsWithChildren<
@@ -41,9 +35,7 @@ export function PrimaryButton({
       {loading ? (
         <ActivityIndicator color={tone === "primary" ? colors.white : colors.primary} />
       ) : (
-        <Text style={tone === "primary" ? styles.primaryText : styles.quietText}>
-          {children}
-        </Text>
+        <Text style={tone === "primary" ? styles.primaryText : styles.quietText}>{children}</Text>
       )}
     </Pressable>
   );

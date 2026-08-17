@@ -32,9 +32,7 @@ export function questionnaireCopy(locale: MobileLocale) {
       widowed: ar ? "أرمل/أرملة" : "Widowed",
     },
     children: ar ? "لدي أطفال" : "I have children",
-    libyanAttestation: ar
-      ? "أؤكد أنني ليبي/ليبية أو من أصل ليبي"
-      : "I confirm I am Libyan or of Libyan origin",
+    libyanAttestation: ar ? "أؤكد أنني ليبي/ليبية أو من أصل ليبي" : "I confirm I am Libyan or of Libyan origin",
     preferences: ar ? "ما تبحث عنه" : "What you are looking for",
     preferencesBody: ar
       ? "هذه التفضيلات خاصة وتُستخدم لتقييم التوافق مستقبلاً."

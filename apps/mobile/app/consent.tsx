@@ -41,12 +41,8 @@ export default function ConsentScreen() {
             <Text style={styles.summaryMarkText}>3</Text>
           </View>
           <View style={styles.summaryCopy}>
-            <Text style={[styles.summaryTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.summaryTitle}
-            </Text>
-            <Text style={[styles.summaryBody, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.summaryBody}
-            </Text>
+            <Text style={[styles.summaryTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.summaryTitle}</Text>
+            <Text style={[styles.summaryBody, { textAlign: rtl ? "right" : "left" }]}>{copy.summaryBody}</Text>
           </View>
         </View>
 
@@ -65,17 +61,11 @@ export default function ConsentScreen() {
         />
 
         <View style={styles.note}>
-          <Text style={[styles.noteTitle, { textAlign: rtl ? "right" : "left" }]}>
-            {copy.noteTitle}
-          </Text>
-          <Text style={[styles.noteBody, { textAlign: rtl ? "right" : "left" }]}>
-            {copy.noteBody}
-          </Text>
+          <Text style={[styles.noteTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.noteTitle}</Text>
+          <Text style={[styles.noteBody, { textAlign: rtl ? "right" : "left" }]}>{copy.noteBody}</Text>
         </View>
 
-        {error ? (
-          <Text style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>{copy.error}</Text>
-        ) : null}
+        {error ? <Text style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>{copy.error}</Text> : null}
 
         <PrimaryButton disabled={!required} loading={saving} onPress={() => void finalize()}>
           {copy.submit}
@@ -103,11 +93,7 @@ function ConsentCard({
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-        checked ? styles.cardChecked : null,
-        pressed ? styles.pressed : null,
-      ]}
+      style={({ pressed }) => [styles.card, checked ? styles.cardChecked : null, pressed ? styles.pressed : null]}
     >
       <View style={styles.cardCopy}>
         {required ? (
@@ -115,20 +101,12 @@ function ConsentCard({
             {rtl ? "مطلوب" : "Required"}
           </Text>
         ) : null}
-        <Text
-          style={[
-            styles.cardText,
-            checked ? styles.cardTextChecked : null,
-            { textAlign: rtl ? "right" : "left" },
-          ]}
-        >
+        <Text style={[styles.cardText, checked ? styles.cardTextChecked : null, { textAlign: rtl ? "right" : "left" }]}>
           {label}
         </Text>
       </View>
       <View style={[styles.mark, checked ? styles.markChecked : null]}>
-        <Text style={[styles.markText, checked ? styles.markTextChecked : null]}>
-          {checked ? "✓" : ""}
-        </Text>
+        <Text style={[styles.markText, checked ? styles.markTextChecked : null]}>{checked ? "✓" : ""}</Text>
       </View>
     </Pressable>
   );
