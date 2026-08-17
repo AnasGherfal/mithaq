@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "check": "pnpm format:check && pnpm typecheck"
+    "check": "pnpm typecheck && pnpm format:check"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
