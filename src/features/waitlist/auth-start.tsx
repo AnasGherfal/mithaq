@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { waitlistCopy } from "./copy";
+import { recordReferralMilestone } from "./referral-actions";
 
 const phoneSchema = z
   .string()
@@ -53,6 +54,7 @@ export function WaitlistAuthStart() {
       return;
     }
 
+    await recordReferralMilestone("started");
     sessionStorage.setItem("mithaq.waitlist.phone", parsedPhone.data);
     sessionStorage.setItem("mithaq.waitlist.age18", "true");
     sessionStorage.setItem("mithaq.waitlist.intent", "true");
@@ -69,7 +71,10 @@ export function WaitlistAuthStart() {
         <p className="mt-5 text-lg leading-8 text-muted-foreground">{copy.body}</p>
       </div>
 
-      <form className="mt-10 space-y-6 rounded-3xl border border-primary/15 bg-card p-6 sm:p-8" onSubmit={handleSubmit}>
+      <form
+        className="mt-10 space-y-6 rounded-3xl border border-primary/15 bg-card p-6 sm:p-8"
+        onSubmit={handleSubmit}
+      >
         <fieldset className="space-y-4">
           <legend className="sr-only">Eligibility</legend>
           <label className="flex min-h-12 cursor-pointer items-start gap-3 rounded-2xl border border-border p-4">
@@ -95,7 +100,10 @@ export function WaitlistAuthStart() {
         <div className="space-y-2">
           <Label htmlFor="phone">{copy.phone}</Label>
           <div className="relative">
-            <Smartphone className="pointer-events-none absolute top-1/2 start-3 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Smartphone
+              className="pointer-events-none absolute top-1/2 start-3 size-5 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
               id="phone"
               name="phone"
@@ -110,21 +118,34 @@ export function WaitlistAuthStart() {
               required
             />
           </div>
-          <p className="text-sm leading-6 text-muted-foreground">{copy.phoneHelp}</p>
+          <p className="text-sm leading-6 text-muted-foreground">
+            {copy.phoneHelp}
+          </p>
         </div>
 
         {error ? (
-          <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+          <p
+            role="alert"
+            className="rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+          >
             {error}
           </p>
         ) : null}
 
-        <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? copy.sending : copy.submit}
         </Button>
 
         <div className="flex items-start gap-3 rounded-2xl bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
-          <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+          <ShieldCheck
+            className="mt-0.5 size-5 shrink-0 text-primary"
+            aria-hidden="true"
+          />
           <p>{copy.identityNote}</p>
         </div>
       </form>
