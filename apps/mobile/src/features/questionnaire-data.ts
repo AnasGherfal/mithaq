@@ -24,11 +24,7 @@ export type QuestionnaireDraft = {
   preferredCountries: string[];
   willingIdentityVerification: boolean;
   photoPrivacyPreference:
-    | "none"
-    | "blurred"
-    | "after_mutual_interest"
-    | "explicit_approval"
-    | "after_family_involvement";
+    "none" | "blurred" | "after_mutual_interest" | "explicit_approval" | "after_family_involvement";
   familyInvolvementPreference: "early" | "after_initial_interest" | "later" | "unsure";
 };
 
