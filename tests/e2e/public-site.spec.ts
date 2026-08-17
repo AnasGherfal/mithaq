@@ -69,20 +69,32 @@ test("the mobile navigation exposes the core trust routes", async ({
   await expect(menu.locator('a[href="/en/waitlist"]')).toBeVisible();
 });
 
-test("captures Arabic and English Milestone 2 homepage references", async ({
+test("captures Arabic and English premium mobile references", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
 
   await page.goto("/ar");
   await page.screenshot({
-    path: "test-results/milestone-2-ar-mobile.png",
+    path: "test-results/premium-home-ar-mobile.png",
     fullPage: true,
   });
 
   await page.goto("/en");
   await page.screenshot({
-    path: "test-results/milestone-2-en-mobile.png",
+    path: "test-results/premium-home-en-mobile.png",
+    fullPage: true,
+  });
+
+  await page.goto("/ar/waitlist");
+  await page.screenshot({
+    path: "test-results/premium-waitlist-ar-mobile.png",
+    fullPage: true,
+  });
+
+  await page.goto("/en/waitlist");
+  await page.screenshot({
+    path: "test-results/premium-waitlist-en-mobile.png",
     fullPage: true,
   });
 });
