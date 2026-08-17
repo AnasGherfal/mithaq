@@ -1,8 +1,10 @@
 /** @type {import("prettier").Config} */
 const config = {
-  proseWrap: "always",
+  printWidth: 120,
+  proseWrap: "preserve",
   semi: true,
   singleQuote: false,
+  trailingComma: "all",
 };
 
 export default config;
