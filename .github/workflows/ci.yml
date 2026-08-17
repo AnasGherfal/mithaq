@@ -128,7 +128,7 @@ jobs:
 
       - name: Export local browser-safe Supabase credentials
         run: |
-          pnpm exec supabase status -o env > /tmp/supabase-status.env
+          pnpm exec supabase status -o env | grep -E '^(API_URL|PUBLISHABLE_KEY|ANON_KEY)=' > /tmp/supabase-status.env
           set -a
           source /tmp/supabase-status.env
           set +a
