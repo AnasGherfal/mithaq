@@ -39,7 +39,7 @@ export default function VerifyScreen() {
 
     setLoading(true);
     setError(null);
-    const { error: verifyError } = await supabase.auth.verifyOtp({
+    const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
       phone,
       token: code,
       type: "sms",
@@ -49,6 +49,13 @@ export default function VerifyScreen() {
       setError(copy.genericError);
       setLoading(false);
       return;
+    }
+
+    if (verifyData.user) {
+      await supabase
+        .from("users")
+        .update({ preferred_locale: locale, updated_at: new Date().toISOString() })
+        .eq("id", verifyData.user.id);
     }
 
     await Promise.all([
@@ -86,9 +93,7 @@ export default function VerifyScreen() {
       </View>
 
       <View style={styles.codeSection}>
-        <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>
-          {copy.codeLabel}
-        </Text>
+        <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>{copy.codeLabel}</Text>
         <TextInput
           accessibilityLabel={copy.codeLabel}
           autoComplete="one-time-code"
@@ -101,19 +106,13 @@ export default function VerifyScreen() {
           style={styles.codeInput}
         />
         <Text style={[styles.hint, { textAlign: rtl ? "right" : "left" }]}>
-          {rtl
-            ? "الرمز مكوّن من 6 أرقام ويُستخدم مرة واحدة فقط."
-            : "The 6-digit code can only be used once."}
+          {rtl ? "الرمز مكوّن من 6 أرقام ويُستخدم مرة واحدة فقط." : "The 6-digit code can only be used once."}
         </Text>
       </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <PrimaryButton
-        disabled={!phone || code.length !== 6}
-        loading={loading}
-        onPress={verifyCode}
-      >
+      <PrimaryButton disabled={!phone || code.length !== 6} loading={loading} onPress={verifyCode}>
         {loading ? copy.verifying : copy.verify}
       </PrimaryButton>
     </ScreenShell>
@@ -144,12 +143,7 @@ const styles = StyleSheet.create({
   deliveryTitle: { color: colors.primary, fontSize: 13, fontWeight: "800" },
   deliveryBody: { color: colors.muted, fontSize: 12, marginTop: 3 },
   codeSection: { marginBottom: 20 },
-  label: {
-    color: colors.foreground,
-    fontSize: 13,
-    fontWeight: "800",
-    marginBottom: 10,
-  },
+  label: { color: colors.foreground, fontSize: 13, fontWeight: "800", marginBottom: 10 },
   codeInput: {
     minHeight: 72,
     borderWidth: 1,
@@ -163,17 +157,6 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     paddingHorizontal: 16,
   },
-  hint: {
-    color: colors.muted,
-    fontSize: 12,
-    lineHeight: 19,
-    marginTop: 9,
-  },
-  error: {
-    color: colors.danger,
-    fontSize: 13,
-    fontWeight: "700",
-    lineHeight: 20,
-    marginBottom: 14,
-  },
+  hint: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 9 },
+  error: { color: colors.danger, fontSize: 13, fontWeight: "700", lineHeight: 20, marginBottom: 14 },
 });
