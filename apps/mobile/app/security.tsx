@@ -72,7 +72,7 @@ export default function SecurityScreen() {
     ? {
         eyebrow: "الأمان والخصوصية",
         title: "احمِ حسابك الخاص",
-        body: "يمكنك طلب بصمة الوجه أو الإصبع عند العودة إلى ميثاق على هذا الجهاز.",
+        body: "تحكم في حماية العودة إلى حسابك وفي كيفية استخدام بياناتك وموافقاتك.",
         cardTitle: "القفل البيومتري",
         enabled: "مفعّل على هذا الجهاز",
         disabled: "غير مفعّل",
@@ -80,12 +80,15 @@ export default function SecurityScreen() {
         note: "بيانات بصمتك لا تصل إلى ميثاق. نظام التشغيل يتحقق منها محلياً ويعيد لنا نتيجة النجاح أو الفشل فقط.",
         enable: "تفعيل الحماية البيومترية",
         disable: "إيقاف الحماية البيومترية",
+        privacyTitle: "الخصوصية والموافقات",
+        privacyBody: "راجع سجل موافقاتك، تحكم في التحديثات الاختيارية، واطلب حذف حسابك.",
+        privacyButton: "إدارة الخصوصية والموافقات",
         back: "العودة إلى الحساب",
       }
     : {
         eyebrow: "Security & privacy",
         title: "Protect your private account",
-        body: "Require Face ID, Touch ID, or fingerprint when returning to Mithaq on this device.",
+        body: "Control secure re-entry to your account and how Mithaq handles your data and consent choices.",
         cardTitle: "Biometric lock",
         enabled: "Enabled on this device",
         disabled: "Not enabled",
@@ -93,6 +96,9 @@ export default function SecurityScreen() {
         note: "Mithaq never receives your biometric data. Your operating system verifies it locally and only returns whether authentication succeeded.",
         enable: "Enable biometric protection",
         disable: "Turn off biometric protection",
+        privacyTitle: "Privacy & consent",
+        privacyBody: "Review consent history, control optional updates, and request account deletion.",
+        privacyButton: "Manage privacy and consent",
         back: "Back to account",
       };
 
@@ -146,6 +152,19 @@ export default function SecurityScreen() {
             {copy.enable}
           </PrimaryButton>
         )}
+
+        <View style={styles.divider} />
+
+        <View style={styles.privacyCard}>
+          <Text style={[styles.privacyTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyTitle}</Text>
+          <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyBody}</Text>
+          <PrimaryButton
+            tone="quiet"
+            onPress={() => router.push({ pathname: "/privacy", params: { locale } })}
+          >
+            {copy.privacyButton}
+          </PrimaryButton>
+        </View>
       </View>
     </ScreenShell>
   );
@@ -190,4 +209,15 @@ const styles = StyleSheet.create({
   },
   noteText: { color: colors.muted, fontSize: 13, lineHeight: 21 },
   message: { color: colors.primary, fontSize: 13, lineHeight: 20, fontWeight: "700" },
+  divider: { height: 1, backgroundColor: colors.border, marginVertical: 4 },
+  privacyCard: {
+    gap: 10,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
+    padding: 17,
+  },
+  privacyTitle: { color: colors.foreground, fontSize: 17, fontWeight: "800" },
+  privacyBody: { color: colors.muted, fontSize: 13, lineHeight: 21 },
 });
