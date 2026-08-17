@@ -39,7 +39,9 @@ test.describe("Milestone 3 verified waitlist", () => {
     await page
       .getByLabel("I would like Mithaq waitlist and launch updates.")
       .check();
-    await page.getByRole("button", { name: "Complete registration" }).click();
+    await page
+      .getByRole("button", { name: "Confirm and join the waitlist" })
+      .click();
 
     await expect(page).toHaveURL(/\/en\/waitlist\/success\/?$/);
     await expect(
