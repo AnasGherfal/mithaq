@@ -123,7 +123,8 @@ export default async function WaitlistStatusPage({
           edit: "Edit questionnaire answers",
           referral: "Your private invitation",
           referralConversions: "Completed registrations from your invitation",
-          referralPrivacy: "Only the count is shown, never people's identities.",
+          referralPrivacy:
+            "Only the count is shown, never people's identities.",
           communications: "Mithaq updates",
           communicationsOn: "Enabled",
           communicationsOff: "Not enabled",
@@ -326,7 +327,9 @@ function StatusCard({
     <div className="flex items-center gap-3 rounded-2xl border border-border/65 bg-background/55 p-4">
       <div
         className={`grid size-10 shrink-0 place-items-center rounded-xl ${
-          complete ? "bg-primary/8 text-primary" : "bg-muted text-muted-foreground"
+          complete
+            ? "bg-primary/8 text-primary"
+            : "bg-muted text-muted-foreground"
         }`}
       >
         <Icon className="size-5" aria-hidden="true" />
