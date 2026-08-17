@@ -10,6 +10,7 @@ as $$
 declare
   v_user_id uuid := auth.uid();
   v_application_id uuid;
+  v_application_status public.waitlist_status;
   v_code text;
   v_now timestamptz := now();
 begin
@@ -21,7 +22,7 @@ begin
     raise exception 'invalid locale';
   end if;
 
-  select id into v_application_id
+  select id, status into v_application_id, v_application_status
   from public.waitlist_applications
   where user_id = v_user_id
     and questionnaire_completed_at is not null
@@ -31,8 +32,16 @@ begin
     raise exception 'questionnaire incomplete';
   end if;
 
+  if v_application_status = 'submitted' then
+    select code into v_code
+    from public.referral_codes
+    where owner_user_id = v_user_id and status = 'active';
+
+    return v_code;
+  end if;
+
   update public.waitlist_applications
-  set status = 'submitted', submitted_at = coalesce(submitted_at, v_now), updated_at = v_now
+  set status = 'submitted', submitted_at = v_now, updated_at = v_now
   where id = v_application_id;
 
   insert into public.waitlist_consents (
