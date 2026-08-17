@@ -8,8 +8,8 @@ export function textAlign(rtl: boolean) {
 
 export function SectionTitle({ title, body, rtl }: { title: string; body: string; rtl: boolean }) {
   return (
-    <View style={styles.sectionHeading}>
-      <View style={[styles.sectionAccent, rtl ? styles.sectionAccentRtl : null]} />
+    <View style={[styles.sectionHeading, rtl ? styles.sectionHeadingRtl : null]}>
+      <View style={styles.sectionAccent} />
       <View style={styles.sectionCopy}>
         <Text style={[styles.sectionTitle, textAlign(rtl)]}>{title}</Text>
         <Text style={[styles.sectionBody, textAlign(rtl)]}>{body}</Text>
@@ -85,7 +85,7 @@ export function ToggleCard({
       onPress={() => onChange(!value)}
       style={({ pressed }) => [
         styles.toggle,
-        value ? styles.choiceSelected : null,
+        value ? styles.toggleSelected : null,
         pressed ? styles.pressed : null,
       ]}
     >
@@ -196,12 +196,12 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: "stretch",
   },
+  sectionHeadingRtl: { flexDirection: "row-reverse" },
   sectionAccent: {
     width: 3,
     borderRadius: 2,
     backgroundColor: colors.gold,
   },
-  sectionAccentRtl: { order: 2 },
   sectionCopy: { flex: 1 },
   sectionTitle: { color: colors.foreground, fontSize: 22, lineHeight: 29, fontWeight: "800" },
   sectionBody: { color: colors.muted, fontSize: 14, lineHeight: 23, marginTop: 6 },
@@ -262,6 +262,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 13,
     backgroundColor: colors.surfaceMuted,
+  },
+  toggleSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryWash,
   },
   toggleMark: {
     width: 27,
