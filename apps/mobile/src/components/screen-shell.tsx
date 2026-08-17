@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, radius } from "@/theme";
+import { colors, radius, shadows, spacing } from "@/theme";
 
 type ScreenShellProps = PropsWithChildren<{
   eyebrow?: string;
@@ -31,6 +31,9 @@ export function ScreenShell({
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <View style={styles.orbTop} pointerEvents="none" />
+      <View style={styles.orbBottom} pointerEvents="none" />
+
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -38,19 +41,24 @@ export function ScreenShell({
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.brandMark} accessibilityElementsHidden>
-            <View style={styles.brandArch} />
+          <View style={styles.topRow}>
+            <View style={styles.brandMark} accessibilityElementsHidden>
+              <View style={styles.brandArch} />
+              <View style={styles.brandDot} />
+            </View>
+            <View style={styles.brandRule} />
           </View>
 
-          <View style={{ direction }}>
+          <View style={[styles.hero, { direction }]}>
             {eyebrow ? (
-              <Text style={[styles.eyebrow, { textAlign }]}>{eyebrow}</Text>
+              <View style={[styles.eyebrowPill, rtl ? styles.alignEnd : styles.alignStart]}>
+                <Text style={[styles.eyebrow, { textAlign }]}>{eyebrow}</Text>
+              </View>
             ) : null}
             <Text style={[styles.title, { textAlign }]}>{title}</Text>
-            {body ? (
-              <Text style={[styles.body, { textAlign }]}>{body}</Text>
-            ) : null}
+            {body ? <Text style={[styles.body, { textAlign }]}>{body}</Text> : null}
           </View>
 
           <View style={styles.panel}>{children}</View>
@@ -66,70 +74,117 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
+    overflow: "hidden",
+  },
+  orbTop: {
+    position: "absolute",
+    top: -130,
+    right: -90,
+    width: 290,
+    height: 290,
+    borderRadius: 145,
+    backgroundColor: colors.primarySoft,
+    opacity: 0.65,
+  },
+  orbBottom: {
+    position: "absolute",
+    bottom: -170,
+    left: -100,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: colors.goldSoft,
+    opacity: 0.48,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 22,
-    paddingTop: 30,
-    paddingBottom: 28,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginBottom: spacing.xl,
   },
   brandMark: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
+    width: 58,
+    height: 58,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceRaised,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 28,
-    shadowColor: colors.foreground,
-    shadowOpacity: 0.06,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
+    ...shadows.card,
   },
   brandArch: {
-    width: 19,
-    height: 22,
+    width: 21,
+    height: 24,
     borderWidth: 2,
     borderBottomWidth: 0,
     borderColor: colors.primary,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopLeftRadius: 13,
+    borderTopRightRadius: 13,
   },
+  brandDot: {
+    position: "absolute",
+    bottom: 13,
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.gold,
+  },
+  brandRule: {
+    width: 54,
+    height: 1,
+    backgroundColor: colors.borderStrong,
+  },
+  hero: {
+    maxWidth: 560,
+  },
+  eyebrowPill: {
+    alignSelf: "flex-start",
+    borderRadius: radius.pill,
+    backgroundColor: colors.goldSoft,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    marginBottom: 14,
+  },
+  alignStart: { alignSelf: "flex-start" },
+  alignEnd: { alignSelf: "flex-end" },
   eyebrow: {
-    color: colors.primary,
-    fontSize: 13,
+    color: colors.gold,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: "800",
-    marginBottom: 10,
+    letterSpacing: 0.3,
   },
   title: {
     color: colors.foreground,
-    fontSize: 34,
-    lineHeight: 43,
+    fontSize: 36,
+    lineHeight: 44,
     fontWeight: "800",
-    letterSpacing: -0.7,
+    letterSpacing: -0.8,
   },
   body: {
     color: colors.muted,
     fontSize: 16,
     lineHeight: 27,
     marginTop: 14,
+    maxWidth: 520,
   },
   panel: {
-    marginTop: 30,
-    padding: 20,
-    borderRadius: radius.lg,
+    marginTop: spacing.xl,
+    padding: spacing.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
-    shadowColor: colors.foreground,
-    shadowOpacity: 0.07,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 3,
+    ...shadows.card,
   },
   footer: {
-    marginTop: 18,
+    marginTop: spacing.md,
   },
 });
