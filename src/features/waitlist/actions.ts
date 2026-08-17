@@ -28,6 +28,18 @@ export async function saveWaitlistQuestionnaire(
     return { ok: false, reason: "unauthorized" };
   }
 
+  const { data: existingApplication, error: existingApplicationError } =
+    await supabase
+      .from("waitlist_applications")
+      .select("status")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+  if (existingApplicationError) {
+    return { ok: false, reason: "database" };
+  }
+
+  const wasSubmitted = existingApplication?.status === "submitted";
   const value = parsed.data;
   const now = new Date().toISOString();
 
@@ -36,7 +48,7 @@ export async function saveWaitlistQuestionnaire(
     .upsert(
       {
         user_id: userId,
-        status: "draft",
+        status: wasSubmitted ? "submitted" : "draft",
         questionnaire_version: "2026-08-17.v1",
         gender: value.gender,
         age_band_id: value.ageBandId,
@@ -129,5 +141,10 @@ export async function saveWaitlistQuestionnaire(
   const requestHeaders = await headers();
   const referer = requestHeaders.get("referer") ?? "";
   const locale = referer.includes("/en/") ? "en" : "ar";
+
+  if (wasSubmitted) {
+    redirect(`/${locale}/waitlist/status?updated=questionnaire`);
+  }
+
   redirect(`/${locale}/waitlist/consent`);
 }
