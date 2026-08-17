@@ -70,9 +70,13 @@ jobs:
       # Milestone 5: pin all third-party actions to reviewed full commit SHAs.
 
   database:
-    name: Supabase database smoke test
+    name: Supabase database and waitlist integration
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
+    env:
+      SUPABASE_AUTH_SMS_TWILIO_ACCOUNT_SID: AC00000000000000000000000000000000
+      SUPABASE_AUTH_SMS_TWILIO_MESSAGE_SERVICE_SID: MG00000000000000000000000000000000
+      SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN: local-test-token-not-a-secret
 
     steps:
       - name: Check out the repository
@@ -91,8 +95,37 @@ jobs:
       - name: Start local Supabase
         run: pnpm db:start
 
+      - name: Export local browser-safe Supabase credentials
+        run: |
+          pnpm supabase status -o env > /tmp/supabase-status.env
+          set -a
+          source /tmp/supabase-status.env
+          set +a
+          echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL}" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${ANON_KEY}" >> "$GITHUB_ENV"
+
       - name: Run pgTAP database tests
         run: pnpm test:db
+
+      - name: Build application against local Supabase
+        run: pnpm build
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run verified waitlist integration test
+        env:
+          MITHAQ_E2E_SUPABASE: "1"
+        run: pnpm exec playwright test tests/e2e/waitlist-integration.spec.ts
+
+      - name: Upload waitlist integration report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: waitlist-integration-playwright-report
+          path: playwright-report
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Stop local Supabase
         if: always()

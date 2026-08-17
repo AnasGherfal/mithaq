@@ -40,8 +40,24 @@ double_confirm_changes = true
 enable_confirmations = false
 
 [auth.sms]
-enable_signup = false
-enable_confirmations = false
+enable_signup = true
+enable_confirmations = true
+template = "Your Mithaq verification code is {{ .Code }}"
+max_frequency = "60s"
+
+# Local-only deterministic OTPs. Production must use its own reviewed SMS provider
+# and must not deploy these test mappings.
+[auth.sms.test_otp]
+"+218910000001" = "123456"
+"+218910000002" = "123456"
+
+# The local Auth service requires an enabled SMS provider even when test_otp
+# suppresses delivery for the mapped numbers. Values come from CI/local env only.
+[auth.sms.twilio]
+enabled = true
+account_sid = "env(SUPABASE_AUTH_SMS_TWILIO_ACCOUNT_SID)"
+message_service_sid = "env(SUPABASE_AUTH_SMS_TWILIO_MESSAGE_SERVICE_SID)"
+auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
 [storage]
 enabled = true
