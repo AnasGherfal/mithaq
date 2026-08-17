@@ -2,31 +2,38 @@ import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from
 import { AppState, StyleSheet, Text, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
 import { supabase } from "@/lib/supabase";
-import { colors, radius } from "@/theme";
 import {
   authenticateWithBiometrics,
   getBiometricAvailability,
   getBiometricLockEnabled,
+  setBiometricLockEnabled,
 } from "@/security/biometric";
+import { colors, radius } from "@/theme";
 
 export function BiometricGate({ children }: PropsWithChildren) {
   const [checking, setChecking] = useState(true);
   const [locked, setLocked] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
+  const authenticationInFlight = useRef(false);
   const shouldLockOnResume = useRef(false);
 
   const unlock = useCallback(async () => {
-    if (authenticating) return;
+    if (authenticationInFlight.current) return;
 
+    authenticationInFlight.current = true;
     setAuthenticating(true);
-    const result = await authenticateWithBiometrics();
-    setAuthenticating(false);
 
-    if (result.success) {
-      setLocked(false);
-      shouldLockOnResume.current = false;
+    try {
+      const result = await authenticateWithBiometrics();
+      if (result.success) {
+        setLocked(false);
+        shouldLockOnResume.current = false;
+      }
+    } finally {
+      authenticationInFlight.current = false;
+      setAuthenticating(false);
     }
-  }, [authenticating]);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -44,9 +51,7 @@ export function BiometricGate({ children }: PropsWithChildren) {
       setLocked(needsLock);
       setChecking(false);
 
-      if (needsLock) {
-        void unlock();
-      }
+      if (needsLock) void unlock();
     }
 
     void initialize();
@@ -83,7 +88,8 @@ export function BiometricGate({ children }: PropsWithChildren) {
   }, [unlock]);
 
   async function signOut() {
-    await supabase.auth.signOut();
+    await setBiometricLockEnabled(false);
+    await supabase.auth.signOut({ scope: "local" });
     setLocked(false);
     shouldLockOnResume.current = false;
   }
@@ -148,13 +154,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 14,
     borderTopRightRadius: 14,
   },
-  eyebrow: {
-    color: colors.gold,
-    fontSize: 11,
-    letterSpacing: 1.4,
-    fontWeight: "800",
-    marginBottom: 10,
-  },
+  eyebrow: { color: colors.gold, fontSize: 11, letterSpacing: 1.4, fontWeight: "800", marginBottom: 10 },
   title: { color: colors.foreground, fontSize: 34, lineHeight: 40, fontWeight: "800" },
   titleArabic: {
     color: colors.primary,
