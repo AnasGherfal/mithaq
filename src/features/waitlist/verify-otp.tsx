@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
@@ -17,27 +17,21 @@ export function VerifyOtp() {
   const locale = useLocale() === "en" ? "en" : "ar";
   const copy = waitlistCopy[locale].verify;
   const router = useRouter();
-  const [phone, setPhone] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const storedPhone = sessionStorage.getItem("mithaq.waitlist.phone");
-    if (!storedPhone) {
-      router.replace(`/${locale}/waitlist`);
-      return;
-    }
-    setPhone(storedPhone);
-  }, [locale, router]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
+    const phone = sessionStorage.getItem("mithaq.waitlist.phone");
     const parsed = otpSchema.safeParse(code);
     if (!phone || !parsed.success) {
       setError(copy.error);
+      if (!phone) {
+        router.replace(`/${locale}/waitlist`);
+      }
       return;
     }
 
@@ -90,11 +84,6 @@ export function VerifyOtp() {
             className="text-center text-2xl tracking-[0.4em]"
             required
           />
-          {phone ? (
-            <p className="text-sm text-muted-foreground" dir="ltr">
-              {phone}
-            </p>
-          ) : null}
         </div>
 
         {error ? (
@@ -106,12 +95,7 @@ export function VerifyOtp() {
           </p>
         ) : null}
 
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full"
-          disabled={isSubmitting || !phone}
-        >
+        <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? copy.verifying : copy.submit}
         </Button>
 
