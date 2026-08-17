@@ -40,13 +40,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Capture canonical formatting
-        run: |
-          pnpm format
-          echo '--- CANONICAL FORMAT DIFF START ---'
-          git diff -- src/app/globals.css src/app/'(localized)'/'[locale]'/waitlist/consent/page.tsx src/app/'(localized)'/'[locale]'/waitlist/status/page.tsx src/app/'(localized)'/'[locale]'/waitlist/success/page.tsx src/components/layout/site-header.tsx src/components/ui/button.tsx src/features/waitlist/auth-start.tsx src/features/waitlist/verify-otp.tsx tests/e2e/waitlist-integration.spec.ts tests/e2e/public-site.spec.ts
-          echo '--- CANONICAL FORMAT DIFF END ---'
-
       - name: Run formatting, lint, type, unit, and build checks
         run: pnpm check
 
