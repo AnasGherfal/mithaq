@@ -92,14 +92,10 @@ Deno.serve(async (request) => {
 
   if (claimError) {
     console.error("Could not claim due account deletions", claimError.message);
-    await recordRun(
-      "failed",
-      reconciled,
-      0,
-      0,
-      0,
-      reconciliationError ? "reconciliation_and_claim_failed" : "claim_failed",
-    );
+    const errorCode = reconciliationError
+      ? "reconciliation_and_claim_failed"
+      : "claim_failed";
+    await recordRun("failed", reconciled, 0, 0, 0, errorCode);
     return new Response(JSON.stringify({ error: "claim_failed", reconciled }), {
       status: 500,
       headers: jsonHeaders,
@@ -181,13 +177,15 @@ Deno.serve(async (request) => {
   const failed = results.filter((result) => result.status === "failed").length;
   const runStatus: WorkerRunStatus =
     reconciliationError || failed > 0 ? "partial" : "succeeded";
-  const errorCode = reconciliationError
-    ? failed > 0
-      ? "reconciliation_and_item_failures"
-      : "reconciliation_failed"
-    : failed > 0
-      ? "item_failures"
-      : null;
+
+  let errorCode: string | null = null;
+  if (reconciliationError && failed > 0) {
+    errorCode = "reconciliation_and_item_failures";
+  } else if (reconciliationError) {
+    errorCode = "reconciliation_failed";
+  } else if (failed > 0) {
+    errorCode = "item_failures";
+  }
 
   await recordRun(
     runStatus,
