@@ -1,7 +1,10 @@
 import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const migrationDirectory = resolve(process.cwd(), "supabase/migrations");
+const migrationDirectory = resolve(
+  process.cwd(),
+  process.argv[2] ?? "supabase/migrations",
+);
 const reviewedOverridePattern =
   /^\s*--\s*MITHAQ-DESTRUCTIVE-MIGRATION-REVIEWED:\s*(\S.*)$/im;
 const destructiveRules = [
