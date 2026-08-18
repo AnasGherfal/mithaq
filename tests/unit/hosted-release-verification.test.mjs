@@ -9,14 +9,22 @@ import {
 
 describe("hosted release verification", () => {
   it("rejects insecure and local hosted targets", () => {
-    expect(() => validateHostedBaseUrl("http://staging.example.com")).toThrow(/HTTPS/);
-    expect(() => validateHostedBaseUrl("https://127.0.0.1:3000")).toThrow(/local address/);
-    expect(() => validateHostedBaseUrl("not-a-url")).toThrow(/valid absolute URL/);
+    expect(() => validateHostedBaseUrl("http://staging.example.com")).toThrow(
+      /HTTPS/,
+    );
+    expect(() => validateHostedBaseUrl("https://127.0.0.1:3000")).toThrow(
+      /local address/,
+    );
+    expect(() => validateHostedBaseUrl("not-a-url")).toThrow(
+      /valid absolute URL/,
+    );
   });
 
   it("normalizes an expected commit revision", () => {
     expect(normalizeExpectedRevision("ABCDEF1234567890")).toBe("abcdef123456");
-    expect(() => normalizeExpectedRevision("release-main")).toThrow(/hexadecimal commit SHA/);
+    expect(() => normalizeExpectedRevision("release-main")).toThrow(
+      /hexadecimal commit SHA/,
+    );
   });
 
   it("detects release identity drift", () => {
@@ -24,7 +32,11 @@ describe("hosted release verification", () => {
       {
         status: "ok",
         application: "Mithaq",
-        release: { version: "0.1.0", tier: "staging", revision: "abcdef123456" },
+        release: {
+          version: "0.1.0",
+          tier: "staging",
+          revision: "abcdef123456",
+        },
       },
       { tier: "production", version: "0.1.0", revision: "abcdef123456" },
     );
@@ -34,11 +46,13 @@ describe("hosted release verification", () => {
 
   it("requires the reviewed hosted security-header baseline", () => {
     const headers = new Headers({
-      "content-security-policy": "default-src 'self'; object-src 'none'; frame-ancestors 'none'",
+      "content-security-policy":
+        "default-src 'self'; object-src 'none'; frame-ancestors 'none'",
       "x-content-type-options": "nosniff",
       "referrer-policy": "strict-origin-when-cross-origin",
       "x-frame-options": "DENY",
-      "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+      "permissions-policy":
+        "camera=(), microphone=(), geolocation=(), payment=()",
     });
 
     expect(validateHostedHeaders(headers, "staging")).toEqual([]);
@@ -59,8 +73,10 @@ describe("hosted release verification", () => {
       "x-content-type-options": "nosniff",
       "referrer-policy": "strict-origin-when-cross-origin",
       "x-frame-options": "DENY",
-      "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
-      "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+      "permissions-policy":
+        "camera=(), microphone=(), geolocation=(), payment=()",
+      "strict-transport-security":
+        "max-age=63072000; includeSubDomains; preload",
     };
 
     const fetchImpl = async (input) => {
@@ -71,7 +87,11 @@ describe("hosted release verification", () => {
           {
             status: "ok",
             application: "Mithaq",
-            release: { version: "0.1.0", tier: "production", revision: "abcdef123456" },
+            release: {
+              version: "0.1.0",
+              tier: "production",
+              revision: "abcdef123456",
+            },
           },
           { headers: { ...secureHeaders, "cache-control": "no-store" } },
         );
