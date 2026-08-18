@@ -62,6 +62,9 @@
     "mobileTypecheckRequired": true,
     "expoDoctorRequired": true,
     "productionE2eRequired": true,
-    "maintenanceReadinessRequired": true
+    "maintenanceReadinessRequired": true,
+    "releaseMetadataRequired": true,
+    "privacySafeServerObservabilityRequired": true,
+    "contentSecurityPolicyRequired": true
   }
 }
