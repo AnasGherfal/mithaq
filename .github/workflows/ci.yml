@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -81,11 +81,8 @@ jobs:
       EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
 
     steps:
-      - name: Check out the mobile branch
+      - name: Check out the repository
         uses: actions/checkout@v7
-        with:
-          ref: agent/mobile-app-foundation
-          fetch-depth: 0
 
       - name: Install Node.js 24
         uses: actions/setup-node@v6
@@ -95,21 +92,16 @@ jobs:
           cache-dependency-path: apps/mobile/package-lock.json
 
       - name: Install mobile dependencies
+        # Expo Router brings optional web peers into the native dependency graph.
+        # Keep the committed lockfile deterministic while allowing npm to honor
+        # the Expo SDK 57 React 19.2.3 native stack despite those optional peers.
         run: npm ci --legacy-peer-deps
 
-      - name: Apply exact mobile formatting and push
-        run: |
-          npx prettier --write .
-          if git diff --quiet -- .; then
-            echo "Mobile package already formatted."
-            exit 0
-          fi
-          cd ../..
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/mobile
-          git commit -m "Format mobile resilience screens"
-          git push origin HEAD:agent/mobile-app-foundation
+      - name: Run mobile TypeScript and formatting checks
+        run: npm run check
+
+      - name: Validate Expo dependencies and configuration
+        run: npx expo-doctor@latest
 
   database:
     name: Supabase database and waitlist integration
