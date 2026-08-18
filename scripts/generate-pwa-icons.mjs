@@ -119,8 +119,10 @@ await mkdir(outputDirectory, { recursive: true });
 await Promise.all([
   writeIcon("icon-192.png", 192),
   writeIcon("icon-512.png", 512),
+  writeIcon("icon-1024.png", 1024),
   writeIcon("icon-maskable-512.png", 512, { maskable: true }),
+  writeIcon("icon-maskable-1024.png", 1024, { maskable: true }),
   writeIcon("apple-touch-icon.png", 180),
 ]);
 
-console.log("Generated provisional Mithaq PWA icons in public/icons.");
+console.log("Generated canonical Mithaq web and native icons in public/icons.");
