@@ -1,5 +1,5 @@
 begin;
-select plan(24);
+select plan(25);
 
 select is(
   has_function_privilege('authenticated', 'public.open_my_conversation(uuid)', 'EXECUTE'),
