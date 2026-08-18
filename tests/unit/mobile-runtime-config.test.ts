@@ -1,8 +1,43 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import * as ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { validateMobileSupabaseConfig } from "../../apps/mobile/src/lib/runtime-config";
+
+type MobileSupabaseConfigInput = {
+  url: string | undefined;
+  publishableKey: string | undefined;
+  allowInsecureLocal: boolean;
+};
+
+type MobileSupabaseConfig = {
+  readonly url: string;
+  readonly publishableKey: string;
+};
+
+type ValidateMobileSupabaseConfig = (input: MobileSupabaseConfigInput) => MobileSupabaseConfig;
+
+async function loadValidator(): Promise<ValidateMobileSupabaseConfig> {
+  const sourcePath = resolve(process.cwd(), "apps/mobile/src/lib/runtime-config.ts");
+  const source = await readFile(sourcePath, "utf8");
+  const output = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2022,
+    },
+    fileName: sourcePath,
+  }).outputText;
+  const moduleUrl = `data:text/javascript;base64,${Buffer.from(output).toString("base64")}`;
+  const loaded = (await import(moduleUrl)) as {
+    validateMobileSupabaseConfig: ValidateMobileSupabaseConfig;
+  };
+
+  return loaded.validateMobileSupabaseConfig;
+}
 
 describe("mobile Supabase runtime configuration", () => {
-  it("allows the local Supabase URL only in development", () => {
+  it("allows the local Supabase URL only in development", async () => {
+    const validateMobileSupabaseConfig = await loadValidator();
+
     expect(
       validateMobileSupabaseConfig({
         url: "http://127.0.0.1:54321",
@@ -15,7 +50,9 @@ describe("mobile Supabase runtime configuration", () => {
     });
   });
 
-  it("requires HTTPS and a non-loopback host outside development", () => {
+  it("requires HTTPS and a non-loopback host outside development", async () => {
+    const validateMobileSupabaseConfig = await loadValidator();
+
     expect(() =>
       validateMobileSupabaseConfig({
         url: "http://project.supabase.co",
@@ -44,7 +81,9 @@ describe("mobile Supabase runtime configuration", () => {
     });
   });
 
-  it("rejects missing, malformed, and secret client configuration", () => {
+  it("rejects missing, malformed, and secret client configuration", async () => {
+    const validateMobileSupabaseConfig = await loadValidator();
+
     expect(() =>
       validateMobileSupabaseConfig({
         url: undefined,
