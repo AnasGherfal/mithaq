@@ -8,6 +8,7 @@ import {
   defaultQuestionnaire,
   loadQuestionnaire,
   saveQuestionnaire,
+  validateQuestionnaire,
   type MaritalStatus,
   type QuestionnaireDraft,
   type YesNoDepends,
@@ -97,22 +98,65 @@ export default function QuestionnaireScreen() {
     );
   }
 
+  function normalizedDraft(): QuestionnaireDraft {
+    return {
+      ...draft,
+      currentCountryCode: draft.currentCountryCode.trim().toUpperCase(),
+      preferredCountries: countries
+        .split(",")
+        .map((country) => country.trim().toUpperCase())
+        .filter(Boolean),
+    };
+  }
+
+  function validationMessage(reason: string) {
+    return copy.validation[reason as keyof typeof copy.validation] ?? copy.error;
+  }
+
+  function continueToNextStep() {
+    setError(null);
+
+    if (step === 1) {
+      const countryCode = draft.currentCountryCode.trim().toUpperCase();
+      const reason = !/^[A-Z]{2}$/.test(countryCode)
+        ? "country"
+        : !draft.currentCity.trim() || draft.currentCity.trim().length > 100
+          ? "city"
+          : !draft.libyanSelfAttestation
+            ? "libyan"
+            : null;
+
+      if (reason) {
+        setError(validationMessage(reason));
+        return;
+      }
+    }
+
+    if (step === 2) {
+      const reason = validateQuestionnaire(normalizedDraft());
+      if (reason) {
+        setError(validationMessage(reason));
+        return;
+      }
+    }
+
+    setStep((value) => Math.min(3, value + 1));
+  }
+
   async function finish() {
     setSaving(true);
     setError(null);
 
     try {
-      const result = await saveQuestionnaire({
-        ...draft,
-        currentCountryCode: draft.currentCountryCode.trim().toUpperCase(),
-        preferredCountries: countries
-          .split(",")
-          .map((country) => country.trim().toUpperCase())
-          .filter(Boolean),
-      });
+      const result = await saveQuestionnaire(normalizedDraft());
 
       if (!result.ok) {
-        setError(copy.error);
+        if (result.reason === "unauthorized") {
+          router.replace({ pathname: "/auth", params: { locale } });
+          return;
+        }
+
+        setError(validationMessage(result.reason));
         return;
       }
 
@@ -121,7 +165,7 @@ export default function QuestionnaireScreen() {
         params: { locale },
       });
     } catch {
-      setError(copy.error);
+      setError(copy.validation.database);
     } finally {
       setSaving(false);
     }
@@ -137,14 +181,20 @@ export default function QuestionnaireScreen() {
         loading || loadError ? null : (
           <View style={styles.footerButtons}>
             {step > 1 ? (
-              <PrimaryButton tone="quiet" onPress={() => setStep((value) => value - 1)}>
+              <PrimaryButton
+                tone="quiet"
+                onPress={() => {
+                  setError(null);
+                  setStep((value) => value - 1);
+                }}
+              >
                 {copy.back}
               </PrimaryButton>
             ) : null}
             <PrimaryButton
               loading={saving}
               onPress={() => {
-                if (step < 3) setStep((value) => value + 1);
+                if (step < 3) continueToNextStep();
                 else void finish();
               }}
             >
@@ -181,7 +231,10 @@ export default function QuestionnaireScreen() {
               update={update}
               toggleStatus={toggleStatus}
               countries={countries}
-              setCountries={setCountries}
+              setCountries={(value) => {
+                setCountries(value);
+                setError(null);
+              }}
             />
           ) : null}
           {step === 3 ? <StepThree copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
