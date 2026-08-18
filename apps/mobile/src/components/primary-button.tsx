@@ -1,5 +1,4 @@
 import type { PropsWithChildren } from "react";
-import * as Haptics from "expo-haptics";
 import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } from "react-native";
 import { colors, radius, shadows } from "@/theme";
 
@@ -18,15 +17,10 @@ export function PrimaryButton({
   style,
   accessibilityLabel,
   accessibilityState,
-  onPress,
   ...props
 }: PrimaryButtonProps) {
   const inactive = disabled || loading;
   const derivedAccessibilityLabel = accessibilityLabel ?? (typeof children === "string" ? children : undefined);
-  const handlePress: PressableProps["onPress"] = (event) => {
-    void Haptics.selectionAsync().catch(() => undefined);
-    onPress?.(event);
-  };
 
   return (
     <Pressable
@@ -34,7 +28,6 @@ export function PrimaryButton({
       accessibilityLabel={derivedAccessibilityLabel}
       accessibilityState={{ ...accessibilityState, disabled: Boolean(inactive), busy: loading }}
       disabled={inactive}
-      onPress={handlePress}
       style={(state) => [
         styles.base,
         tone === "primary" ? styles.primary : styles.quiet,
