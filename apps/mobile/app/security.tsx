@@ -28,12 +28,14 @@ export default function SecurityScreen() {
   useEffect(() => {
     let active = true;
 
-    void Promise.all([getBiometricLockEnabled(), getBiometricAvailability()]).then(([currentEnabled, availability]) => {
-      if (!active) return;
-      setEnabled(currentEnabled);
-      setAvailable(availability.available);
-      setLoading(false);
-    });
+    void Promise.all([getBiometricLockEnabled(), getBiometricAvailability()]).then(
+      ([currentEnabled, availability]) => {
+        if (!active) return;
+        setEnabled(currentEnabled);
+        setAvailable(availability.available);
+        setLoading(false);
+      },
+    );
 
     return () => {
       active = false;
@@ -88,7 +90,11 @@ export default function SecurityScreen() {
 
     if (error) {
       setLocaleSaving(false);
-      setMessage(rtl ? "تعذر حفظ اللغة الآن. حاول مرة أخرى." : "We could not save your language right now. Try again.");
+      setMessage(
+        rtl
+          ? "تعذر حفظ اللغة الآن. حاول مرة أخرى."
+          : "We could not save your language right now. Try again.",
+      );
       return;
     }
 
@@ -141,6 +147,10 @@ export default function SecurityScreen() {
         privacyTitle: "الخصوصية والموافقات",
         privacyBody: "راجع سجل موافقاتك، تحكم في التحديثات الاختيارية، واطلب حذف حسابك.",
         privacyButton: "إدارة الخصوصية والموافقات",
+        safetyTitle: "السلامة والثقة",
+        safetyBody:
+          "راجع البلاغات التي أرسلتها وحالة الحظر، واعرف كيف يحمي ميثاق التعارف الخاص قبل إطلاقه.",
+        safetyButton: "فتح مركز السلامة",
         back: "العودة إلى الحساب",
       }
     : {
@@ -166,6 +176,10 @@ export default function SecurityScreen() {
         privacyTitle: "Privacy & consent",
         privacyBody: "Review consent history, control optional updates, and request account deletion.",
         privacyButton: "Manage privacy and consent",
+        safetyTitle: "Trust & safety",
+        safetyBody:
+          "Review reports you submitted, your block state, and how Mithaq protects private introductions before they launch.",
+        safetyButton: "Open Safety Center",
         back: "Back to account",
       };
 
@@ -187,14 +201,22 @@ export default function SecurityScreen() {
             <Text style={styles.icon}>◎</Text>
           </View>
           <Text style={[styles.cardTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.cardTitle}</Text>
-          <Text style={[styles.status, enabled ? styles.statusEnabled : null, { textAlign: rtl ? "right" : "left" }]}>
+          <Text
+            style={[
+              styles.status,
+              enabled ? styles.statusEnabled : null,
+              { textAlign: rtl ? "right" : "left" },
+            ]}
+          >
             {enabled ? copy.enabled : copy.disabled}
           </Text>
         </View>
 
         {!loading && !available ? (
           <View style={styles.notice}>
-            <Text style={[styles.noticeText, { textAlign: rtl ? "right" : "left" }]}>{copy.unavailable}</Text>
+            <Text style={[styles.noticeText, { textAlign: rtl ? "right" : "left" }]}>
+              {copy.unavailable}
+            </Text>
           </View>
         ) : null}
 
@@ -202,7 +224,9 @@ export default function SecurityScreen() {
           <Text style={[styles.noteText, { textAlign: rtl ? "right" : "left" }]}>{copy.note}</Text>
         </View>
 
-        {message ? <Text style={[styles.message, { textAlign: rtl ? "right" : "left" }]}>{message}</Text> : null}
+        {message ? (
+          <Text style={[styles.message, { textAlign: rtl ? "right" : "left" }]}>{message}</Text>
+        ) : null}
 
         {enabled ? (
           <PrimaryButton tone="quiet" loading={saving} onPress={() => void disable()}>
@@ -217,8 +241,12 @@ export default function SecurityScreen() {
         <View style={styles.divider} />
 
         <View style={styles.settingsCard}>
-          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.languageTitle}</Text>
-          <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.languageBody}</Text>
+          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
+            {copy.languageTitle}
+          </Text>
+          <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>
+            {copy.languageBody}
+          </Text>
           <View style={[styles.valuePill, { alignSelf: rtl ? "flex-end" : "flex-start" }]}>
             <Text style={styles.valuePillText}>{copy.languageValue}</Text>
           </View>
@@ -228,18 +256,47 @@ export default function SecurityScreen() {
         </View>
 
         <View style={styles.settingsCard}>
-          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.sessionsTitle}</Text>
-          <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.sessionsBody}</Text>
+          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
+            {copy.sessionsTitle}
+          </Text>
+          <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>
+            {copy.sessionsBody}
+          </Text>
           <PrimaryButton tone="quiet" loading={sessionSaving} onPress={() => void signOutOtherSessions()}>
             {copy.sessionsButton}
           </PrimaryButton>
         </View>
 
         <View style={styles.privacyCard}>
-          <Text style={[styles.privacyTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyTitle}</Text>
-          <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyBody}</Text>
-          <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/privacy", params: { locale } })}>
+          <Text style={[styles.privacyTitle, { textAlign: rtl ? "right" : "left" }]}>
+            {copy.privacyTitle}
+          </Text>
+          <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>
+            {copy.privacyBody}
+          </Text>
+          <PrimaryButton
+            tone="quiet"
+            onPress={() => router.push({ pathname: "/privacy", params: { locale } })}
+          >
             {copy.privacyButton}
+          </PrimaryButton>
+        </View>
+
+        <View style={styles.safetyCard}>
+          <View style={styles.safetyMark}>
+            <Text style={styles.safetyMarkText}>✓</Text>
+          </View>
+          <Text style={[styles.privacyTitle, { textAlign: rtl ? "right" : "left" }]}>
+            {copy.safetyTitle}
+          </Text>
+          <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>
+            {copy.safetyBody}
+          </Text>
+          <PrimaryButton
+            tone="quiet"
+            onPress={() => router.push({ pathname: "/safety", params: { locale } })}
+          >
+            {copy.safetyButton}
           </PrimaryButton>
         </View>
       </View>
@@ -314,6 +371,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceMuted,
     padding: 17,
   },
+  safetyCard: {
+    gap: 10,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.primaryWash,
+    padding: 17,
+  },
+  safetyMark: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+  },
+  safetyMarkText: { color: colors.white, fontSize: 18, fontWeight: "900" },
   privacyTitle: { color: colors.foreground, fontSize: 17, fontWeight: "800" },
   privacyBody: { color: colors.muted, fontSize: 13, lineHeight: 21 },
 });
