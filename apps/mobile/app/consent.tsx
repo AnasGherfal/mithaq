@@ -15,22 +15,45 @@ export default function ConsentScreen() {
   const [required, setRequired] = useState(false);
   const [communications, setCommunications] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function finalize() {
-    if (!required) return;
+    if (!required || saving) return;
+
     setSaving(true);
-    setError(false);
-    const { error: rpcError } = await supabase.rpc("finalize_waitlist", {
-      p_locale: locale,
-      p_communications: communications,
-    });
-    setSaving(false);
-    if (rpcError) {
-      setError(true);
-      return;
+    setError(null);
+
+    try {
+      const { error: rpcError } = await supabase.rpc("finalize_waitlist", {
+        p_locale: locale,
+        p_communications: communications,
+      });
+
+      if (rpcError) {
+        const message = rpcError.message.toLowerCase();
+        if (message.includes("authentication")) {
+          router.replace({ pathname: "/auth", params: { locale } });
+          return;
+        }
+        if (message.includes("questionnaire")) {
+          setError(copy.questionnaireError);
+          return;
+        }
+        if (message.includes("deletion") || message.includes("active account")) {
+          setError(copy.accountError);
+          return;
+        }
+
+        setError(copy.error);
+        return;
+      }
+
+      router.replace({ pathname: "/success", params: { locale } });
+    } catch {
+      setError(copy.networkError);
+    } finally {
+      setSaving(false);
     }
-    router.replace({ pathname: "/success", params: { locale } });
   }
 
   return (
@@ -49,15 +72,23 @@ export default function ConsentScreen() {
         <ConsentCard
           label={copy.required}
           checked={required}
-          onPress={() => setRequired((value) => !value)}
+          onPress={() => {
+            setRequired((value) => !value);
+            setError(null);
+          }}
           rtl={rtl}
+          disabled={saving}
           required
         />
         <ConsentCard
           label={copy.communications}
           checked={communications}
-          onPress={() => setCommunications((value) => !value)}
+          onPress={() => {
+            setCommunications((value) => !value);
+            setError(null);
+          }}
           rtl={rtl}
+          disabled={saving}
         />
 
         <View style={styles.note}>
@@ -65,7 +96,11 @@ export default function ConsentScreen() {
           <Text style={[styles.noteBody, { textAlign: rtl ? "right" : "left" }]}>{copy.noteBody}</Text>
         </View>
 
-        {error ? <Text style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>{copy.error}</Text> : null}
+        {error ? (
+          <Text accessibilityRole="alert" style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>
+            {error}
+          </Text>
+        ) : null}
 
         <PrimaryButton disabled={!required} loading={saving} onPress={() => void finalize()}>
           {copy.submit}
@@ -80,20 +115,28 @@ function ConsentCard({
   checked,
   onPress,
   rtl,
+  disabled = false,
   required = false,
 }: {
   label: string;
   checked: boolean;
   onPress: () => void;
   rtl: boolean;
+  disabled?: boolean;
   required?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="checkbox"
-      accessibilityState={{ checked }}
+      accessibilityState={{ checked, disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.card, checked ? styles.cardChecked : null, pressed ? styles.pressed : null]}
+      style={({ pressed }) => [
+        styles.card,
+        checked ? styles.cardChecked : null,
+        pressed && !disabled ? styles.pressed : null,
+        disabled ? styles.disabled : null,
+      ]}
     >
       <View style={styles.cardCopy}>
         {required ? (
@@ -125,7 +168,10 @@ function consentCopy(locale: MobileLocale) {
       noteTitle: "التحديثات اختيارية",
       noteBody: "يمكنك إيقاف رسائل ميثاق لاحقاً دون التأثير على تسجيلك.",
       submit: "تأكيد والانضمام إلى القائمة",
-      error: "تعذر إكمال التسجيل الآن. حاول مرة أخرى.",
+      questionnaireError: "لا يمكن تثبيت التسجيل لأن الاستبيان غير مكتمل. ارجع إلى حالة التسجيل وأكمل الإجابات المطلوبة.",
+      accountError: "لا يمكن إكمال التسجيل لأن الحساب غير نشط حالياً. راجع حالة حسابك للمتابعة.",
+      networkError: "تعذر الاتصال لإكمال التسجيل. لم نحذف إجاباتك؛ تحقق من الشبكة ثم حاول مرة أخرى.",
+      error: "تعذر إكمال التسجيل الآن. لم نفترض نجاح العملية؛ حاول مرة أخرى.",
     };
   }
   return {
@@ -139,7 +185,10 @@ function consentCopy(locale: MobileLocale) {
     noteTitle: "Updates are optional",
     noteBody: "You can stop Mithaq communications later without affecting your registration.",
     submit: "Confirm and join the waitlist",
-    error: "We could not complete registration right now. Try again.",
+    questionnaireError: "We cannot finalize registration because the questionnaire is incomplete. Return to registration status and complete the required answers.",
+    accountError: "We cannot complete registration because this account is not active right now. Review your account status to continue.",
+    networkError: "We could not connect to complete registration. Your saved answers were not removed; check your network and try again.",
+    error: "We could not complete registration right now. We did not assume the operation succeeded; try again.",
   };
 }
 
@@ -203,6 +252,7 @@ const styles = StyleSheet.create({
   markText: { color: colors.muted, fontSize: 15, fontWeight: "900" },
   markTextChecked: { color: colors.white },
   pressed: { opacity: 0.84, transform: [{ scale: 0.99 }] },
+  disabled: { opacity: 0.65 },
   note: {
     padding: 16,
     borderRadius: radius.md,
@@ -212,5 +262,5 @@ const styles = StyleSheet.create({
   },
   noteTitle: { color: colors.primary, fontWeight: "800", fontSize: 14 },
   noteBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 5 },
-  error: { color: colors.danger, fontSize: 13, fontWeight: "700" },
+  error: { color: colors.danger, fontSize: 13, fontWeight: "700", lineHeight: 20 },
 });
