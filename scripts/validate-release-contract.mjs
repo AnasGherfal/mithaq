@@ -1,7 +1,10 @@
 import { readFile } from "node:fs/promises";
 
 const contract = JSON.parse(
-  await readFile(new URL("../ops/release-contract.json", import.meta.url), "utf8"),
+  await readFile(
+    new URL("../ops/release-contract.json", import.meta.url),
+    "utf8",
+  ),
 );
 
 const errors = [];
@@ -37,13 +40,19 @@ for (const environmentName of requiredEnvironments) {
   }
 
   for (const variable of publicVariables) {
-    if (forbiddenPublicFragments.some((fragment) => variable.includes(fragment))) {
-      errors.push(`${environmentName} exposes forbidden public variable ${variable}`);
+    if (
+      forbiddenPublicFragments.some((fragment) => variable.includes(fragment))
+    ) {
+      errors.push(
+        `${environmentName} exposes forbidden public variable ${variable}`,
+      );
     }
   }
 
   if (!serverSecrets.includes("SUPABASE_SERVICE_ROLE_KEY")) {
-    errors.push(`${environmentName} must declare SUPABASE_SERVICE_ROLE_KEY as server-only`);
+    errors.push(
+      `${environmentName} must declare SUPABASE_SERVICE_ROLE_KEY as server-only`,
+    );
   }
 }
 
@@ -62,7 +71,10 @@ for (const workerName of requiredWorkers) {
     continue;
   }
 
-  if (!Number.isInteger(worker.maxIntervalMinutes) || worker.maxIntervalMinutes < 1) {
+  if (
+    !Number.isInteger(worker.maxIntervalMinutes) ||
+    worker.maxIntervalMinutes < 1
+  ) {
     errors.push(`${workerName}.maxIntervalMinutes must be a positive integer`);
   }
 
