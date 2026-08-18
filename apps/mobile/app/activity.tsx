@@ -10,7 +10,7 @@ import { colors, radius } from "@/theme";
 
 type NotificationRow = {
   notification_id: string;
-  notification_kind: "introduction_offered" | "message_received";
+  notification_kind: "introduction_offered" | "introduction_mutually_accepted" | "message_received";
   introduction_id: string;
   created_at: string;
   is_read: boolean;
@@ -106,7 +106,10 @@ export default function ActivityScreen() {
   }
 
   function openItem(item: NotificationRow) {
-    if (item.notification_kind === "message_received") {
+    if (
+      item.notification_kind === "message_received" ||
+      item.notification_kind === "introduction_mutually_accepted"
+    ) {
       router.push({
         pathname: "/conversation",
         params: { locale, introductionId: item.introduction_id },
@@ -160,12 +163,15 @@ export default function ActivityScreen() {
           <View style={styles.list}>
             {items.map((item) => {
               const isMessage = item.notification_kind === "message_received";
+              const isMutual = item.notification_kind === "introduction_mutually_accepted";
               const date = new Date(item.created_at).toLocaleString(locale === "ar" ? "ar-LY" : "en-US", {
                 month: "short",
                 day: "numeric",
                 hour: "numeric",
                 minute: "2-digit",
               });
+              const title = isMessage ? copy.messageTitle : isMutual ? copy.mutualTitle : copy.introductionTitle;
+              const body = isMessage ? copy.messageBody : isMutual ? copy.mutualBody : copy.introductionBody;
 
               return (
                 <Pressable
@@ -179,16 +185,18 @@ export default function ActivityScreen() {
                   ]}
                 >
                   <View style={[styles.itemTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-                    <View style={[styles.itemMark, isMessage ? styles.messageMark : null]}>
-                      <Text style={styles.itemMarkText}>{isMessage ? "•" : "✦"}</Text>
+                    <View
+                      style={[
+                        styles.itemMark,
+                        isMessage ? styles.messageMark : null,
+                        isMutual ? styles.mutualMark : null,
+                      ]}
+                    >
+                      <Text style={styles.itemMarkText}>{isMessage ? "•" : isMutual ? "✓" : "✦"}</Text>
                     </View>
                     <View style={styles.itemCopy}>
-                      <Text style={[styles.itemTitle, { textAlign: rtl ? "right" : "left" }]}>
-                        {isMessage ? copy.messageTitle : copy.introductionTitle}
-                      </Text>
-                      <Text style={[styles.itemBody, { textAlign: rtl ? "right" : "left" }]}>
-                        {isMessage ? copy.messageBody : copy.introductionBody}
-                      </Text>
+                      <Text style={[styles.itemTitle, { textAlign: rtl ? "right" : "left" }]}>{title}</Text>
+                      <Text style={[styles.itemBody, { textAlign: rtl ? "right" : "left" }]}>{body}</Text>
                       <Text style={[styles.itemDate, { textAlign: rtl ? "right" : "left" }]}>{date}</Text>
                     </View>
                     {!item.is_read ? <View style={styles.unreadDot} /> : null}
@@ -232,6 +240,8 @@ function activityCopy(locale: MobileLocale) {
         "قائمة النشاط لا تعرض نص الرسالة ولا رقم الهاتف ولا معرف الطرف الآخر. افتح التعارف نفسه لرؤية ما يسمح به ميثاق فقط.",
       introductionTitle: "تعارف خاص جديد",
       introductionBody: "أنشأ ميثاق تعارفاً خاصاً لك. افتح التعارف لمراجعة الملف المسموح به واتخاذ قرارك.",
+      mutualTitle: "تم قبول التعارف من الطرفين",
+      mutualBody: "أصبح التواصل الخاص لهذا التعارف متاحاً الآن. افتحه عندما تكون جاهزاً.",
       messageTitle: "رسالة جديدة",
       messageBody: "وصلت رسالة داخل تعارف تم قبوله من الطرفين.",
       loadEarlier: "عرض نشاط أقدم",
@@ -257,6 +267,8 @@ function activityCopy(locale: MobileLocale) {
     introductionTitle: "New private introduction",
     introductionBody:
       "Mithaq created a private introduction for you. Open it to review the permitted profile and make your decision.",
+    mutualTitle: "Introduction accepted by both sides",
+    mutualBody: "Private communication for this introduction is now available. Open it when you are ready.",
     messageTitle: "New message",
     messageBody: "A message arrived inside a mutually accepted introduction.",
     loadEarlier: "Show earlier activity",
@@ -295,6 +307,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   messageMark: { backgroundColor: colors.foreground },
+  mutualMark: { backgroundColor: colors.gold },
   itemMarkText: { color: colors.white, fontSize: 17, fontWeight: "900" },
   itemCopy: { flex: 1 },
   itemTitle: { color: colors.foreground, fontSize: 15, fontWeight: "800" },
