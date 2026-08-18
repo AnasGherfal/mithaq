@@ -106,10 +106,7 @@ export default function ActivityScreen() {
   }
 
   function openItem(item: NotificationRow) {
-    if (
-      item.notification_kind === "message_received" ||
-      item.notification_kind === "introduction_mutually_accepted"
-    ) {
+    if (item.notification_kind === "message_received" || item.notification_kind === "introduction_mutually_accepted") {
       router.push({
         pathname: "/conversation",
         params: { locale, introductionId: item.introduction_id },
