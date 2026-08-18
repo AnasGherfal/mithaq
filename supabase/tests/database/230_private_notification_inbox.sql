@@ -152,13 +152,13 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '23232323-2323-4323-8323-232323232322', true);
 select is(
   (select count(*)::integer from public.list_my_notifications(null, 50)),
-  2,
-  'recipient sees their introduction and message notifications only'
+  3,
+  'recipient sees their private offer, mutual-acceptance, and message activity only'
 );
 select is(
   public.get_my_notification_unread_count(),
-  2::bigint,
-  'recipient unread count includes both unread notification types'
+  3::bigint,
+  'recipient unread count includes offer, mutual acceptance, and message activity'
 );
 select is(
   (select count(*)::integer from public.list_my_notifications(null, 50) where notification_kind = 'message_received'),
@@ -167,8 +167,8 @@ select is(
 );
 select is(
   public.mark_my_notifications_read(null),
-  2,
-  'recipient can mark all current notifications read'
+  3,
+  'recipient can mark all three current private activity records read'
 );
 select is(
   public.get_my_notification_unread_count(),
