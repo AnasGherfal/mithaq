@@ -57,6 +57,19 @@ begin
     raise exception 'account unavailable';
   end if;
 
+  -- Profile data is an additional purpose beyond account authentication. Only
+  -- collect it after the member has completed the explicit waitlist consent
+  -- and submission flow; a deep link must not bypass that boundary.
+  if not exists (
+    select 1
+    from public.waitlist_applications a
+    where a.user_id = v_user_id
+      and a.status in ('submitted', 'qualified', 'invited')
+      and a.submitted_at is not null
+  ) then
+    raise exception 'waitlist submission required';
+  end if;
+
   if v_display_name is not null and char_length(v_display_name) not between 2 and 50 then
     raise exception 'invalid display name';
   end if;
