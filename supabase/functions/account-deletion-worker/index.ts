@@ -9,6 +9,10 @@ type WorkerRunStatus = "succeeded" | "partial" | "failed";
 
 const jsonHeaders = { "content-type": "application/json; charset=utf-8" };
 
+function logOperationalError(code: string) {
+  console.error(`account_deletion_worker.${code}`);
+}
+
 Deno.serve(async (request) => {
   if (request.method !== "POST") {
     return new Response(JSON.stringify({ error: "method_not_allowed" }), {
@@ -21,9 +25,7 @@ Deno.serve(async (request) => {
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!supabaseUrl || !serviceRoleKey) {
-    console.error(
-      "Account deletion worker is missing required server-side environment variables.",
-    );
+    logOperationalError("configuration_missing");
     return new Response(JSON.stringify({ error: "worker_not_configured" }), {
       status: 503,
       headers: jsonHeaders,
@@ -62,10 +64,7 @@ Deno.serve(async (request) => {
     });
 
     if (error) {
-      console.error(
-        "Could not record account deletion worker run",
-        error.message,
-      );
+      logOperationalError("run_audit_failed");
     }
   }
 
@@ -77,11 +76,8 @@ Deno.serve(async (request) => {
 
   if (reconciliationError) {
     // Reconciliation repairs a previous run's narrow post-Auth-delete failure
-    // window. Log it loudly, but do not block newly due deletion requests.
-    console.error(
-      "Could not reconcile interrupted account deletions",
-      reconciliationError.message,
-    );
+    // window. Log a privacy-safe code, but do not block newly due requests.
+    logOperationalError("reconciliation_failed");
   } else {
     reconciled = Number(reconciliationData ?? 0);
   }
@@ -94,7 +90,7 @@ Deno.serve(async (request) => {
   );
 
   if (claimError) {
-    console.error("Could not claim due account deletions", claimError.message);
+    logOperationalError("claim_failed");
     const errorCode = reconciliationError
       ? "reconciliation_and_claim_failed"
       : "claim_failed";
@@ -120,11 +116,7 @@ Deno.serve(async (request) => {
     );
 
     if (purgeError) {
-      console.error(
-        "Could not purge private account data",
-        item.request_id,
-        purgeError.message,
-      );
+      logOperationalError("private_data_purge_failed");
       await admin.rpc("mark_account_deletion_failed", {
         p_request_id: item.request_id,
         p_error_code: "private_data_purge_failed",
@@ -138,11 +130,7 @@ Deno.serve(async (request) => {
     );
 
     if (deleteError) {
-      console.error(
-        "Could not delete auth user",
-        item.request_id,
-        deleteError.message,
-      );
+      logOperationalError("auth_delete_failed");
       await admin.rpc("mark_account_deletion_failed", {
         p_request_id: item.request_id,
         p_error_code: "auth_delete_failed",
@@ -162,11 +150,7 @@ Deno.serve(async (request) => {
       // Auth deletion has already succeeded, so the public request may have
       // cascaded away. A later worker invocation will finalize the surviving
       // private tombstone through reconcile_orphaned_account_deletions().
-      console.error(
-        "Auth user deleted but tombstone completion failed",
-        item.request_id,
-        completeError.message,
-      );
+      logOperationalError("tombstone_completion_failed");
       results.push({ requestId: item.request_id, status: "failed" });
       continue;
     }
