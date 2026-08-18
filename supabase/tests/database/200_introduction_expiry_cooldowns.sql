@@ -44,14 +44,15 @@ insert into public.waitlist_preferences (
   ('20202020-bbbb-4bbb-8bbb-202020202012', true, true, 18, 60, 'depends');
 
 insert into public.member_profiles (user_id, display_name, about_me, profile_completed_at) values
-  ('20202020-2020-4020-8020-202020202011', 'A', 'A complete serious profile for introduction expiry and cooldown testing.', now()),
-  ('20202020-2020-4020-8020-202020202012', 'B', 'A complete serious profile for introduction expiry and cooldown testing.', now());
+  ('20202020-2020-4020-8020-202020202011', 'Adam', 'A complete serious profile for introduction expiry and cooldown testing.', now()),
+  ('20202020-2020-4020-8020-202020202012', 'Basma', 'A complete serious profile for introduction expiry and cooldown testing.', now());
 
 set local role service_role;
 select public.set_member_profile_review_state('20202020-2020-4020-8020-202020202011', 'approved', 'm6', 'cooldown-test', null);
 select public.set_member_profile_review_state('20202020-2020-4020-8020-202020202012', 'approved', 'm6', 'cooldown-test', null);
 
 create temporary table cooldown_ids (name text primary key, id uuid not null) on commit drop;
+grant select on cooldown_ids to authenticated;
 with inserted as (
   insert into private.controlled_introductions (
     user_a_id,
