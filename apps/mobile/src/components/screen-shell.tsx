@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ConnectivityBanner } from "@/components/connectivity-banner";
 import { colors, radius, shadows, spacing } from "@/theme";
 
 type ScreenShellProps = PropsWithChildren<{
@@ -20,7 +19,14 @@ type ScreenShellProps = PropsWithChildren<{
   rtl?: boolean;
 }>;
 
-export function ScreenShell({ eyebrow, title, body, footer, rtl = false, children }: ScreenShellProps) {
+export function ScreenShell({
+  eyebrow,
+  title,
+  body,
+  footer,
+  rtl = false,
+  children,
+}: ScreenShellProps) {
   const { width } = useWindowDimensions();
   const compact = width < 370;
   const direction = rtl ? "rtl" : "ltr";
@@ -31,9 +37,15 @@ export function ScreenShell({ eyebrow, title, body, footer, rtl = false, childre
       <View style={styles.orbTop} pointerEvents="none" />
       <View style={styles.orbBottom} pointerEvents="none" />
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, compact ? styles.scrollContentCompact : null]}
+          contentContainerStyle={[
+            styles.scrollContent,
+            compact ? styles.scrollContentCompact : null,
+          ]}
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -50,24 +62,33 @@ export function ScreenShell({ eyebrow, title, body, footer, rtl = false, childre
             <View style={styles.brandRule} />
           </View>
 
-          <ConnectivityBanner rtl={rtl} />
-
           <View style={[styles.hero, { direction }]}>
             {eyebrow ? (
-              <View style={[styles.eyebrowPill, rtl ? styles.alignEnd : styles.alignStart]}>
+              <View
+                style={[
+                  styles.eyebrowPill,
+                  rtl ? styles.alignEnd : styles.alignStart,
+                ]}
+              >
                 <Text style={[styles.eyebrow, { textAlign }]}>{eyebrow}</Text>
               </View>
             ) : null}
             <Text
               accessibilityRole="header"
-              style={[styles.title, compact ? styles.titleCompact : null, { textAlign }]}
+              style={[
+                styles.title,
+                compact ? styles.titleCompact : null,
+                { textAlign },
+              ]}
             >
               {title}
             </Text>
             {body ? <Text style={[styles.body, { textAlign }]}>{body}</Text> : null}
           </View>
 
-          <View style={[styles.panel, compact ? styles.panelCompact : null]}>{children}</View>
+          <View style={[styles.panel, compact ? styles.panelCompact : null]}>
+            {children}
+          </View>
           {footer ? <View style={styles.footer}>{footer}</View> : null}
         </ScrollView>
       </KeyboardAvoidingView>
