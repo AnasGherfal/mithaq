@@ -153,6 +153,14 @@ insert into private.conversation_messages (conversation_id, sender_user_id, body
     clock_timestamp() - interval '4 days'
   );
 
+update private.member_notifications n
+set read_at = clock_timestamp() - interval '83 days'
+where n.message_id in (
+  select m.id
+  from private.conversation_messages m
+  where m.conversation_id = '27272727-1111-4111-8111-272727272711'
+);
+
 insert into public.safety_reports (
   reporter_user_id,
   target_user_id,
