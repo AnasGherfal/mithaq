@@ -74,7 +74,8 @@ export default function ProfilePreviewScreen() {
 
       const profile = profileResult.data;
       const application = applicationResult.data;
-      const submitted = application?.status === "submitted" || application?.status === "qualified" || application?.status === "invited";
+      const submitted =
+        application?.status === "submitted" || application?.status === "qualified" || application?.status === "invited";
 
       if (
         !submitted ||
@@ -238,7 +239,8 @@ function previewCopy(locale: MobileLocale) {
       occupation: "العمل",
       education: "التعليم",
       hiddenTitle: "ما لا تعرضه هذه المعاينة",
-      hiddenBody: "رقم هاتفك، سجل الموافقات، حالة الأمان، وبيانات الدخول لا تظهر في ملف التعارف. الصور والتحقق من الهوية لم يتم تفعليهما بعد.",
+      hiddenBody:
+        "رقم هاتفك، سجل الموافقات، حالة الأمان، وبيانات الدخول لا تظهر في ملف التعارف. الصور والتحقق من الهوية لم يتم تفعليهما بعد.",
       editProfile: "تعديل الملف الخاص",
       status: "العودة إلى حالة الحساب",
     };
@@ -253,10 +255,12 @@ function previewCopy(locale: MobileLocale) {
     loadErrorBody: "We did not show incomplete or stale data. Check your connection and try again.",
     retry: "Try again",
     incompleteTitle: "Complete your private profile first",
-    incompleteBody: "Preview becomes available after registration and the required display name and introduction are complete.",
+    incompleteBody:
+      "Preview becomes available after registration and the required display name and introduction are complete.",
     completeProfile: "Complete private profile",
     previewOnlyTitle: "Preview only — not published",
-    previewOnlyBody: "When introductions launch later, Mithaq will reveal only permitted details inside a controlled introduction context.",
+    previewOnlyBody:
+      "When introductions launch later, Mithaq will reveal only permitted details inside a controlled introduction context.",
     gender: { woman: "Woman", man: "Man" },
     ageUnknown: "Age unavailable",
     about: "About",
@@ -269,7 +273,8 @@ function previewCopy(locale: MobileLocale) {
     occupation: "Occupation",
     education: "Education",
     hiddenTitle: "What this preview never shows",
-    hiddenBody: "Your phone number, consent history, security state, and sign-in data are not part of an introduction profile. Photos and identity verification are not enabled yet.",
+    hiddenBody:
+      "Your phone number, consent history, security state, and sign-in data are not part of an introduction profile. Photos and identity verification are not enabled yet.",
     editProfile: "Edit private profile",
     status: "Back to account status",
   };
