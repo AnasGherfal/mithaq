@@ -168,7 +168,19 @@ export default function IntroductionHandoffScreen() {
             </PrimaryButton>
           </View>
 
-          <StateCard rtl={rtl} tone="neutral" title={copy.communicationTitle} body={copy.communicationBody} />
+          <View style={styles.communicationActions}>
+            <StateCard rtl={rtl} tone="success" title={copy.communicationTitle} body={copy.communicationBody} />
+            <PrimaryButton
+              onPress={() =>
+                router.push({
+                  pathname: "/conversation",
+                  params: { locale, introductionId },
+                })
+              }
+            >
+              {copy.communicationButton}
+            </PrimaryButton>
+          </View>
         </View>
       )}
     </ScreenShell>
@@ -208,7 +220,7 @@ function handoffCopy(locale: MobileLocale) {
       nextEyebrow: "حدود التواصل",
       nextTitle: "التواصل سيبقى مرتبطاً بهذا التعارف",
       nextBody:
-        "لن ننشئ رسائل عامة أو إمكانية البحث عن أعضاء. أي محادثة لاحقة ستفتح فقط لهذا التعارف وبعد تحقق الخادم من الأهلية والحظر والسلامة.",
+        "لا توجد رسائل عامة أو إمكانية البحث عن أعضاء. المحادثة تفتح فقط لهذا التعارف وبعد تحقق الخادم من الأهلية والحظر والسلامة.",
       boundaryOneTitle: "لا أرقام هاتف تلقائياً",
       boundaryOneBody: "لا يحتاج الطرفان إلى كشف رقم الهاتف أو بيانات الاتصال لبدء التواصل داخل ميثاق.",
       boundaryTwoTitle: "الحظر يوقف المسار",
@@ -218,9 +230,10 @@ function handoffCopy(locale: MobileLocale) {
       safetyTitle: "هل تريد مراجعة خيارات السلامة؟",
       safetyBody: "يمكنك الإبلاغ أو الحظر من دون كشف معرف الطرف الآخر داخل التطبيق.",
       safetyButton: "الأمان والإبلاغ",
-      communicationTitle: "بوابة المحادثة جاهزة للمرحلة التالية",
+      communicationTitle: "المحادثة الخاصة جاهزة",
       communicationBody:
-        "أنهينا انتقال القبول المتبادل وحدود الأمان. الخطوة التالية هي بناء المحادثة الخاصة على هذا التعارف فقط، بدلاً من نظام رسائل مفتوح.",
+        "يمكنك الآن بدء محادثة داخل هذا التعارف فقط. الخادم يتحقق من القبول المتبادل وحالة السلامة والحظر قبل فتحها.",
+      communicationButton: "بدء المحادثة الخاصة",
     };
   }
 
@@ -242,7 +255,7 @@ function handoffCopy(locale: MobileLocale) {
     nextEyebrow: "Communication boundaries",
     nextTitle: "Communication stays tied to this introduction",
     nextBody:
-      "There will be no public messaging or member search. Any later conversation opens only for this introduction after server-side eligibility, blocking, and safety checks.",
+      "There is no public messaging or member search. The conversation opens only for this introduction after server-side eligibility, blocking, and safety checks.",
     boundaryOneTitle: "No automatic phone-number sharing",
     boundaryOneBody:
       "Neither member needs to reveal a phone number or contact details to begin communicating inside Mithaq.",
@@ -255,9 +268,10 @@ function handoffCopy(locale: MobileLocale) {
     safetyTitle: "Want to review your safety options?",
     safetyBody: "Report or block without exposing the other member’s identifier in the app.",
     safetyButton: "Safety & report",
-    communicationTitle: "The conversation gate is ready for the next milestone",
+    communicationTitle: "Your private conversation is ready",
     communicationBody:
-      "Mutual acceptance and its safety boundaries are now complete. The next step is a private conversation tied only to this introduction, not an open messaging system.",
+      "You can now start a conversation scoped only to this introduction. The server rechecks mutual acceptance, safety status, and blocking before opening it.",
+    communicationButton: "Start private conversation",
   };
 }
 
@@ -327,4 +341,5 @@ const styles = StyleSheet.create({
   },
   safetyTitle: { color: colors.foreground, fontSize: 15, fontWeight: "800" },
   safetyBody: { color: colors.muted, fontSize: 13, lineHeight: 20 },
+  communicationActions: { gap: 10 },
 });
