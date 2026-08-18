@@ -9,12 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
 type ReportCategory =
-  | "fake_identity"
-  | "harassment"
-  | "inappropriate_content"
-  | "fraud_or_money"
-  | "safety_concern"
-  | "other";
+  "fake_identity" | "harassment" | "inappropriate_content" | "fraud_or_money" | "safety_concern" | "other";
 
 const categories: Array<{ value: ReportCategory; ar: string; en: string }> = [
   { value: "fake_identity", ar: "هوية أو معلومات غير حقيقية", en: "Fake identity or information" },
@@ -83,13 +78,15 @@ export default function ReportMemberScreen() {
             invalidTitle: "This report is unavailable",
             invalidBody: "Reports must be opened from a valid private introduction inside Mithaq.",
             successTitle: "Report received",
-            successBodyBlocked: "Your report is saved and the member is blocked. Mithaq will not create another introduction between you.",
+            successBodyBlocked:
+              "Your report is saved and the member is blocked. Mithaq will not create another introduction between you.",
             successBody: "Your report has been saved for review.",
             successButton: "Back to Safety Center",
             required: "Choose a report reason first.",
             tooLong: "Details must be 1,200 characters or fewer.",
             duplicate: "A similar report was submitted recently. Your earlier report is already saved.",
-            rateLimit: "You have reached the temporary reporting limit. If there is immediate danger, use local emergency services.",
+            rateLimit:
+              "You have reached the temporary reporting limit. If there is immediate danger, use local emergency services.",
             unavailable: "We could not submit the report right now. Check your connection and try again.",
             counter: "characters",
           },
@@ -188,9 +185,7 @@ export default function ReportMemberScreen() {
     >
       <View style={styles.stack}>
         <View style={styles.sectionCard}>
-          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
-            {copy.reason}
-          </Text>
+          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.reason}</Text>
           <View style={styles.categoryList}>
             {categories.map((item) => {
               const selected = item.value === category;
@@ -229,12 +224,8 @@ export default function ReportMemberScreen() {
         </View>
 
         <View style={styles.sectionCard}>
-          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
-            {copy.details}
-          </Text>
-          <Text style={[styles.sectionHint, { textAlign: rtl ? "right" : "left" }]}>
-            {copy.detailsHint}
-          </Text>
+          <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.details}</Text>
+          <Text style={[styles.sectionHint, { textAlign: rtl ? "right" : "left" }]}>{copy.detailsHint}</Text>
           <TextInput
             accessibilityLabel={copy.details}
             multiline
@@ -257,12 +248,8 @@ export default function ReportMemberScreen() {
         <View style={styles.blockCard}>
           <View style={[styles.blockRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
             <View style={styles.blockCopy}>
-              <Text style={[styles.blockTitle, { textAlign: rtl ? "right" : "left" }]}>
-                {copy.blockTitle}
-              </Text>
-              <Text style={[styles.blockBody, { textAlign: rtl ? "right" : "left" }]}>
-                {copy.blockBody}
-              </Text>
+              <Text style={[styles.blockTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.blockTitle}</Text>
+              <Text style={[styles.blockBody, { textAlign: rtl ? "right" : "left" }]}>{copy.blockBody}</Text>
             </View>
             <Switch value={blockTarget} disabled={saving} onValueChange={setBlockTarget} />
           </View>
