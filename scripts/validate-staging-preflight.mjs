@@ -30,6 +30,13 @@ for (const variableName of environment.publicVariables ?? []) {
   }
 }
 
+for (const variableName of environment.serverVariables ?? []) {
+  const value = process.env[variableName];
+  if (!value) {
+    errors.push(`Missing required server variable ${variableName}`);
+  }
+}
+
 for (const secretName of environment.serverSecrets ?? []) {
   const value = process.env[secretName];
   if (!value) {
@@ -107,6 +114,19 @@ if (
   errors.push(
     "Web and mobile publishable keys must belong to the same hosted Supabase environment",
   );
+}
+
+for (const name of [
+  "MITHAQ_CONVERSATION_RETENTION_DAYS",
+  "MITHAQ_NOTIFICATION_RETENTION_DAYS",
+]) {
+  if (!(environment.serverVariables ?? []).includes(name)) continue;
+
+  const value = process.env[name]?.trim();
+  const days = Number(value);
+  if (!value || !Number.isSafeInteger(days) || days < 1) {
+    errors.push(`${name} must be a positive integer number of days`);
+  }
 }
 
 if (errors.length > 0) {
