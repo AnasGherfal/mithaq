@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "environments": {
+    "preview": {
+      "appEnv": "preview",
+      "publicVariables": [
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_SUPABASE_URL",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+      ],
+      "serverSecrets": [
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ]
+    },
+    "staging": {
+      "appEnv": "staging",
+      "publicVariables": [
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_SUPABASE_URL",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+      ],
+      "serverSecrets": [
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ]
+    },
+    "production": {
+      "appEnv": "production",
+      "publicVariables": [
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_SUPABASE_URL",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+      ],
+      "serverSecrets": [
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ]
+    }
+  },
+  "maintenanceWorkers": {
+    "account_deletion": {
+      "maxIntervalMinutes": 60,
+      "requiredBeforeRelease": true
+    },
+    "introduction_expiry": {
+      "maxIntervalMinutes": 15,
+      "requiredBeforeRelease": true
+    },
+    "conversation_message_retention": {
+      "maxIntervalMinutes": 1440,
+      "requiredBeforeRelease": true
+    },
+    "notification_retention": {
+      "maxIntervalMinutes": 1440,
+      "requiredBeforeRelease": true
+    }
+  },
+  "releaseRequirements": {
+    "separateSupabaseProjects": true,
+    "separateEasEnvironments": true,
+    "serviceRoleClientExposureForbidden": true,
+    "databaseMigrationsRequired": true,
+    "pgtapRequired": true,
+    "mobileTypecheckRequired": true,
+    "expoDoctorRequired": true,
+    "productionE2eRequired": true,
+    "maintenanceReadinessRequired": true
+  }
+}
