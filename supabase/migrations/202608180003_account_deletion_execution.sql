@@ -95,6 +95,33 @@ begin
 end;
 $$;
 
+create or replace function public.purge_account_private_data(
+  p_user_id uuid
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+begin
+  if not exists (
+    select 1
+    from public.deletion_requests dr
+    where dr.user_id = p_user_id
+      and dr.request_scope = 'entire_account'
+      and dr.status = 'in_progress'
+  ) then
+    raise exception 'account deletion is not in progress';
+  end if;
+
+  delete from private.phone_verifications
+  where user_id = p_user_id;
+
+  delete from private.referral_events
+  where referred_user_id = p_user_id;
+end;
+$$;
+
 create or replace function public.mark_account_deletion_failed(
   p_request_id uuid,
   p_error_code text
@@ -142,9 +169,11 @@ end;
 $$;
 
 revoke all on function public.claim_due_account_deletions(integer) from public, anon, authenticated;
+revoke all on function public.purge_account_private_data(uuid) from public, anon, authenticated;
 revoke all on function public.mark_account_deletion_failed(uuid, text) from public, anon, authenticated;
 revoke all on function public.mark_account_deletion_completed(uuid) from public, anon, authenticated;
 
 grant execute on function public.claim_due_account_deletions(integer) to service_role;
+grant execute on function public.purge_account_private_data(uuid) to service_role;
 grant execute on function public.mark_account_deletion_failed(uuid, text) to service_role;
 grant execute on function public.mark_account_deletion_completed(uuid) to service_role;
