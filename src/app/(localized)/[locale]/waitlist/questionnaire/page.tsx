@@ -28,7 +28,8 @@ export default async function WaitlistQuestionnairePage({
           private: "مساحة خاصة",
           privateBody: "إجاباتك ليست ملفاً عاماً ولا يمكن للأعضاء تصفحها.",
           guided: "تجربة موجهة",
-          guidedBody: "ثلاث خطوات قصيرة تركز فقط على ما نحتاجه لتقييم التوافق مستقبلاً.",
+          guidedBody:
+            "ثلاث خطوات قصيرة تركز فقط على ما نحتاجه لتقييم التوافق مستقبلاً.",
         }
       : {
           private: "Private by design",

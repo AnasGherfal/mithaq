@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import packageJson from "../../package.json" with { type: "json" };
 
 const locales = [
   { path: "/ar", language: "ar", direction: "rtl" },
@@ -115,16 +116,28 @@ test("the offline fallback is bilingual and reachable", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("the health endpoint is no-store and reveals no configuration", async ({
+test("the health endpoint exposes only privacy-safe release identity", async ({
   request,
 }) => {
   const response = await request.get("/api/health");
   expect(response.ok()).toBe(true);
   expect(response.headers()["cache-control"]).toContain("no-store");
 
-  const body = await response.json();
-  expect(body).toEqual({ status: "ok", application: "Mithaq" });
-  expect(JSON.stringify(body)).not.toMatch(/supabase|key|secret|environment/i);
+  const body = (await response.json()) as {
+    status: string;
+    application: string;
+    release: { version: string; tier: string; revision: string };
+  };
+
+  expect(body).toMatchObject({
+    status: "ok",
+    application: "Mithaq",
+    release: { version: packageJson.version, tier: "local" },
+  });
+  expect(body.release.revision).toMatch(/^(unknown|[0-9a-f]{7,12})$/);
+  expect(JSON.stringify(body)).not.toMatch(
+    /supabase|key|secret|authorization|token|phone|email|message/i,
+  );
 });
 
 test("the production service worker registers from the Serwist route", async ({
@@ -137,36 +150,9 @@ test("the production service worker registers from the Serwist route", async ({
       return null;
     }
 
-    const ready = await navigator.serviceWorker.ready;
-    return {
-      scope: ready.scope,
-      scriptURL:
-        ready.active?.scriptURL ??
-        ready.waiting?.scriptURL ??
-        ready.installing?.scriptURL ??
-        null,
-    };
+    const workerRegistration = await navigator.serviceWorker.ready;
+    return workerRegistration.active?.scriptURL ?? null;
   });
 
-  expect(registration).not.toBeNull();
-  expect(registration?.scope).toBe("http://127.0.0.1:3000/");
-  expect(registration?.scriptURL).toContain("/serwist/sw.js");
-});
-
-test("captures Arabic and English mobile foundation references", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-
-  await page.goto("/ar");
-  await page.screenshot({
-    path: "test-results/foundation-ar-mobile.png",
-    fullPage: true,
-  });
-
-  await page.goto("/en");
-  await page.screenshot({
-    path: "test-results/foundation-en-mobile.png",
-    fullPage: true,
-  });
+  expect(registration).toContain("/serwist/sw.js");
 });

@@ -1,3 +1,5 @@
+import { getReleaseMetadata } from "@/lib/release-metadata";
+
 export const dynamic = "force-dynamic";
 
 export function GET() {
@@ -5,6 +7,7 @@ export function GET() {
     {
       status: "ok",
       application: "Mithaq",
+      release: getReleaseMetadata(),
     },
     {
       headers: {

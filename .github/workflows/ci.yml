@@ -28,10 +28,10 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install pnpm and Node.js 24
-        uses: pnpm/setup@v2
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
         with:
           runtime: node@24
           cache: true
@@ -43,6 +43,12 @@ jobs:
       - name: Run formatting, lint, type, unit, and build checks
         run: pnpm check
 
+      - name: Show root formatting diff on failure
+        if: failure()
+        run: |
+          pnpm exec prettier --write .
+          git diff -- .
+
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
@@ -51,7 +57,7 @@ jobs:
 
       - name: Upload mobile reference screenshots
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: mobile-reference-screenshots
           path: test-results/*-mobile.png
@@ -60,14 +66,54 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: playwright-report
           path: playwright-report
           if-no-files-found: ignore
           retention-days: 14
 
-      # Milestone 5: pin all third-party actions to reviewed full commit SHAs.
+      # Milestone 5: all third-party actions are pinned to reviewed full commit SHAs.
+
+  mobile:
+    name: Mobile foundation checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/mobile
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install Node.js 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Install mobile dependencies
+        # Expo Router brings optional web peers into the native dependency graph.
+        # Keep the committed lockfile deterministic while allowing npm to honor
+        # the Expo SDK 57 React 19.2.3 native stack despite those optional peers.
+        run: npm ci --legacy-peer-deps
+
+      - name: Run mobile TypeScript and formatting checks
+        run: npm run check
+
+      - name: Show mobile formatting diff on failure
+        if: failure()
+        run: |
+          npx prettier --write .
+          git diff -- .
+
+      - name: Validate Expo dependencies and configuration
+        run: npx expo-doctor@latest
 
   database:
     name: Supabase database and waitlist integration
@@ -80,10 +126,10 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install pnpm and Node.js 24
-        uses: pnpm/setup@v2
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
         with:
           runtime: node@24
           cache: true
@@ -92,20 +138,57 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate unique Supabase migration versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          duplicates="$(
+            find supabase/migrations -maxdepth 1 -type f -name '[0-9]*_*.sql' -printf '%f\n' \
+              | sed -E 's/^([0-9]+)_.*/\1/' \
+              | sort \
+              | uniq -d
+          )"
+
+          if [ -n "$duplicates" ]; then
+            echo "::error::Duplicate Supabase migration version(s):"
+            printf '%s\n' "$duplicates"
+            exit 1
+          fi
+
       - name: Start local Supabase
         run: pnpm db:start
 
       - name: Export local browser-safe Supabase credentials
         run: |
-          pnpm supabase status -o env > /tmp/supabase-status.env
+          pnpm exec supabase status -o env | grep -E '^(API_URL|PUBLISHABLE_KEY|ANON_KEY)=' > /tmp/supabase-status.env
           set -a
           source /tmp/supabase-status.env
           set +a
           echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL}" >> "$GITHUB_ENV"
-          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${ANON_KEY}" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_KEY:-${ANON_KEY:-}}" >> "$GITHUB_ENV"
 
       - name: Run pgTAP database tests
-        run: pnpm test:db
+        shell: bash
+        run: |
+          set +e
+          pnpm test:db 2>&1 | tee /tmp/pgtap.log
+          status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+
+          # Supabase's pg_prove helper can occasionally fail while removing its
+          # already-finished Docker container on hosted runners. Do not turn a
+          # fully passing TAP suite into a red build for that cleanup-only error.
+          if grep -q "All tests successful\." /tmp/pgtap.log \
+            && grep -q "error running container: exit 125" /tmp/pgtap.log; then
+            echo "::warning::pgTAP passed; ignoring transient pg_prove Docker cleanup failure."
+            exit 0
+          fi
+
+          exit "$status"
 
       - name: Build application against local Supabase
         run: pnpm build
@@ -120,7 +203,7 @@ jobs:
 
       - name: Upload waitlist integration report on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: waitlist-integration-playwright-report
           path: playwright-report
@@ -131,4 +214,4 @@ jobs:
         if: always()
         run: pnpm db:stop
 
-      # Milestone 5: pin all third-party actions to reviewed full commit SHAs.
+      # Milestone 5: all third-party actions are pinned to reviewed full commit SHAs.

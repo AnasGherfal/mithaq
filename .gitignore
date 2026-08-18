@@ -5,6 +5,10 @@ node_modules/
 .next/
 out/
 
+# Expo
+.expo/
+apps/mobile/.expo/
+
 # Build and test output
 coverage/
 playwright-report/

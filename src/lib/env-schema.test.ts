@@ -9,8 +9,19 @@ const validEnvironment = {
 };
 
 describe("environment schema", () => {
-  it("accepts a complete safe public configuration", () => {
+  it("accepts a complete safe local configuration", () => {
     expect(environmentSchema.safeParse(validEnvironment).success).toBe(true);
+  });
+
+  it("accepts HTTPS hosted configuration", () => {
+    expect(
+      environmentSchema.safeParse({
+        ...validEnvironment,
+        APP_ENV: "staging",
+        NEXT_PUBLIC_SITE_URL: "https://staging.mithaq.example",
+        NEXT_PUBLIC_SUPABASE_URL: "https://staging-project.supabase.co",
+      }).success,
+    ).toBe(true);
   });
 
   it("rejects missing keys and invalid URLs", () => {
@@ -21,6 +32,26 @@ describe("environment schema", () => {
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "",
       }).success,
     ).toBe(false);
+  });
+
+  it("rejects loopback or insecure URLs outside local development", () => {
+    for (const environmentName of ["preview", "staging", "production"]) {
+      expect(
+        environmentSchema.safeParse({
+          ...validEnvironment,
+          APP_ENV: environmentName,
+        }).success,
+      ).toBe(false);
+
+      expect(
+        environmentSchema.safeParse({
+          ...validEnvironment,
+          APP_ENV: environmentName,
+          NEXT_PUBLIC_SITE_URL: "http://preview.mithaq.example",
+          NEXT_PUBLIC_SUPABASE_URL: "http://project.supabase.co",
+        }).success,
+      ).toBe(false);
+    }
   });
 
   it("does not define a service-role credential", () => {

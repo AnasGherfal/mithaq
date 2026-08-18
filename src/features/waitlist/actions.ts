@@ -48,7 +48,6 @@ export async function saveWaitlistQuestionnaire(
     .upsert(
       {
         user_id: userId,
-        status: wasSubmitted ? "submitted" : "draft",
         questionnaire_version: "2026-08-17.v1",
         gender: value.gender,
         age_band_id: value.ageBandId,

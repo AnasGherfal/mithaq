@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
 const groups = [
@@ -30,7 +30,12 @@ const groups = [
 ] as const;
 
 export async function SiteFooter() {
-  const t = await getTranslations("Footer");
+  const [t, locale] = await Promise.all([
+    getTranslations("Footer"),
+    getLocale(),
+  ]);
+  const accountDeletionLabel =
+    locale === "en" ? "Account deletion" : "حذف الحساب";
 
   return (
     <footer className="mt-20 border-t border-border bg-card/55">
@@ -79,6 +84,16 @@ export async function SiteFooter() {
                     </Link>
                   </li>
                 ))}
+                {group.title === "legal" ? (
+                  <li>
+                    <Link
+                      className="inline-flex min-h-8 items-center text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+                      href="/account-deletion"
+                    >
+                      {accountDeletionLabel}
+                    </Link>
+                  </li>
+                ) : null}
               </ul>
             </div>
           ))}
