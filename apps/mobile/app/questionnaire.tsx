@@ -25,7 +25,7 @@ import {
 } from "@/features/questionnaire-ui";
 import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
-import { colors } from "@/theme";
+import { colors, radius } from "@/theme";
 
 const ageBands = ["18–24", "25–29", "30–34", "35–39", "40–44", "45–49", "50–54", "55+"];
 type Copy = ReturnType<typeof questionnaireCopy>;
@@ -40,30 +40,48 @@ export default function QuestionnaireScreen() {
   const [draft, setDraft] = useState<QuestionnaireDraft>(defaultQuestionnaire);
   const [countries, setCountries] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
+
     async function hydrate() {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        router.replace({ pathname: "/auth", params: { locale } });
-        return;
+      setLoading(true);
+      setLoadError(false);
+
+      try {
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+
+        if (!data.session) {
+          router.replace({ pathname: "/auth", params: { locale } });
+          return;
+        }
+
+        const existing = await loadQuestionnaire();
+        if (!active) return;
+
+        if (existing) {
+          setDraft(existing);
+          setCountries(existing.preferredCountries.join(", "));
+        }
+
+        setLoading(false);
+      } catch {
+        if (!active) return;
+        setLoadError(true);
+        setLoading(false);
       }
-      const existing = await loadQuestionnaire();
-      if (!active) return;
-      if (existing) {
-        setDraft(existing);
-        setCountries(existing.preferredCountries.join(", "));
-      }
-      setLoading(false);
     }
+
     void hydrate();
     return () => {
       active = false;
     };
-  }, [locale]);
+  }, [locale, loadAttempt]);
 
   function update<K extends keyof QuestionnaireDraft>(key: K, value: QuestionnaireDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -82,23 +100,31 @@ export default function QuestionnaireScreen() {
   async function finish() {
     setSaving(true);
     setError(null);
-    const result = await saveQuestionnaire({
-      ...draft,
-      currentCountryCode: draft.currentCountryCode.trim().toUpperCase(),
-      preferredCountries: countries
-        .split(",")
-        .map((country) => country.trim().toUpperCase())
-        .filter(Boolean),
-    });
-    setSaving(false);
-    if (!result.ok) {
+
+    try {
+      const result = await saveQuestionnaire({
+        ...draft,
+        currentCountryCode: draft.currentCountryCode.trim().toUpperCase(),
+        preferredCountries: countries
+          .split(",")
+          .map((country) => country.trim().toUpperCase())
+          .filter(Boolean),
+      });
+
+      if (!result.ok) {
+        setError(copy.error);
+        return;
+      }
+
+      router.replace({
+        pathname: result.wasSubmitted ? "/status" : "/consent",
+        params: { locale },
+      });
+    } catch {
       setError(copy.error);
-      return;
+    } finally {
+      setSaving(false);
     }
-    router.replace({
-      pathname: result.wasSubmitted ? "/status" : "/consent",
-      params: { locale },
-    });
   }
 
   return (
@@ -108,26 +134,41 @@ export default function QuestionnaireScreen() {
       body={copy.body}
       rtl={rtl}
       footer={
-        <View style={styles.footerButtons}>
-          {step > 1 ? (
-            <PrimaryButton tone="quiet" onPress={() => setStep((value) => value - 1)}>
-              {copy.back}
+        loading || loadError ? null : (
+          <View style={styles.footerButtons}>
+            {step > 1 ? (
+              <PrimaryButton tone="quiet" onPress={() => setStep((value) => value - 1)}>
+                {copy.back}
+              </PrimaryButton>
+            ) : null}
+            <PrimaryButton
+              loading={saving}
+              onPress={() => {
+                if (step < 3) setStep((value) => value + 1);
+                else void finish();
+              }}
+            >
+              {step < 3 ? copy.next : copy.save}
             </PrimaryButton>
-          ) : null}
-          <PrimaryButton
-            loading={saving}
-            onPress={() => {
-              if (step < 3) setStep((value) => value + 1);
-              else void finish();
-            }}
-          >
-            {step < 3 ? copy.next : copy.save}
-          </PrimaryButton>
-        </View>
+          </View>
+        )
       }
     >
       {loading ? (
-        <ActivityIndicator color={colors.primary} size="large" />
+        <View style={localStyles.loadingState} accessibilityLiveRegion="polite">
+          <ActivityIndicator accessibilityLabel={copy.loading} color={colors.primary} size="large" />
+          <Text style={[localStyles.loadingText, textAlign(rtl)]}>{copy.loading}</Text>
+        </View>
+      ) : loadError ? (
+        <View style={localStyles.loadError} accessibilityRole="alert">
+          <Text style={[localStyles.loadErrorTitle, textAlign(rtl)]}>{copy.loadErrorTitle}</Text>
+          <Text style={[localStyles.loadErrorBody, textAlign(rtl)]}>{copy.loadErrorBody}</Text>
+          <View style={localStyles.retryAction}>
+            <PrimaryButton tone="quiet" onPress={() => setLoadAttempt((value) => value + 1)}>
+              {copy.retry}
+            </PrimaryButton>
+          </View>
+        </View>
       ) : (
         <View style={styles.content}>
           <Progress step={step} rtl={rtl} labels={copy.steps} />
@@ -144,7 +185,11 @@ export default function QuestionnaireScreen() {
             />
           ) : null}
           {step === 3 ? <StepThree copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
-          {error ? <Text style={[styles.error, textAlign(rtl)]}>{error}</Text> : null}
+          {error ? (
+            <Text accessibilityRole="alert" style={[styles.error, textAlign(rtl)]}>
+              {error}
+            </Text>
+          ) : null}
         </View>
       )}
     </ScreenShell>
@@ -451,3 +496,23 @@ function TriChoice({
     </View>
   );
 }
+
+const localStyles = StyleSheet.create({
+  loadingState: {
+    minHeight: 220,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+  },
+  loadingText: { color: colors.muted, fontSize: 13, lineHeight: 21 },
+  loadError: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceRaised,
+    padding: 18,
+  },
+  loadErrorTitle: { color: colors.foreground, fontSize: 17, lineHeight: 25, fontWeight: "800" },
+  loadErrorBody: { color: colors.muted, fontSize: 13, lineHeight: 22, marginTop: 8 },
+  retryAction: { marginTop: 16 },
+});
