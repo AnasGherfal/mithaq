@@ -120,7 +120,9 @@ for (const [requirementName, scriptName] of Object.entries(
   executableGateScripts,
 )) {
   if (!packageJson.scripts?.[scriptName]) {
-    errors.push(`Release requirement ${requirementName} is missing script ${scriptName}`);
+    errors.push(
+      `Release requirement ${requirementName} is missing script ${scriptName}`,
+    );
   }
   if (!standardCheck.includes(`pnpm ${scriptName}`)) {
     errors.push(`Standard check must execute ${scriptName}`);
