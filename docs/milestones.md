@@ -124,8 +124,8 @@ release head is green in CI. Completed independent slices include:
    store checks, and production build green.
 2. Keep mobile TypeScript, Prettier, and Expo Doctor green.
 3. Keep Supabase pgTAP and the verified OTP/waitlist integration green.
-4. Keep production E2E green, including security-header, health release identity,
-   and public account-deletion coverage.
+4. Keep production E2E green, including security-header, health release
+   identity, and public account-deletion coverage.
 5. Keep idempotent retries at exactly one message and one recipient activity
    event.
 6. Keep retention preserving unresolved safety evidence and unread activity
@@ -133,8 +133,8 @@ release head is green in CI. Completed independent slices include:
 7. Keep Activity pagination free of skips/duplicates at equal timestamps.
 8. Keep all locked requirements in `ops/release-contract.json` machine-checked,
    including deployable required workers and hosted/store release gates.
-9. Credential-free/source-controlled M9 work is complete only when CI is green on
-   the exact reviewed head.
+9. Credential-free/source-controlled M9 work is complete only when CI is green
+   on the exact reviewed head.
 10. M9 exits only after hosted `mithaq-staging`, required worker scheduling and
     first successful runs, real SMS delivery, EAS preview build, and physical
     iPhone/Android acceptance pass using operator credentials before production
