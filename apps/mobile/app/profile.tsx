@@ -16,6 +16,11 @@ type MemberProfile = {
   profile_completed_at: string | null;
 };
 
+type ProfileReview = {
+  state: "pending" | "approved" | "needs_changes" | "rejected";
+  review_after: string | null;
+};
+
 type ProfileSaveResult = {
   profile_completed: boolean;
   profile_completed_at: string | null;
@@ -32,11 +37,13 @@ export default function ProfileScreen() {
   const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletionPending, setDeletionPending] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [aboutMe, setAboutMe] = useState("");
   const [occupation, setOccupation] = useState("");
   const [education, setEducation] = useState("");
   const [complete, setComplete] = useState(false);
+  const [review, setReview] = useState<ProfileReview>({ state: "pending", review_after: null });
   const [message, setMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<MessageTone>(null);
 
@@ -55,26 +62,40 @@ export default function ProfileScreen() {
         return;
       }
 
-      const userId = sessionData.session.user.id;
-      const [userResult, profileResult] = await Promise.all([
-        supabase.from("users").select("account_status").eq("id", userId).maybeSingle(),
+      const currentUserId = sessionData.session.user.id;
+      const [userResult, profileResult, reviewResult] = await Promise.all([
+        supabase.from("users").select("account_status").eq("id", currentUserId).maybeSingle(),
         supabase
           .from("member_profiles")
           .select("display_name, about_me, occupation, education, profile_completed_at")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
+          .maybeSingle(),
+        supabase
+          .from("member_profile_reviews")
+          .select("state, review_after")
+          .eq("user_id", currentUserId)
           .maybeSingle(),
       ]);
 
-      const readError = userResult.error ?? profileResult.error;
+      const readError = userResult.error ?? profileResult.error ?? reviewResult.error;
       if (readError) throw readError;
 
       const profile = profileResult.data as MemberProfile | null;
+      setUserId(currentUserId);
       setDeletionPending(userResult.data?.account_status === "deletion_pending");
       setDisplayName(profile?.display_name ?? "");
       setAboutMe(profile?.about_me ?? "");
       setOccupation(profile?.occupation ?? "");
       setEducation(profile?.education ?? "");
       setComplete(Boolean(profile?.profile_completed_at));
+      setReview(
+        reviewResult.data
+          ? (reviewResult.data as ProfileReview)
+          : {
+              state: "pending",
+              review_after: null,
+            },
+      );
       setLoading(false);
     } catch {
       setLoadError(true);
@@ -85,6 +106,27 @@ export default function ProfileScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function refreshReviewState() {
+    if (!userId) return;
+
+    const { data, error } = await supabase
+      .from("member_profile_reviews")
+      .select("state, review_after")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!error) {
+      setReview(
+        data
+          ? (data as ProfileReview)
+          : {
+              state: "pending",
+              review_after: null,
+            },
+      );
+    }
+  }
 
   async function save() {
     if (saving || deletionPending) return;
@@ -127,6 +169,7 @@ export default function ProfileScreen() {
       const row = ((Array.isArray(data) ? data[0] : data) ?? null) as ProfileSaveResult | null;
       const isComplete = Boolean(row?.profile_completed);
       setComplete(isComplete);
+      await refreshReviewState();
       setMessage(isComplete ? copy.savedComplete : copy.savedDraft);
       setMessageTone("success");
     } catch {
@@ -143,6 +186,30 @@ export default function ProfileScreen() {
   const nameValid = trimmedNameLength === 0 || nameReady;
   const bioReady = aboutCount >= 40;
   const ready = nameReady && bioReady;
+
+  const reviewTitle =
+    review.state === "approved"
+      ? copy.reviewApprovedTitle
+      : review.state === "needs_changes"
+        ? copy.reviewChangesTitle
+        : review.state === "rejected"
+          ? copy.reviewRejectedTitle
+          : copy.reviewPendingTitle;
+  const reviewBody =
+    review.state === "approved"
+      ? copy.reviewApprovedBody
+      : review.state === "needs_changes"
+        ? copy.reviewChangesBody
+        : review.state === "rejected"
+          ? copy.reviewRejectedBody
+          : copy.reviewPendingBody;
+  const reviewDate = review.review_after
+    ? new Date(review.review_after).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
 
   function clearMessage() {
     if (!message) return;
@@ -213,6 +280,48 @@ export default function ProfileScreen() {
               />
             </View>
           </View>
+
+          {complete ? (
+            <View
+              style={[
+                styles.reviewCard,
+                review.state === "approved" ? styles.reviewApproved : null,
+                review.state === "needs_changes" ? styles.reviewNeedsChanges : null,
+                review.state === "rejected" ? styles.reviewRejected : null,
+              ]}
+            >
+              <View style={[styles.reviewTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+                <View style={styles.flex}>
+                  <Text style={[styles.reviewEyebrow, { textAlign: rtl ? "right" : "left" }]}>{copy.reviewLabel}</Text>
+                  <Text style={[styles.reviewTitle, { textAlign: rtl ? "right" : "left" }]}>{reviewTitle}</Text>
+                </View>
+                <View
+                  style={[
+                    styles.reviewMark,
+                    review.state === "approved" ? styles.reviewMarkApproved : null,
+                    review.state === "needs_changes" ? styles.reviewMarkNeedsChanges : null,
+                    review.state === "rejected" ? styles.reviewMarkRejected : null,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.reviewMarkText,
+                      review.state === "approved" ? styles.reviewMarkTextApproved : null,
+                      review.state === "rejected" ? styles.reviewMarkTextRejected : null,
+                    ]}
+                  >
+                    {review.state === "approved" ? "✓" : "•"}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.reviewBody, { textAlign: rtl ? "right" : "left" }]}>{reviewBody}</Text>
+              {reviewDate ? (
+                <Text style={[styles.reviewDate, { textAlign: rtl ? "right" : "left" }]}>
+                  {copy.reviewAfter}: {reviewDate}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
 
           <Field
             rtl={rtl}
@@ -367,6 +476,16 @@ function profileCopy(locale: MobileLocale) {
       complete: "ملفك الأساسي مكتمل",
       ready: "جاهز للحفظ كمكتمل",
       draft: "مسودة خاصة",
+      reviewLabel: "مراجعة الملف",
+      reviewPendingTitle: "بانتظار المراجعة الخاصة",
+      reviewPendingBody: "اكتمال الملف لا ينشره تلقائياً. قبل أي تعارف مستقبلي، يجب أن يجتاز الملف مراجعة ميثاق.",
+      reviewApprovedTitle: "تمت الموافقة على الملف",
+      reviewApprovedBody: "ملفك جاهز من ناحية المراجعة. الأهلية للتعارف ستظل مرتبطة أيضاً بقواعد السلامة والمطابقة.",
+      reviewChangesTitle: "الملف يحتاج تعديلاً",
+      reviewChangesBody: "عدّل بيانات ملفك واحفظها لإعادته للمراجعة. لا نعرض ملاحظات المراجعة الداخلية أو بيانات أي بلاغ.",
+      reviewRejectedTitle: "الملف غير معتمد حالياً",
+      reviewRejectedBody: "لن ينشئ ميثاق تعارفاً جديداً بهذا الملف ما لم تتغير حالة المراجعة لاحقاً.",
+      reviewAfter: "موعد المراجعة التالي",
       nameLabel: "الاسم الذي تفضله",
       nameHelper: "اسمك الأول أو الاسم الذي ترتاح أن يظهر عند تعارف مصرح به.",
       nameInvalid: "اكتب حرفين على الأقل، أو اترك الاسم فارغاً لحفظ المسودة.",
@@ -405,6 +524,20 @@ function profileCopy(locale: MobileLocale) {
     complete: "Your core profile is complete",
     ready: "Ready to save as complete",
     draft: "Private draft",
+    reviewLabel: "Profile review",
+    reviewPendingTitle: "Awaiting private review",
+    reviewPendingBody:
+      "Completing your profile does not publish it. Before future introductions, the profile must pass Mithaq review.",
+    reviewApprovedTitle: "Profile approved",
+    reviewApprovedBody:
+      "Your profile is review-ready for participation. Introduction eligibility will still depend on safety and matching rules.",
+    reviewChangesTitle: "Profile needs changes",
+    reviewChangesBody:
+      "Edit and save your profile to return it for review. We do not expose confidential review notes or report details here.",
+    reviewRejectedTitle: "Profile not currently approved",
+    reviewRejectedBody:
+      "Mithaq will not create new introductions with this profile unless its review state changes later.",
+    reviewAfter: "Next review date",
     nameLabel: "Preferred name",
     nameHelper: "Your first name or the name you are comfortable showing in an authorized introduction.",
     nameInvalid: "Use at least two characters, or leave the name empty to save a draft.",
@@ -484,6 +617,37 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   progressFill: { height: "100%", borderRadius: 3, backgroundColor: colors.goldSoft },
+  reviewCard: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceMuted,
+    padding: 16,
+  },
+  reviewApproved: { borderColor: colors.borderStrong, backgroundColor: colors.primaryWash },
+  reviewNeedsChanges: { borderColor: colors.goldSoft },
+  reviewRejected: { borderColor: "rgba(163,60,63,0.22)", backgroundColor: "#FBF4F2" },
+  reviewTop: { alignItems: "center", gap: 12 },
+  reviewEyebrow: { color: colors.muted, fontSize: 11, fontWeight: "800" },
+  reviewTitle: { color: colors.foreground, fontSize: 16, lineHeight: 22, fontWeight: "900", marginTop: 3 },
+  reviewBody: { color: colors.muted, fontSize: 12, lineHeight: 20, marginTop: 9 },
+  reviewDate: { color: colors.foreground, fontSize: 12, fontWeight: "800", marginTop: 8 },
+  reviewMark: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  reviewMarkApproved: { backgroundColor: colors.primary, borderColor: colors.primary },
+  reviewMarkNeedsChanges: { borderColor: colors.goldSoft },
+  reviewMarkRejected: { borderColor: "rgba(163,60,63,0.22)", backgroundColor: "rgba(163,60,63,0.08)" },
+  reviewMarkText: { color: colors.gold, fontSize: 16, fontWeight: "900" },
+  reviewMarkTextApproved: { color: colors.white },
+  reviewMarkTextRejected: { color: colors.danger },
   label: { color: colors.foreground, fontSize: 13, fontWeight: "800", marginBottom: 9 },
   input: {
     minHeight: 56,
