@@ -1,5 +1,5 @@
 begin;
-select plan(20);
+select plan(21);
 
 select is(
   has_function_privilege('authenticated', 'public.list_my_notifications(timestamptz, integer)', 'EXECUTE'),
