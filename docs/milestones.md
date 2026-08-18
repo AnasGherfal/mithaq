@@ -84,9 +84,10 @@ later milestones are added.
 - Account entry points for introductions and activity.
 - Account-deletion cascade behavior separated from moderation retention.
 
-## M9 — Production hardening 🚧
+## M9 — Production hardening 🚧 hosted acceptance pending
 
-Completed independent slices include:
+Credential-free/source-controlled implementation is complete once the exact
+release head is green in CI. Completed independent slices include:
 
 - GitHub Actions pinned to reviewed immutable commit SHAs.
 - Private-schema deny-by-default ACL regression coverage.
@@ -97,40 +98,62 @@ Completed independent slices include:
 - Introduction-expiry and maintenance-run auditing.
 - Account-deletion reconciliation and worker auditing.
 - Service-role-only maintenance backlog, health, and release-readiness checks.
-- Machine-checked release environment/worker contract.
+- Deployable POST-only Edge Function entrypoints for account deletion,
+  introduction expiry, conversation retention, and notification retention.
+- Machine-checked preview/staging/production environment, worker cadence,
+  retention-policy, and release-gate contract.
+- Client-secret exposure and destructive-migration guards bound into the normal
+  release check.
+- Hosted environment preflight commands for staging and production.
+- Hosted release verification for HTTPS, release identity, health cache policy,
+  CSP/security headers, HSTS, and expected commit revision.
 - Root/mobile/Expo release-version and native-build metadata checks.
-- Privacy-safe web release identity and server-error observations.
+- Privacy-safe web release identity and server-error observations without member
+  or request payloads.
 - Tested CSP and baseline web security headers.
+- Public bilingual account-deletion information linked from the legal footer and
+  covered by production E2E.
+- Machine-checked store readiness for bundle/package identifiers, EAS profiles,
+  native 1024×1024 artwork, splash configuration, and localized privacy,
+  deletion, and support routes.
+- Operator release, disaster-recovery, and store-submission checklists.
 
 ### M9 acceptance gate
 
-1. Keep root formatting, lint, TypeScript, unit tests, and production build
-   green.
+1. Keep root formatting, lint, TypeScript, unit tests, migration/secret/release/
+   store checks, and production build green.
 2. Keep mobile TypeScript, Prettier, and Expo Doctor green.
 3. Keep Supabase pgTAP and the verified OTP/waitlist integration green.
-4. Keep production E2E green, including security-header and health metadata
-   checks.
+4. Keep production E2E green, including security-header, health release identity,
+   and public account-deletion coverage.
 5. Keep idempotent retries at exactly one message and one recipient activity
    event.
 6. Keep retention preserving unresolved safety evidence and unread activity
    while purging only eligible old data.
 7. Keep Activity pagination free of skips/duplicates at equal timestamps.
-8. Keep all locked requirements in `ops/release-contract.json` machine-checked.
-9. Complete remaining independent production-readiness work before declaring M9
-   source-complete.
-10. Then perform hosted staging and physical-device acceptance using operator
-    credentials before production rollout.
+8. Keep all locked requirements in `ops/release-contract.json` machine-checked,
+   including deployable required workers and hosted/store release gates.
+9. Credential-free/source-controlled M9 work is complete only when CI is green on
+   the exact reviewed head.
+10. M9 exits only after hosted `mithaq-staging`, required worker scheduling and
+    first successful runs, real SMS delivery, EAS preview build, and physical
+    iPhone/Android acceptance pass using operator credentials before production
+    rollout.
 
 ## External gates after independent M9 work
 
-These are release gates, not reasons to weaken or stall independent source work:
+These are release gates, not reasons to weaken source/database security:
 
 - hosted `mithaq-staging` and production Supabase projects/environment values
-- hosted schedules for deletion, expiry, and retention workers
-- production SMS-provider credentials and delivery testing
-- EAS account/project environment values
-- Apple Developer/App Store Connect signing and physical iPhone testing
-- Google Play signing/console access
+- hosted schedules and first successful runs for deletion, expiry, and retention
+  workers
+- reviewed production conversation and notification retention-policy values
+- production SMS-provider credentials and Libya/diaspora delivery testing
+- EAS account/project credentials and real environment values
+- physical iPhone/Android signed-build acceptance
+- Apple Developer/App Store Connect/TestFlight signing, app records, and review
+- Google Play signing/console access and testing tracks
+- final hosted production privacy/deletion/support URLs for store records
 - external push delivery and device-token registration
 
 ## Deferred product scope
