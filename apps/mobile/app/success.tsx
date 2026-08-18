@@ -18,9 +18,10 @@ export default function SuccessScreen() {
           privateTitle: "تسجيل خاص",
           privateBody: "إجاباتك لا تظهر كملف عام ولا يمكن للأعضاء تصفحها.",
           nextTitle: "ما التالي؟",
-          nextBody: "نقيس الطلب الجاد والثقة وتوازن الشبكة قبل إطلاق التعارف الخاص.",
+          nextBody: "تقدر الآن تبدأ ملفك الخاص للتعارف. سيبقى غير قابل للتصفح العام، ولن يظهر لشخص آخر إلا ضمن تعارف مصرح به مستقبلاً.",
           statusTitle: "تم حفظ طلبك",
           statusBody: "ستجد حالة تسجيلك وأي خطوات مستقبلية داخل حسابك.",
+          profileButton: "ابدأ ملفك الخاص",
           button: "عرض حالة التسجيل",
         }
       : {
@@ -30,9 +31,10 @@ export default function SuccessScreen() {
           privateTitle: "Stored privately",
           privateBody: "Your answers are not a public profile and cannot be browsed by other members.",
           nextTitle: "What happens next?",
-          nextBody: "We measure serious demand, trust and network balance before private introductions launch.",
+          nextBody: "You can now begin your private introduction profile. It will not be publicly browsable and will only be shown later through an authorized introduction.",
           statusTitle: "Your application is saved",
           statusBody: "Your account will show registration status and any future steps.",
+          profileButton: "Start your private profile",
           button: "View registration status",
         };
 
@@ -62,9 +64,17 @@ export default function SuccessScreen() {
           <Text style={[styles.body, { textAlign: rtl ? "right" : "left" }]}>{copy.nextBody}</Text>
         </View>
 
-        <PrimaryButton onPress={() => router.replace({ pathname: "/status", params: { locale } })}>
-          {copy.button}
-        </PrimaryButton>
+        <View style={styles.actions}>
+          <PrimaryButton onPress={() => router.push({ pathname: "/profile", params: { locale } })}>
+            {copy.profileButton}
+          </PrimaryButton>
+          <PrimaryButton
+            tone="quiet"
+            onPress={() => router.replace({ pathname: "/status", params: { locale } })}
+          >
+            {copy.button}
+          </PrimaryButton>
+        </View>
       </View>
     </ScreenShell>
   );
@@ -72,6 +82,7 @@ export default function SuccessScreen() {
 
 const styles = StyleSheet.create({
   stack: { gap: 14 },
+  actions: { gap: 11 },
   heroConfirmation: {
     alignItems: "center",
     borderRadius: radius.lg,
