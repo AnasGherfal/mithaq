@@ -65,6 +65,7 @@
     "maintenanceReadinessRequired": true,
     "releaseMetadataRequired": true,
     "privacySafeServerObservabilityRequired": true,
-    "contentSecurityPolicyRequired": true
+    "contentSecurityPolicyRequired": true,
+    "disasterRecoveryRunbookRequired": true
   }
 }
