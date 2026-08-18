@@ -1,5 +1,5 @@
 begin;
-select plan(10);
+select plan(11);
 
 select is(
   has_function_privilege(
