@@ -1,4 +1,4 @@
-import packageJson from "../../package.json";
+import packageJson from "../../package.json" with { type: "json" };
 
 const releaseTiers = ["local", "preview", "staging", "production"] as const;
 
