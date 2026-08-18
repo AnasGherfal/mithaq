@@ -143,6 +143,7 @@ const requiredReleaseRequirements = [
   "destructiveMigrationGuardRequired",
   "hostedEnvironmentPreflightRequired",
   "hostedReleaseVerificationRequired",
+  "storeSubmissionReadinessRequired",
   "pgtapRequired",
   "mobileTypecheckRequired",
   "expoDoctorRequired",
@@ -164,6 +165,7 @@ for (const requirementName of requiredReleaseRequirements) {
 const standardExecutableGateScripts = {
   destructiveMigrationGuardRequired: "migration:safety:check",
   serviceRoleClientExposureForbidden: "client-secret-boundary:check",
+  storeSubmissionReadinessRequired: "release:store:check",
 };
 const standardCheck = packageJson.scripts?.check ?? "";
 
@@ -203,6 +205,7 @@ for (const scriptName of hostedVerificationScripts) {
 const requiredReleaseArtifacts = [
   "../ops/RELEASE_CHECKLIST.md",
   "../ops/DISASTER_RECOVERY.md",
+  "../ops/STORE_SUBMISSION_CHECKLIST.md",
 ];
 
 for (const artifactPath of requiredReleaseArtifacts) {
