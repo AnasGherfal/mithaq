@@ -35,8 +35,7 @@ export default function ProfileVisibilityScreen() {
   const [deletionPending, setDeletionPending] = useState(false);
   const [profileComplete, setProfileComplete] = useState(false);
   const [preferences, setPreferences] = useState<DisclosurePreferences>(defaultPreferences);
-  const [savedPreferences, setSavedPreferences] =
-    useState<DisclosurePreferences>(defaultPreferences);
+  const [savedPreferences, setSavedPreferences] = useState<DisclosurePreferences>(defaultPreferences);
   const [message, setMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<MessageTone>(null);
 
@@ -60,9 +59,7 @@ export default function ProfileVisibilityScreen() {
         supabase.from("users").select("account_status").eq("id", userId).maybeSingle(),
         supabase
           .from("member_profiles")
-          .select(
-            "profile_completed_at, share_occupation, share_education, share_origin_region",
-          )
+          .select("profile_completed_at, share_occupation, share_education, share_origin_region")
           .eq("user_id", userId)
           .maybeSingle(),
       ]);
@@ -172,11 +169,7 @@ export default function ProfileVisibilityScreen() {
       }
     >
       {loading ? (
-        <View
-          style={styles.loadingState}
-          accessibilityLiveRegion="polite"
-          accessibilityLabel={copy.loading}
-        >
+        <View style={styles.loadingState} accessibilityLiveRegion="polite" accessibilityLabel={copy.loading}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
       ) : loadError ? (
@@ -189,12 +182,7 @@ export default function ProfileVisibilityScreen() {
           onAction={() => void load()}
         />
       ) : deletionPending ? (
-        <StateCard
-          rtl={rtl}
-          tone="neutral"
-          title={copy.unavailableTitle}
-          body={copy.unavailableBody}
-        />
+        <StateCard rtl={rtl} tone="neutral" title={copy.unavailableTitle} body={copy.unavailableBody} />
       ) : !profileComplete ? (
         <StateCard
           rtl={rtl}
@@ -211,22 +199,14 @@ export default function ProfileVisibilityScreen() {
               <Text style={styles.privateMarkText}>✦</Text>
             </View>
             <View style={styles.flex}>
-              <Text style={[styles.privateTitle, { textAlign: rtl ? "right" : "left" }]}>
-                {copy.privateTitle}
-              </Text>
-              <Text style={[styles.privateBody, { textAlign: rtl ? "right" : "left" }]}>
-                {copy.privateBody}
-              </Text>
+              <Text style={[styles.privateTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.privateTitle}</Text>
+              <Text style={[styles.privateBody, { textAlign: rtl ? "right" : "left" }]}>{copy.privateBody}</Text>
             </View>
           </View>
 
           <View style={styles.coreCard}>
-            <Text style={[styles.coreTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.coreTitle}
-            </Text>
-            <Text style={[styles.coreBody, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.coreBody}
-            </Text>
+            <Text style={[styles.coreTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.coreTitle}</Text>
+            <Text style={[styles.coreBody, { textAlign: rtl ? "right" : "left" }]}>{copy.coreBody}</Text>
           </View>
 
           <View style={styles.optionsCard}>
@@ -255,9 +235,7 @@ export default function ProfileVisibilityScreen() {
             />
           </View>
 
-          <Text style={[styles.helper, { textAlign: rtl ? "right" : "left" }]}>
-            {copy.helper}
-          </Text>
+          <Text style={[styles.helper, { textAlign: rtl ? "right" : "left" }]}>{copy.helper}</Text>
 
           {message ? (
             <Text
