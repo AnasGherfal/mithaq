@@ -10,9 +10,7 @@
         "EXPO_PUBLIC_SUPABASE_URL",
         "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
       ],
-      "serverSecrets": [
-        "SUPABASE_SERVICE_ROLE_KEY"
-      ]
+      "serverSecrets": ["SUPABASE_SERVICE_ROLE_KEY"]
     },
     "staging": {
       "appEnv": "staging",
@@ -23,9 +21,7 @@
         "EXPO_PUBLIC_SUPABASE_URL",
         "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
       ],
-      "serverSecrets": [
-        "SUPABASE_SERVICE_ROLE_KEY"
-      ]
+      "serverSecrets": ["SUPABASE_SERVICE_ROLE_KEY"]
     },
     "production": {
       "appEnv": "production",
@@ -36,9 +32,7 @@
         "EXPO_PUBLIC_SUPABASE_URL",
         "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
       ],
-      "serverSecrets": [
-        "SUPABASE_SERVICE_ROLE_KEY"
-      ]
+      "serverSecrets": ["SUPABASE_SERVICE_ROLE_KEY"]
     }
   },
   "maintenanceWorkers": {
