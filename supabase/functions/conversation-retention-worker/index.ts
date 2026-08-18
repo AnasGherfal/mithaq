@@ -57,10 +57,13 @@ Deno.serve(async (request) => {
     },
   });
 
-  const { data, error } = await admin.rpc("purge_closed_conversation_messages", {
-    p_closed_before: closedBefore,
-    p_limit: 500,
-  });
+  const { data, error } = await admin.rpc(
+    "purge_closed_conversation_messages",
+    {
+      p_closed_before: closedBefore,
+      p_limit: 500,
+    },
+  );
 
   if (error) {
     logOperationalError("retention_failed");
@@ -70,8 +73,8 @@ Deno.serve(async (request) => {
     });
   }
 
-  return new Response(
-    JSON.stringify({ messagesDeleted: Number(data ?? 0) }),
-    { status: 200, headers: jsonHeaders },
-  );
+  return new Response(JSON.stringify({ messagesDeleted: Number(data ?? 0) }), {
+    status: 200,
+    headers: jsonHeaders,
+  });
 });
