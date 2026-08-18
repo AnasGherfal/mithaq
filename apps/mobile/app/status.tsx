@@ -12,6 +12,7 @@ import { colors, radius } from "@/theme";
 type RegistrationState = {
   questionnaireComplete: boolean;
   submitted: boolean;
+  profileComplete: boolean;
   deletionPending: boolean;
 };
 
@@ -25,6 +26,7 @@ export default function StatusScreen() {
   const [registration, setRegistration] = useState<RegistrationState>({
     questionnaireComplete: false,
     submitted: false,
+    profileComplete: false,
     deletionPending: false,
   });
 
@@ -44,16 +46,21 @@ export default function StatusScreen() {
       return;
     }
 
-    const [userResult, applicationResult] = await Promise.all([
+    const [userResult, applicationResult, profileResult] = await Promise.all([
       supabase.from("users").select("account_status").eq("id", data.session.user.id).maybeSingle(),
       supabase
         .from("waitlist_applications")
         .select("status, questionnaire_completed_at")
         .eq("user_id", data.session.user.id)
         .maybeSingle(),
+      supabase
+        .from("member_profiles")
+        .select("profile_completed_at")
+        .eq("user_id", data.session.user.id)
+        .maybeSingle(),
     ]);
 
-    if (userResult.error || applicationResult.error) {
+    if (userResult.error || applicationResult.error || profileResult.error) {
       setLoadError(true);
       setLoading(false);
       return;
@@ -63,6 +70,7 @@ export default function StatusScreen() {
     setRegistration({
       questionnaireComplete: Boolean(application?.questionnaire_completed_at),
       submitted: application?.status === "submitted",
+      profileComplete: Boolean(profileResult.data?.profile_completed_at),
       deletionPending: userResult.data?.account_status === "deletion_pending",
     });
     setLoading(false);
@@ -94,7 +102,19 @@ export default function StatusScreen() {
       ? "إكمال الاستبيان"
       : "Complete questionnaire";
 
-  const completedSteps = 1 + Number(registration.questionnaireComplete) + Number(registration.submitted);
+  const profileLabel = registration.profileComplete
+    ? rtl
+      ? "تعديل ملفك الخاص"
+      : "Edit private profile"
+    : rtl
+      ? "إكمال ملفك الخاص"
+      : "Complete private profile";
+
+  const completedSteps =
+    1 +
+    Number(registration.questionnaireComplete) +
+    Number(registration.submitted) +
+    Number(registration.profileComplete);
 
   return (
     <ScreenShell
@@ -156,15 +176,15 @@ export default function StatusScreen() {
                       {rtl ? "تقدم عضويتك" : "Your membership progress"}
                     </Text>
                     <Text style={[styles.overviewTitle, { textAlign: rtl ? "right" : "left" }]}>
-                      {completedSteps}/3
+                      {completedSteps}/4
                     </Text>
                   </View>
                   <View style={styles.overviewSeal}>
-                    <Text style={styles.overviewSealText}>{Math.round((completedSteps / 3) * 100)}%</Text>
+                    <Text style={styles.overviewSealText}>{Math.round((completedSteps / 4) * 100)}%</Text>
                   </View>
                 </View>
                 <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: `${(completedSteps / 3) * 100}%` }]} />
+                  <View style={[styles.progressFill, { width: `${(completedSteps / 4) * 100}%` }]} />
                 </View>
               </View>
 
@@ -182,6 +202,25 @@ export default function StatusScreen() {
                 label={rtl ? "قائمة الانتظار" : "Waitlist"}
                 value={registration.submitted ? (rtl ? "مكتمل" : "Complete") : rtl ? "قيد الانتظار" : "Pending"}
                 complete={registration.submitted}
+              />
+              <StatusRow
+                rtl={rtl}
+                label={rtl ? "الملف الخاص" : "Private profile"}
+                value={
+                  registration.submitted
+                    ? registration.profileComplete
+                      ? rtl
+                        ? "مكتمل"
+                        : "Complete"
+                      : rtl
+                        ? "قيد الانتظار"
+                        : "Pending"
+                    : rtl
+                      ? "بعد إكمال التسجيل"
+                      : "After registration"
+                }
+                complete={registration.profileComplete}
+                future={!registration.submitted}
               />
               <StatusRow
                 rtl={rtl}
@@ -210,13 +249,17 @@ export default function StatusScreen() {
           </View>
 
           <View style={styles.action}>
-            <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/security", params: { locale } })}>
-              {rtl ? "الأمان والخصوصية" : "Security & privacy"}
-            </PrimaryButton>
-
             {!registration.deletionPending ? (
               <>
-                <PrimaryButton onPress={() => router.push({ pathname: "/questionnaire", params: { locale } })}>
+                {registration.submitted ? (
+                  <PrimaryButton onPress={() => router.push({ pathname: "/profile", params: { locale } })}>
+                    {profileLabel}
+                  </PrimaryButton>
+                ) : null}
+                <PrimaryButton
+                  tone={registration.submitted ? "quiet" : "primary"}
+                  onPress={() => router.push({ pathname: "/questionnaire", params: { locale } })}
+                >
                   {questionnaireLabel}
                 </PrimaryButton>
                 {!registration.submitted && registration.questionnaireComplete ? (
@@ -226,6 +269,10 @@ export default function StatusScreen() {
                 ) : null}
               </>
             ) : null}
+
+            <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/security", params: { locale } })}>
+              {rtl ? "الأمان والخصوصية" : "Security & privacy"}
+            </PrimaryButton>
           </View>
         </View>
       )}
