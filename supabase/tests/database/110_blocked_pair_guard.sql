@@ -1,5 +1,5 @@
 begin;
-select plan(6);
+select plan(7);
 
 select is(
   has_function_privilege('authenticated', 'private.members_are_blocked(uuid, uuid)', 'EXECUTE'),
@@ -11,6 +11,12 @@ select is(
   has_function_privilege('service_role', 'private.members_are_blocked(uuid, uuid)', 'EXECUTE'),
   true,
   'trusted server code can call the blocked-pair eligibility guard'
+);
+
+select is(
+  has_schema_privilege('service_role', 'private', 'USAGE'),
+  true,
+  'trusted server code can resolve functions in the private safety schema'
 );
 
 insert into auth.users (
