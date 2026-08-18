@@ -54,4 +54,17 @@ describe("operational error logging", () => {
     expect(observation.error.name).toBe("Error");
     expect(observation.error.digest).toBe("unknown");
   });
+
+  it("accepts unknown framework errors without logging their arbitrary value", () => {
+    const observation = buildServerErrorObservation({
+      error: "phone +218912345678 token=private",
+      method: "GET",
+      routePath: "/api/health",
+      routeType: "route",
+      routerKind: "App Router",
+    });
+
+    expect(observation.error).toEqual({ name: "Error", digest: "unknown" });
+    expect(JSON.stringify(observation)).not.toMatch(/218912345678|private/);
+  });
 });
