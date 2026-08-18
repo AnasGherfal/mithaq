@@ -12,6 +12,7 @@ const publicRoutes = [
   "/terms",
   "/community-safety",
   "/contact",
+  "/account-deletion",
   "/waitlist",
 ] as const;
 
