@@ -54,9 +54,9 @@ describe("client secret boundary validator", () => {
   it("allows server-only secret usage outside client-visible modules", async () => {
     const directory = await createRepositoryFixture({
       "apps/mobile/src/example.ts":
-        'const publishable = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;\n',
+        "const publishable = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;\n",
       "src/server/maintenance.ts":
-        'const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;\n',
+        "const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;\n",
       "public/config.json": '{"environment":"preview"}\n',
     });
     const result = runValidator(directory);
@@ -68,7 +68,7 @@ describe("client secret boundary validator", () => {
   it("rejects service-role references in the mobile tree", async () => {
     const directory = await createRepositoryFixture({
       "apps/mobile/src/unsafe.ts":
-        'const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n',
+        "const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n",
     });
     const result = runValidator(directory);
 
@@ -81,7 +81,7 @@ describe("client secret boundary validator", () => {
     const directory = await createRepositoryFixture({
       "src/components/unsafe.tsx": [
         '"use client";',
-        'const token = process.env.SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN;',
+        "const token = process.env.SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN;",
       ].join("\n"),
     });
     const result = runValidator(directory);
