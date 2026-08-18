@@ -124,6 +124,8 @@ export default function ConversationScreen() {
     if (!hasOlder || loadingOlder || messages.length === 0 || refreshingRef.current) return;
 
     const oldestMessage = messages[0];
+    if (!oldestMessage) return;
+
     setLoadingOlder(true);
     setOlderError(null);
     refreshingRef.current = true;
