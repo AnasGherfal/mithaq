@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
+import { StateCard } from "@/components/state-card";
 import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
@@ -29,45 +30,65 @@ export default function PrivacyScreen() {
   const rtl = locale === "ar";
   const copy = privacyCopy(locale);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [consents, setConsents] = useState<ConsentEvent[]>([]);
   const [deletionRequest, setDeletionRequest] = useState<DeletionRequest | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      router.replace({ pathname: "/auth", params: { locale } });
-      return;
-    }
+  const load = useCallback(
+    async (showLoading = false) => {
+      if (showLoading) setLoading(true);
+      setLoadError(false);
 
-    const [consentResult, deletionResult] = await Promise.all([
-      supabase
-        .from("waitlist_consents")
-        .select("id, consent_type, event_type, document_version, locale, recorded_at")
-        .order("recorded_at", { ascending: false }),
-      supabase
-        .from("deletion_requests")
-        .select("id, status, requested_at, due_at")
-        .eq("request_scope", "entire_account")
-        .order("requested_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ]);
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        setLoadError(true);
+        setLoading(false);
+        return false;
+      }
 
-    const latest = new Map<string, ConsentEvent>();
-    for (const event of (consentResult.data ?? []) as ConsentEvent[]) {
-      if (!latest.has(event.consent_type)) latest.set(event.consent_type, event);
-    }
+      if (!sessionData.session) {
+        router.replace({ pathname: "/auth", params: { locale } });
+        return false;
+      }
 
-    setConsents(Array.from(latest.values()));
-    setDeletionRequest((deletionResult.data as DeletionRequest | null) ?? null);
-    setLoading(false);
-  }, [locale]);
+      const [consentResult, deletionResult] = await Promise.all([
+        supabase
+          .from("waitlist_consents")
+          .select("id, consent_type, event_type, document_version, locale, recorded_at")
+          .order("recorded_at", { ascending: false }),
+        supabase
+          .from("deletion_requests")
+          .select("id, status, requested_at, due_at")
+          .eq("request_scope", "entire_account")
+          .order("requested_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      if (consentResult.error || deletionResult.error) {
+        setLoadError(true);
+        setLoading(false);
+        return false;
+      }
+
+      const latest = new Map<string, ConsentEvent>();
+      for (const event of (consentResult.data ?? []) as ConsentEvent[]) {
+        if (!latest.has(event.consent_type)) latest.set(event.consent_type, event);
+      }
+
+      setConsents(Array.from(latest.values()));
+      setDeletionRequest((deletionResult.data as DeletionRequest | null) ?? null);
+      setLoading(false);
+      return true;
+    },
+    [locale],
+  );
 
   useEffect(() => {
-    void load();
+    void load(true);
   }, [load]);
 
   const communicationsEnabled = useMemo(
@@ -89,9 +110,9 @@ export default function PrivacyScreen() {
       return;
     }
 
-    await load();
+    const refreshed = await load(false);
     setSaving(false);
-    setMessage(enabled ? copy.updatesEnabled : copy.updatesDisabled);
+    if (refreshed) setMessage(enabled ? copy.updatesEnabled : copy.updatesDisabled);
   }
 
   async function requestDeletion() {
@@ -112,9 +133,9 @@ export default function PrivacyScreen() {
     }
 
     setConfirmDelete(false);
-    await load();
+    const refreshed = await load(false);
     setSaving(false);
-    setMessage(copy.deletionRecorded);
+    if (refreshed) setMessage(copy.deletionRecorded);
   }
 
   return (
@@ -130,9 +151,22 @@ export default function PrivacyScreen() {
       }
     >
       {loading ? (
-        <View style={styles.loadingState}>
+        <View style={styles.loadingState} accessibilityLabel={rtl ? "جارٍ تحميل إعدادات الخصوصية" : "Loading privacy settings"}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
+      ) : loadError ? (
+        <StateCard
+          rtl={rtl}
+          tone="error"
+          title={rtl ? "تعذر تحميل بيانات الخصوصية" : "We couldn’t load your privacy data"}
+          body={
+            rtl
+              ? "لن نعرض حالة غير مؤكدة لموافقاتك أو طلب الحذف. تحقق من اتصالك ثم أعد المحاولة."
+              : "We won’t guess at your consent or deletion status. Check your connection and try again."
+          }
+          actionLabel={rtl ? "إعادة المحاولة" : "Try again"}
+          onAction={() => void load(true)}
+        />
       ) : (
         <View style={styles.stack}>
           <View style={styles.sectionCard}>
@@ -159,7 +193,8 @@ export default function PrivacyScreen() {
               </View>
               <Pressable
                 accessibilityRole="switch"
-                accessibilityState={{ checked: communicationsEnabled }}
+                accessibilityLabel={copy.updatesTitle}
+                accessibilityState={{ checked: communicationsEnabled, disabled: saving || Boolean(deletionRequest) }}
                 disabled={saving || Boolean(deletionRequest)}
                 onPress={() => void updateCommunications(!communicationsEnabled)}
                 style={[
@@ -192,9 +227,7 @@ export default function PrivacyScreen() {
               </View>
             ) : confirmDelete ? (
               <View style={styles.confirmationBox}>
-                <Text style={[styles.confirmationText, { textAlign: rtl ? "right" : "left" }]}>
-                  {copy.confirmDelete}
-                </Text>
+                <Text style={[styles.confirmationText, { textAlign: rtl ? "right" : "left" }]}>{copy.confirmDelete}</Text>
                 <PrimaryButton loading={saving} onPress={() => void requestDeletion()}>
                   {copy.confirmDeleteButton}
                 </PrimaryButton>
@@ -209,7 +242,11 @@ export default function PrivacyScreen() {
             )}
           </View>
 
-          {message ? <Text style={[styles.message, { textAlign: rtl ? "right" : "left" }]}>{message}</Text> : null}
+          {message ? (
+            <Text accessibilityLiveRegion="polite" style={[styles.message, { textAlign: rtl ? "right" : "left" }]}>
+              {message}
+            </Text>
+          ) : null}
         </View>
       )}
     </ScreenShell>
