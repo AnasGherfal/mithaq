@@ -223,7 +223,8 @@ function activityCopy(locale: MobileLocale) {
       emptyTitle: "لا يوجد نشاط جديد",
       emptyBody: "عندما ينشئ ميثاق تعارفاً خاصاً لك أو تصلك رسالة داخل تعارف مقبول، ستظهر الإشارة هنا.",
       privacyTitle: "إشعارات مصممة للخصوصية",
-      privacyBody: "قائمة النشاط لا تعرض نص الرسالة ولا رقم الهاتف ولا معرف الطرف الآخر. افتح التعارف نفسه لرؤية ما يسمح به ميثاق فقط.",
+      privacyBody:
+        "قائمة النشاط لا تعرض نص الرسالة ولا رقم الهاتف ولا معرف الطرف الآخر. افتح التعارف نفسه لرؤية ما يسمح به ميثاق فقط.",
       introductionTitle: "تعارف خاص جديد",
       introductionBody: "أنشأ ميثاق تعارفاً خاصاً لك. افتح التعارف لمراجعة الملف المسموح به واتخاذ قرارك.",
       messageTitle: "رسالة جديدة",
@@ -243,11 +244,14 @@ function activityCopy(locale: MobileLocale) {
     retry: "Try again",
     back: "Back to account",
     emptyTitle: "No new activity",
-    emptyBody: "When Mithaq creates a private introduction for you or a message arrives in a mutually accepted introduction, it will appear here.",
+    emptyBody:
+      "When Mithaq creates a private introduction for you or a message arrives in a mutually accepted introduction, it will appear here.",
     privacyTitle: "Privacy-minimal notifications",
-    privacyBody: "Activity never shows message text, phone numbers, or the other member’s identifier. Open the introduction to see only what Mithaq permits.",
+    privacyBody:
+      "Activity never shows message text, phone numbers, or the other member’s identifier. Open the introduction to see only what Mithaq permits.",
     introductionTitle: "New private introduction",
-    introductionBody: "Mithaq created a private introduction for you. Open it to review the permitted profile and make your decision.",
+    introductionBody:
+      "Mithaq created a private introduction for you. Open it to review the permitted profile and make your decision.",
     messageTitle: "New message",
     messageBody: "A message arrived inside a mutually accepted introduction.",
     loadEarlier: "Show earlier activity",
