@@ -79,7 +79,7 @@ set search_path = public
 as $$
 declare
   v_user_id uuid := auth.uid();
-  v_inserted boolean := false;
+  v_row_count integer := 0;
 begin
   if v_user_id is null then
     raise exception 'authentication required';
@@ -111,8 +111,8 @@ begin
   values (v_user_id, p_target_user_id)
   on conflict (blocker_user_id, blocked_user_id) do nothing;
 
-  get diagnostics v_inserted = row_count;
-  return v_inserted;
+  get diagnostics v_row_count = row_count;
+  return v_row_count > 0;
 end;
 $$;
 
@@ -126,7 +126,7 @@ set search_path = public
 as $$
 declare
   v_user_id uuid := auth.uid();
-  v_deleted boolean := false;
+  v_row_count integer := 0;
 begin
   if v_user_id is null then
     raise exception 'authentication required';
@@ -149,8 +149,8 @@ begin
   where b.blocker_user_id = v_user_id
     and b.blocked_user_id = p_target_user_id;
 
-  get diagnostics v_deleted = row_count;
-  return v_deleted;
+  get diagnostics v_row_count = row_count;
+  return v_row_count > 0;
 end;
 $$;
 
