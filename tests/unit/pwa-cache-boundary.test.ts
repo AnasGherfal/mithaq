@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const serviceWorkerPath = new URL("../../src/app/sw.ts", import.meta.url);
+const serviceWorkerPath = resolve(process.cwd(), "src/app/sw.ts");
 
 describe("PWA privacy cache boundary", () => {
   it("keeps runtime caching disabled for authenticated and API data", async () => {
