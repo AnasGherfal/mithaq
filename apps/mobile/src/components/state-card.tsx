@@ -11,14 +11,7 @@ type StateCardProps = {
   onAction?: () => void;
 };
 
-export function StateCard({
-  title,
-  body,
-  rtl = false,
-  tone = "neutral",
-  actionLabel,
-  onAction,
-}: StateCardProps) {
+export function StateCard({ title, body, rtl = false, tone = "neutral", actionLabel, onAction }: StateCardProps) {
   const error = tone === "error";
 
   return (

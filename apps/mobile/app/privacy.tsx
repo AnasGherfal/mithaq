@@ -151,7 +151,10 @@ export default function PrivacyScreen() {
       }
     >
       {loading ? (
-        <View style={styles.loadingState} accessibilityLabel={rtl ? "جارٍ تحميل إعدادات الخصوصية" : "Loading privacy settings"}>
+        <View
+          style={styles.loadingState}
+          accessibilityLabel={rtl ? "جارٍ تحميل إعدادات الخصوصية" : "Loading privacy settings"}
+        >
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
       ) : loadError ? (
@@ -227,7 +230,9 @@ export default function PrivacyScreen() {
               </View>
             ) : confirmDelete ? (
               <View style={styles.confirmationBox}>
-                <Text style={[styles.confirmationText, { textAlign: rtl ? "right" : "left" }]}>{copy.confirmDelete}</Text>
+                <Text style={[styles.confirmationText, { textAlign: rtl ? "right" : "left" }]}>
+                  {copy.confirmDelete}
+                </Text>
                 <PrimaryButton loading={saving} onPress={() => void requestDeletion()}>
                   {copy.confirmDeleteButton}
                 </PrimaryButton>

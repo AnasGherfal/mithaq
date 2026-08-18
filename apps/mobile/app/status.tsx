@@ -109,7 +109,10 @@ export default function StatusScreen() {
       }
     >
       {loading ? (
-        <View style={styles.loadingState} accessibilityLabel={rtl ? "جارٍ تحميل حالة الحساب" : "Loading account status"}>
+        <View
+          style={styles.loadingState}
+          accessibilityLabel={rtl ? "جارٍ تحميل حالة الحساب" : "Loading account status"}
+        >
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
       ) : loadError ? (
