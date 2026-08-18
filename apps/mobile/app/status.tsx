@@ -111,8 +111,7 @@ export default function StatusScreen() {
     Number(registration.questionnaireComplete) +
     Number(registration.submitted) +
     Number(registration.profileComplete);
-  const introductionsReady =
-    registration.submitted && registration.profileComplete && !registration.deletionPending;
+  const introductionsReady = registration.submitted && registration.profileComplete && !registration.deletionPending;
 
   return (
     <ScreenShell
@@ -247,9 +246,7 @@ export default function StatusScreen() {
                   </Text>
                 </View>
               </View>
-              <PrimaryButton
-                onPress={() => router.push({ pathname: "/introductions", params: { locale } })}
-              >
+              <PrimaryButton onPress={() => router.push({ pathname: "/introductions", params: { locale } })}>
                 {rtl ? "عرض التعارفات" : "View introductions"}
               </PrimaryButton>
             </View>
