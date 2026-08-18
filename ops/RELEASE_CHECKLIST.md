@@ -83,7 +83,10 @@ run and are not stale beyond the configured freshness window.
    not only configuration.
 8. Verify release readiness.
 9. Build the web staging deployment and EAS preview build.
-10. Execute real-device acceptance: OTP, onboarding, profile, introduction,
+10. Set `MITHAQ_RELEASE_BASE_URL` to the hosted staging origin and
+    `MITHAQ_EXPECTED_REVISION` to the reviewed commit SHA. Run
+    `pnpm release:verify:staging` and do not continue until it passes.
+11. Execute real-device acceptance: OTP, onboarding, profile, introduction,
     mutual acceptance, conversation, activity, safety/report/block, privacy
     controls, session restore, biometric lock, and sign-out.
 
@@ -99,14 +102,16 @@ run and are not stale beyond the configured freshness window.
 6. Configure production maintenance schedules and verify successful initial
    runs.
 7. Require a clean release-readiness result with no blocking workers.
-8. Verify the health endpoint release identity matches the reviewed commit and
-   the production CSP/security-header baseline is present.
-9. Build signed production mobile binaries only from the reviewed release
-   commit.
-10. Perform final smoke tests against production-safe test accounts.
-11. Submit the reviewed binary to TestFlight / Google Play testing before public
+8. Deploy the reviewed web release.
+9. Set `MITHAQ_RELEASE_BASE_URL` to the production origin and
+   `MITHAQ_EXPECTED_REVISION` to the reviewed commit SHA. Run
+   `pnpm release:verify:production` and do not continue until it passes.
+10. Build signed production mobile binaries only from the reviewed release
+    commit.
+11. Perform final smoke tests against production-safe test accounts.
+12. Submit the reviewed binary to TestFlight / Google Play testing before public
     rollout.
-12. Use a staged public rollout and monitor authentication, database errors,
+13. Use a staged public rollout and monitor authentication, database errors,
     safety reports, messaging failures, worker health, crash reports, and
     account-deletion backlog.
 
