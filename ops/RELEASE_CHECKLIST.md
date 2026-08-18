@@ -11,6 +11,9 @@ captures the operator steps that cannot be proven from source control alone.
   journey.
 - Confirm `pnpm release:metadata:check` passes so web, mobile, and Expo versions
   agree and native build baselines are valid.
+- After loading the real hosted environment values, run the matching preflight:
+  `pnpm release:preflight:staging` for staging or
+  `pnpm release:preflight:production` for production.
 - Confirm the target Supabase project is the correct environment and is not
   shared with another release tier.
 - Apply reviewed database migrations before deploying web or mobile clients that
@@ -72,15 +75,17 @@ run and are not stale beyond the configured freshness window.
 4. Configure hosted staging web variables separately; configure the EAS
    `preview` environment so its mobile public values point only at
    `mithaq-staging`.
-5. Configure hosted maintenance schedules with service-role credentials stored
+5. With those real values loaded, run `pnpm release:preflight:staging` and do not
+   continue until it passes.
+6. Configure hosted maintenance schedules with service-role credentials stored
    only in the trusted scheduler/runtime.
-6. Run each required worker once so readiness is based on real successful runs,
+7. Run each required worker once so readiness is based on real successful runs,
    not only configuration.
-7. Verify release readiness.
-8. Build the web staging deployment and EAS preview build.
-9. Execute real-device acceptance: OTP, onboarding, profile, introduction,
-   mutual acceptance, conversation, activity, safety/report/block, privacy
-   controls, session restore, biometric lock, and sign-out.
+8. Verify release readiness.
+9. Build the web staging deployment and EAS preview build.
+10. Execute real-device acceptance: OTP, onboarding, profile, introduction,
+    mutual acceptance, conversation, activity, safety/report/block, privacy
+    controls, session restore, biometric lock, and sign-out.
 
 ## Production release
 
@@ -89,17 +94,19 @@ run and are not stale beyond the configured freshness window.
 3. Review and apply production migrations.
 4. Configure production web/mobile public variables and trusted server secrets
    separately from staging.
-5. Configure production maintenance schedules and verify successful initial
+5. With those real values loaded, run `pnpm release:preflight:production` and do
+   not continue until it passes.
+6. Configure production maintenance schedules and verify successful initial
    runs.
-6. Require a clean release-readiness result with no blocking workers.
-7. Verify the health endpoint release identity matches the reviewed commit and
+7. Require a clean release-readiness result with no blocking workers.
+8. Verify the health endpoint release identity matches the reviewed commit and
    the production CSP/security-header baseline is present.
-8. Build signed production mobile binaries only from the reviewed release
+9. Build signed production mobile binaries only from the reviewed release
    commit.
-9. Perform final smoke tests against production-safe test accounts.
-10. Submit the reviewed binary to TestFlight / Google Play testing before public
+10. Perform final smoke tests against production-safe test accounts.
+11. Submit the reviewed binary to TestFlight / Google Play testing before public
     rollout.
-11. Use a staged public rollout and monitor authentication, database errors,
+12. Use a staged public rollout and monitor authentication, database errors,
     safety reports, messaging failures, worker health, crash reports, and
     account-deletion backlog.
 
