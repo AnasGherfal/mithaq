@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
@@ -48,6 +48,20 @@ export default function ConversationScreen() {
   const [ending, setEnding] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const refreshingRef = useRef(false);
+
+  const markVisibleMessagesRead = useCallback(
+    async (rows: MessageRow[]) => {
+      if (AppState.currentState !== "active") return;
+      const latestMessage = rows[rows.length - 1];
+      if (!latestMessage) return;
+
+      await supabase.rpc("mark_my_conversation_read", {
+        p_introduction_id: introductionId,
+        p_through: latestMessage.sent_at,
+      });
+    },
+    [introductionId],
+  );
 
   const loadMessages = useCallback(
     async (showLoading: boolean) => {
@@ -104,8 +118,9 @@ export default function ConversationScreen() {
       if (showLoading) setHasOlder(rows.length === PAGE_SIZE);
       setLoadError(false);
       setLoading(false);
+      void markVisibleMessagesRead(rows);
     },
-    [introductionId, locale, validIntroduction],
+    [introductionId, locale, markVisibleMessagesRead, validIntroduction],
   );
 
   useEffect(() => {
@@ -115,10 +130,18 @@ export default function ConversationScreen() {
   useEffect(() => {
     if (!validIntroduction || loadError) return;
     const timer = setInterval(() => {
-      void loadMessages(false);
+      if (AppState.currentState === "active") void loadMessages(false);
     }, 8000);
     return () => clearInterval(timer);
   }, [loadError, loadMessages, validIntroduction]);
+
+  useEffect(() => {
+    if (!validIntroduction) return;
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") void loadMessages(false);
+    });
+    return () => subscription.remove();
+  }, [loadMessages, validIntroduction]);
 
   async function loadOlderMessages() {
     if (!hasOlder || loadingOlder || messages.length === 0 || refreshingRef.current) return;
