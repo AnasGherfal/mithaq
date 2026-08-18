@@ -84,6 +84,17 @@ export function questionnaireCopy(locale: MobileLocale) {
     reassuranceBody: ar
       ? "هذه الإجابات لا تنشئ ملفاً عاماً، وتأكيد الهاتف لا يعني توثيق الهوية."
       : "These answers do not create a public profile, and phone confirmation does not mean identity verification.",
+    validation: {
+      country: ar ? "أدخل رمز دولة صحيحاً من حرفين، مثل LY أو GB." : "Enter a valid two-letter country code, such as LY or GB.",
+      city: ar ? "أدخل مدينتك الحالية للمتابعة." : "Enter your current city to continue.",
+      libyan: ar ? "يلزم تأكيد الارتباط بليبيا للانضمام إلى ميثاق حالياً." : "Confirm your Libyan connection to continue with Mithaq at this stage.",
+      age: ar ? "راجع نطاق العمر المفضل وتأكد أن الحد الأدنى لا يتجاوز الحد الأعلى." : "Check the preferred age range and make sure the minimum does not exceed the maximum.",
+      status: ar ? "اختر حالة اجتماعية مقبولة واحدة على الأقل." : "Choose at least one accepted marital status.",
+      location: ar ? "اختر الانفتاح على شخص في ليبيا أو في الخارج على الأقل." : "Choose at least one location option: Libya or diaspora.",
+      countries: ar ? "استخدم رموز دول من حرفين مفصولة بفواصل، مثل GB, CA." : "Use two-letter country codes separated by commas, such as GB, CA.",
+      unauthorized: ar ? "انتهت جلستك. سجّل الدخول من جديد للمتابعة." : "Your session ended. Sign in again to continue.",
+      database: ar ? "تعذر حفظ إجاباتك الآن. لم نعتبر التسجيل مكتملاً؛ حاول مرة أخرى." : "We could not save your answers right now. Registration was not marked complete; try again.",
+    },
     error: ar ? "راجع إجاباتك وحاول مرة أخرى." : "Review your answers and try again.",
   };
 }
