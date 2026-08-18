@@ -206,6 +206,18 @@ export default function IntroductionsScreen() {
             <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.privateBody}</Text>
           </View>
 
+          <PrimaryButton
+            tone="quiet"
+            onPress={() =>
+              router.push({
+                pathname: "/introduction-safety",
+                params: { locale, introductionId: selected.introduction_id },
+              })
+            }
+          >
+            {copy.safety}
+          </PrimaryButton>
+
           {actionError ? (
             <Text accessibilityRole="alert" style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>
               {actionError}
@@ -349,6 +361,7 @@ function introductionCopy(locale: MobileLocale) {
       detailBody: "هذه المعاينة مقيدة بهذا التعارف فقط وليست ملفاً عاماً أو قابلاً للبحث.",
       privateTitle: "خصوصية متبادلة",
       privateBody: "لا نعرض لك قرار الطرف الآخر قبل القبول المتبادل. الحظر أو قيود السلامة توقف التعارف من جهة الخادم.",
+      safety: "الأمان والإبلاغ",
       accept: "أرغب في المتابعة",
       decline: "الاعتذار عن التعارف",
       acceptedTitle: "تم حفظ قبولك",
@@ -404,6 +417,7 @@ function introductionCopy(locale: MobileLocale) {
     privateTitle: "Mutual privacy",
     privateBody:
       "We never reveal the other member’s decision before mutual acceptance. Blocking or safety restrictions stop the introduction server-side.",
+    safety: "Safety & report",
     accept: "I’d like to continue",
     decline: "Decline introduction",
     acceptedTitle: "Your acceptance is saved",
