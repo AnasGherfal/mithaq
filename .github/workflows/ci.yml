@@ -145,7 +145,27 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_KEY:-${ANON_KEY:-}}" >> "$GITHUB_ENV"
 
       - name: Run pgTAP database tests
-        run: pnpm test:db
+        shell: bash
+        run: |
+          set +e
+          pnpm test:db 2>&1 | tee /tmp/pgtap.log
+          status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+
+          # Supabase's pg_prove helper can occasionally fail while removing its
+          # already-finished Docker container on hosted runners. Do not turn a
+          # fully passing TAP suite into a red build for that cleanup-only error.
+          if grep -q "All tests successful\." /tmp/pgtap.log \
+            && grep -q "error running container: exit 125" /tmp/pgtap.log; then
+            echo "::warning::pgTAP passed; ignoring transient pg_prove Docker cleanup failure."
+            exit 0
+          fi
+
+          exit "$status"
 
       - name: Build application against local Supabase
         run: pnpm build
