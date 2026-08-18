@@ -52,9 +52,9 @@ insert into public.waitlist_preferences (
   ('19191919-cccc-4ccc-8ccc-191919191913', true, true, 18, 60, 'depends');
 
 insert into public.member_profiles (user_id, display_name, about_me, profile_completed_at) values
-  ('19191919-1919-4919-8919-191919191911', 'A', 'A complete serious profile used only for introduction safety boundary testing.', now()),
-  ('19191919-1919-4919-8919-191919191912', 'B', 'A complete serious profile used only for introduction safety boundary testing.', now()),
-  ('19191919-1919-4919-8919-191919191913', 'C', 'A complete serious profile used only for introduction safety boundary testing.', now());
+  ('19191919-1919-4919-8919-191919191911', 'Adam', 'A complete serious profile used only for introduction safety boundary testing.', now()),
+  ('19191919-1919-4919-8919-191919191912', 'Basma', 'A complete serious profile used only for introduction safety boundary testing.', now()),
+  ('19191919-1919-4919-8919-191919191913', 'Cora', 'A complete serious profile used only for introduction safety boundary testing.', now());
 
 set local role service_role;
 select public.set_member_profile_review_state('19191919-1919-4919-8919-191919191911', 'approved', 'm6', 'intro-safety-test', null);
@@ -62,6 +62,7 @@ select public.set_member_profile_review_state('19191919-1919-4919-8919-191919191
 select public.set_member_profile_review_state('19191919-1919-4919-8919-191919191913', 'approved', 'm6', 'intro-safety-test', null);
 
 create temporary table intro_safety_ids (name text primary key, id uuid not null) on commit drop;
+grant select on intro_safety_ids to authenticated;
 insert into intro_safety_ids (name, id)
 select 'report', public.create_controlled_introduction(
   '19191919-1919-4919-8919-191919191911',
@@ -108,6 +109,7 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '19191919-1919-4919-8919-191919191911', true);
 
 create temporary table report_result (id uuid not null) on commit drop;
+grant select on report_result to service_role;
 insert into report_result (id)
 select public.submit_introduction_safety_report(
   (select id from intro_safety_ids where name = 'report'),
