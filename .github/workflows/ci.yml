@@ -97,8 +97,11 @@ jobs:
         # the Expo SDK 57 React 19.2.3 native stack despite those optional peers.
         run: npm ci --legacy-peer-deps
 
-      - name: Run mobile TypeScript and formatting checks
-        run: npm run check
+      - name: Print exact mobile formatting diff
+        run: |
+          npx prettier --write .
+          git diff -- app/privacy.tsx app/status.tsx src/components/screen-shell.tsx src/components/state-card.tsx
+          exit 1
 
       - name: Validate Expo dependencies and configuration
         run: npx expo-doctor@latest
