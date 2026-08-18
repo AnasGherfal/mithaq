@@ -17,9 +17,8 @@ Deno.serve(async (request) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const workerSecret = Deno.env.get("MITHAQ_DELETION_WORKER_SECRET");
 
-  if (!supabaseUrl || !serviceRoleKey || !workerSecret) {
+  if (!supabaseUrl || !serviceRoleKey) {
     console.error("Account deletion worker is missing required server-side environment variables.");
     return new Response(JSON.stringify({ error: "worker_not_configured" }), {
       status: 503,
@@ -27,7 +26,7 @@ Deno.serve(async (request) => {
     });
   }
 
-  if (request.headers.get("authorization") !== `Bearer ${workerSecret}`) {
+  if (request.headers.get("authorization") !== `Bearer ${serviceRoleKey}`) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: jsonHeaders,
