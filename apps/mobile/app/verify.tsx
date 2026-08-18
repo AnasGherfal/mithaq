@@ -26,13 +26,28 @@ export default function VerifyScreen() {
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    SecureStore.getItemAsync(pendingPhoneKey).then((value) => {
-      if (!value) {
-        router.replace({ pathname: "/auth", params: { locale } });
-        return;
+    let active = true;
+
+    async function loadPendingPhone() {
+      try {
+        const value = await SecureStore.getItemAsync(pendingPhoneKey);
+        if (!active) return;
+
+        if (!value) {
+          router.replace({ pathname: "/auth", params: { locale } });
+          return;
+        }
+
+        setPhone(value);
+      } catch {
+        if (active) router.replace({ pathname: "/auth", params: { locale } });
       }
-      setPhone(value);
-    });
+    }
+
+    void loadPendingPhone();
+    return () => {
+      active = false;
+    };
   }, [locale]);
 
   useEffect(() => {
@@ -42,6 +57,8 @@ export default function VerifyScreen() {
   }, [resendIn]);
 
   async function verifyCode() {
+    if (loading) return;
+
     if (!phone || !/^\d{6}$/.test(code)) {
       setError(copy.invalidCode);
       return;
@@ -50,54 +67,81 @@ export default function VerifyScreen() {
     setLoading(true);
     setError(null);
     setNotice(null);
-    const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-      phone,
-      token: code,
-      type: "sms",
-    });
 
-    if (verifyError) {
+    try {
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        phone,
+        token: code,
+        type: "sms",
+      });
+
+      if (verifyError) {
+        setError(
+          verifyError.status === 400
+            ? copy.invalidCode
+            : verifyError.status === 429
+              ? rtl
+                ? "تمت محاولات كثيرة خلال وقت قصير. انتظر قليلاً ثم حاول مرة أخرى."
+                : "Too many attempts were made in a short time. Wait a moment and try again."
+              : copy.genericError,
+        );
+        return;
+      }
+
+      if (verifyData.user) {
+        await supabase
+          .from("users")
+          .update({ preferred_locale: locale, updated_at: new Date().toISOString() })
+          .eq("id", verifyData.user.id);
+      }
+
+      await Promise.all([SecureStore.deleteItemAsync(pendingPhoneKey), SecureStore.deleteItemAsync(pendingLocaleKey)]);
+      router.replace({ pathname: "/status", params: { locale } });
+    } catch {
       setError(copy.genericError);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    if (verifyData.user) {
-      await supabase
-        .from("users")
-        .update({ preferred_locale: locale, updated_at: new Date().toISOString() })
-        .eq("id", verifyData.user.id);
-    }
-
-    await Promise.all([SecureStore.deleteItemAsync(pendingPhoneKey), SecureStore.deleteItemAsync(pendingLocaleKey)]);
-    setLoading(false);
-    router.replace({ pathname: "/status", params: { locale } });
   }
 
   async function resendCode() {
-    if (!phone || resendIn > 0 || resending) return;
+    if (!phone || resendIn > 0 || resending || loading) return;
 
     setResending(true);
     setError(null);
     setNotice(null);
-    const { error: resendError } = await supabase.auth.resend({
-      type: "sms",
-      phone,
-    });
-    setResending(false);
 
-    if (resendError) {
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: "sms",
+        phone,
+      });
+
+      if (resendError) {
+        setError(
+          resendError.status === 429
+            ? rtl
+              ? "طلبت رموزاً كثيرة خلال وقت قصير. انتظر قليلاً قبل المحاولة من جديد."
+              : "Too many codes were requested in a short time. Wait before trying again."
+            : rtl
+              ? "تعذر إرسال رمز جديد الآن. تحقق من الاتصال ثم حاول مرة أخرى."
+              : "We could not send a new code right now. Check your connection and try again.",
+        );
+        return;
+      }
+
+      setCode("");
+      setResendIn(resendCooldownSeconds);
+      setNotice(rtl ? "تم إرسال رمز جديد إلى رقمك." : "A new code has been sent to your phone.");
+    } catch {
       setError(
         rtl
-          ? "تعذر إرسال رمز جديد الآن. انتظر قليلاً ثم حاول مرة أخرى."
-          : "We could not send a new code right now. Wait a moment and try again.",
+          ? "تعذر الاتصال لإرسال رمز جديد. تحقق من الشبكة وحاول مرة أخرى."
+          : "We could not connect to send a new code. Check your network and try again.",
       );
-      return;
+    } finally {
+      setResending(false);
     }
-
-    setCode("");
-    setResendIn(resendCooldownSeconds);
-    setNotice(rtl ? "تم إرسال رمز جديد إلى رقمك." : "A new code has been sent to your phone.");
   }
 
   const resendLabel =
@@ -139,10 +183,18 @@ export default function VerifyScreen() {
         <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>{copy.codeLabel}</Text>
         <TextInput
           accessibilityLabel={copy.codeLabel}
+          accessibilityHint={rtl ? "أدخل رمز التحقق المكوّن من ستة أرقام" : "Enter the six-digit verification code"}
           autoComplete="one-time-code"
           keyboardType="number-pad"
           value={code}
-          onChangeText={(value) => setCode(value.replace(/\D/g, "").slice(0, 6))}
+          onChangeText={(value) => {
+            setCode(value.replace(/\D/g, "").slice(0, 6));
+            if (error) setError(null);
+          }}
+          onSubmitEditing={() => {
+            if (code.length === 6) void verifyCode();
+          }}
+          returnKeyType="done"
           maxLength={6}
           textAlign="center"
           selectionColor={colors.primary}
@@ -153,11 +205,19 @@ export default function VerifyScreen() {
         </Text>
       </View>
 
-      {error ? <Text style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>{error}</Text> : null}
-      {notice ? <Text style={[styles.notice, { textAlign: rtl ? "right" : "left" }]}>{notice}</Text> : null}
+      {error ? (
+        <Text accessibilityRole="alert" style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>
+          {error}
+        </Text>
+      ) : null}
+      {notice ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.notice, { textAlign: rtl ? "right" : "left" }]}>
+          {notice}
+        </Text>
+      ) : null}
 
       <View style={styles.actions}>
-        <PrimaryButton disabled={!phone || code.length !== 6} loading={loading} onPress={verifyCode}>
+        <PrimaryButton disabled={!phone || code.length !== 6} loading={loading} onPress={() => void verifyCode()}>
           {loading ? copy.verifying : copy.verify}
         </PrimaryButton>
         <PrimaryButton
