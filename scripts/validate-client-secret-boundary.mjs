@@ -16,7 +16,12 @@ const forbiddenIdentifiers = [
   ]),
 ];
 const sourceExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".json"]);
-const skippedNames = new Set(["node_modules", ".next", ".expo", "package-lock.json"]);
+const skippedNames = new Set([
+  "node_modules",
+  ".next",
+  ".expo",
+  "package-lock.json",
+]);
 const clientRoots = ["apps/mobile", "src", "public"];
 const errors = [];
 let scannedFiles = 0;
@@ -26,7 +31,11 @@ async function walk(directory) {
   try {
     entries = await readdir(directory, { withFileTypes: true });
   } catch (error) {
-    if (error && typeof error === "object" && Reflect.get(error, "code") === "ENOENT") {
+    if (
+      error &&
+      typeof error === "object" &&
+      Reflect.get(error, "code") === "ENOENT"
+    ) {
       return [];
     }
     throw error;
@@ -62,7 +71,9 @@ for (const root of clientRoots) {
     scannedFiles += 1;
     for (const identifier of forbiddenIdentifiers) {
       if (source.includes(identifier)) {
-        errors.push(`${relativePath} references server-only identifier ${identifier}`);
+        errors.push(
+          `${relativePath} references server-only identifier ${identifier}`,
+        );
       }
     }
   }
