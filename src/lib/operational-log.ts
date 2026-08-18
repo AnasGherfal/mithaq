@@ -1,7 +1,7 @@
 import { getReleaseMetadata } from "@/lib/release-metadata";
 
 type ServerErrorInput = {
-  error: Error & { digest?: string };
+  error: unknown;
   method: string;
   routePath: string;
   routeType: string;
@@ -17,6 +17,21 @@ function safeCode(value: string | undefined, fallback: string, maxLength = 80) {
   return normalized.slice(0, maxLength);
 }
 
+function errorName(error: unknown) {
+  return error instanceof Error ? error.name : undefined;
+}
+
+function errorDigest(error: unknown) {
+  if (typeof error !== "object" || error === null) return undefined;
+
+  try {
+    const digest = Reflect.get(error, "digest");
+    return typeof digest === "string" ? digest : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function buildServerErrorObservation(input: ServerErrorInput) {
   return {
     event: "server_request_error",
@@ -29,8 +44,8 @@ export function buildServerErrorObservation(input: ServerErrorInput) {
       routerKind: safeCode(input.routerKind, "unknown", 40),
     },
     error: {
-      name: safeCode(input.error.name, "Error", 80),
-      digest: safeCode(input.error.digest, "unknown", 120),
+      name: safeCode(errorName(input.error), "Error", 80),
+      digest: safeCode(errorDigest(input.error), "unknown", 120),
     },
   } as const;
 }
