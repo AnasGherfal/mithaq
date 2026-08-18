@@ -15,6 +15,11 @@ type SafetyReport = {
   reported_at: string;
 };
 
+type ParticipationState = {
+  state: "clear" | "restricted" | "suspended";
+  review_after: string | null;
+};
+
 const categoryCopy: Record<SafetyReport["category"], { ar: string; en: string }> = {
   fake_identity: { ar: "هوية أو معلومات غير حقيقية", en: "Fake identity or information" },
   harassment: { ar: "مضايقة أو سلوك غير محترم", en: "Harassment or disrespectful behavior" },
@@ -41,6 +46,10 @@ export default function SafetyScreen() {
   const [loadError, setLoadError] = useState(false);
   const [reports, setReports] = useState<SafetyReport[]>([]);
   const [blockedCount, setBlockedCount] = useState(0);
+  const [participation, setParticipation] = useState<ParticipationState>({
+    state: "clear",
+    review_after: null,
+  });
 
   const copy = useMemo(
     () =>
@@ -52,6 +61,16 @@ export default function SafetyScreen() {
             controlsTitle: "حمايتك أثناء أي تعارف",
             controlsBody:
               "عند تفعيل التعارف الخاص ستظهر خيارات البلاغ والحظر مباشرة على التعارف والمحادثة. البلاغ يحظر الطرف الآخر افتراضياً، ويمكن لفريق المراجعة متابعة البلاغ دون أن يرى الطرف الآخر من أرسله.",
+            participationTitle: "حالة المشاركة",
+            clearTitle: "جاهز للمشاركة",
+            clearBody: "لا توجد قيود سلامة على حسابك. عند إطلاق التعارف، ستبقى الأهلية خاضعة أيضاً لاكتمال الملف وشروط المطابقة.",
+            restrictedTitle: "المشاركة مقيّدة مؤقتاً",
+            restrictedBody:
+              "لن ينشئ ميثاق تعارفاً جديداً لهذا الحساب أثناء المراجعة. لا نعرض لك هوية أي مُبلّغ أو ملاحظات المراجعة الداخلية.",
+            suspendedTitle: "المشاركة موقوفة",
+            suspendedBody:
+              "التعارف الجديد موقوف على هذا الحساب حتى تُستكمل مراجعة السلامة ويعاد تفعيل المشاركة من فريق موثوق.",
+            reviewAfter: "موعد المراجعة التالي",
             reportsTitle: "بلاغاتك",
             noReportsTitle: "لا توجد بلاغات",
             noReportsBody: "هذا جيد. إذا احتجت لاحقاً، ستجد خيار البلاغ داخل التعارف الخاص نفسه.",
@@ -75,6 +94,17 @@ export default function SafetyScreen() {
             controlsTitle: "Protection during every introduction",
             controlsBody:
               "When private introductions launch, report and block controls will appear directly on the introduction and conversation. Reports block the other member by default, while review stays private from the reported member.",
+            participationTitle: "Participation status",
+            clearTitle: "Ready to participate",
+            clearBody:
+              "There are no safety restrictions on your account. When introductions launch, eligibility will still depend on profile completion and matching rules.",
+            restrictedTitle: "Participation temporarily restricted",
+            restrictedBody:
+              "Mithaq will not create new introductions for this account while review is active. We do not disclose reporter identities or confidential moderation notes.",
+            suspendedTitle: "Participation suspended",
+            suspendedBody:
+              "New introductions are paused for this account until safety review is complete and a trusted service restores participation.",
+            reviewAfter: "Next review date",
             reportsTitle: "Your reports",
             noReportsTitle: "No reports submitted",
             noReportsBody:
@@ -112,16 +142,21 @@ export default function SafetyScreen() {
       return;
     }
 
-    const [reportResult, blockResult] = await Promise.all([
+    const [reportResult, blockResult, participationResult] = await Promise.all([
       supabase
         .from("safety_reports")
         .select("id, category, status, reported_at")
         .order("reported_at", { ascending: false })
         .limit(20),
       supabase.from("member_blocks").select("blocked_user_id", { count: "exact", head: true }),
+      supabase
+        .from("member_safety_states")
+        .select("state, review_after")
+        .eq("user_id", sessionData.session.user.id)
+        .maybeSingle(),
     ]);
 
-    if (reportResult.error || blockResult.error) {
+    if (reportResult.error || blockResult.error || participationResult.error) {
       setLoadError(true);
       setLoading(false);
       return;
@@ -129,12 +164,40 @@ export default function SafetyScreen() {
 
     setReports((reportResult.data ?? []) as SafetyReport[]);
     setBlockedCount(blockResult.count ?? 0);
+    setParticipation(
+      participationResult.data
+        ? (participationResult.data as ParticipationState)
+        : {
+            state: "clear",
+            review_after: null,
+          },
+    );
     setLoading(false);
   }, [locale]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const participationTitle =
+    participation.state === "restricted"
+      ? copy.restrictedTitle
+      : participation.state === "suspended"
+        ? copy.suspendedTitle
+        : copy.clearTitle;
+  const participationBody =
+    participation.state === "restricted"
+      ? copy.restrictedBody
+      : participation.state === "suspended"
+        ? copy.suspendedBody
+        : copy.clearBody;
+  const reviewDate = participation.review_after
+    ? new Date(participation.review_after).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
 
   return (
     <ScreenShell
@@ -173,6 +236,48 @@ export default function SafetyScreen() {
             </View>
             <Text style={[styles.heroTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.controlsTitle}</Text>
             <Text style={[styles.heroBody, { textAlign: rtl ? "right" : "left" }]}>{copy.controlsBody}</Text>
+          </View>
+
+          <View
+            style={[
+              styles.participationCard,
+              participation.state === "restricted" ? styles.participationRestricted : null,
+              participation.state === "suspended" ? styles.participationSuspended : null,
+            ]}
+          >
+            <View style={[styles.participationTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+              <View style={styles.participationCopy}>
+                <Text style={[styles.participationEyebrow, { textAlign: rtl ? "right" : "left" }]}>
+                  {copy.participationTitle}
+                </Text>
+                <Text style={[styles.participationTitle, { textAlign: rtl ? "right" : "left" }]}>
+                  {participationTitle}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.participationMark,
+                  participation.state === "restricted" ? styles.participationMarkRestricted : null,
+                  participation.state === "suspended" ? styles.participationMarkSuspended : null,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.participationMarkText,
+                    participation.state === "restricted" ? styles.participationMarkTextRestricted : null,
+                    participation.state === "suspended" ? styles.participationMarkTextSuspended : null,
+                  ]}
+                >
+                  {participation.state === "clear" ? "✓" : "!"}
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.participationBody, { textAlign: rtl ? "right" : "left" }]}>{participationBody}</Text>
+            {reviewDate ? (
+              <Text style={[styles.reviewDate, { textAlign: rtl ? "right" : "left" }]}>
+                {copy.reviewAfter}: {reviewDate}
+              </Text>
+            ) : null}
           </View>
 
           <View style={styles.metricCard}>
@@ -266,6 +371,34 @@ const styles = StyleSheet.create({
   heroMarkText: { color: colors.white, fontSize: 21, fontWeight: "900" },
   heroTitle: { color: colors.white, fontSize: 18, fontWeight: "800" },
   heroBody: { color: "rgba(255,255,255,0.76)", fontSize: 13, lineHeight: 21, marginTop: 7 },
+  participationCard: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.primaryWash,
+    padding: 17,
+  },
+  participationRestricted: { borderColor: colors.goldSoft, backgroundColor: colors.surfaceMuted },
+  participationSuspended: { borderColor: "rgba(163,60,63,0.22)", backgroundColor: "#FBF4F2" },
+  participationTop: { alignItems: "center", gap: 14 },
+  participationCopy: { flex: 1 },
+  participationEyebrow: { color: colors.muted, fontSize: 11, fontWeight: "800" },
+  participationTitle: { color: colors.foreground, fontSize: 17, lineHeight: 23, fontWeight: "900", marginTop: 3 },
+  participationBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 10 },
+  participationMark: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+  },
+  participationMarkRestricted: { backgroundColor: colors.goldSoft },
+  participationMarkSuspended: { backgroundColor: "rgba(163,60,63,0.12)" },
+  participationMarkText: { color: colors.white, fontSize: 19, fontWeight: "900" },
+  participationMarkTextRestricted: { color: colors.gold },
+  participationMarkTextSuspended: { color: colors.danger },
+  reviewDate: { color: colors.foreground, fontSize: 12, fontWeight: "800", marginTop: 9 },
   metricCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
