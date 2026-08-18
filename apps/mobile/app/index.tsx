@@ -10,6 +10,8 @@ import { colors, radius } from "@/theme";
 export default function WelcomeScreen() {
   const [locale, setLocale] = useState<MobileLocale>("ar");
   const [booting, setBooting] = useState(true);
+  const [bootError, setBootError] = useState(false);
+  const [bootAttempt, setBootAttempt] = useState(0);
   const copy = mobileCopy[locale];
   const rtl = locale === "ar";
   const textAlign = rtl ? "right" : "left";
@@ -18,34 +20,71 @@ export default function WelcomeScreen() {
     let active = true;
 
     async function restoreSession() {
-      const { data } = await supabase.auth.getSession();
-      if (!active) return;
+      setBooting(true);
+      setBootError(false);
 
-      if (!data.session) {
+      try {
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (!active) return;
+
+        if (!data.session) {
+          setBooting(false);
+          return;
+        }
+
+        const { data: profile, error: profileError } = await supabase
+          .from("users")
+          .select("preferred_locale")
+          .eq("id", data.session.user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+        if (!active) return;
+
+        const preferredLocale: MobileLocale = profile?.preferred_locale === "en" ? "en" : "ar";
+        router.replace({ pathname: "/status", params: { locale: preferredLocale } });
+      } catch {
+        if (!active) return;
+        setBootError(true);
         setBooting(false);
-        return;
       }
-
-      const { data: profile } = await supabase
-        .from("users")
-        .select("preferred_locale")
-        .eq("id", data.session.user.id)
-        .maybeSingle();
-
-      const preferredLocale: MobileLocale = profile?.preferred_locale === "en" ? "en" : "ar";
-      router.replace({ pathname: "/status", params: { locale: preferredLocale } });
     }
 
     void restoreSession();
     return () => {
       active = false;
     };
-  }, []);
+  }, [bootAttempt]);
 
   if (booting) {
     return (
-      <View style={styles.loadingState}>
-        <ActivityIndicator color={colors.primary} size="large" />
+      <View style={styles.loadingState} accessibilityLiveRegion="polite">
+        <ActivityIndicator accessibilityLabel="Loading Mithaq securely" color={colors.primary} size="large" />
+        <Text style={styles.loadingArabic}>جارٍ فتح ميثاق بأمان</Text>
+        <Text style={styles.loadingEnglish}>Opening Mithaq securely</Text>
+      </View>
+    );
+  }
+
+  if (bootError) {
+    return (
+      <View style={styles.recoveryState} accessibilityRole="alert">
+        <View style={styles.recoveryMark}>
+          <Text style={styles.recoveryMarkText}>م</Text>
+        </View>
+        <Text style={styles.recoveryEyebrow}>PRIVATE SESSION · جلسة خاصة</Text>
+        <Text style={styles.recoveryArabic}>تعذر استعادة جلستك بأمان</Text>
+        <Text style={styles.recoveryTitle}>We could not restore your session safely</Text>
+        <Text style={styles.recoveryBodyArabic}>
+          لم نعتبرك مسجلاً للخروج ولم نرسلْك إلى تسجيل جديد. تحقق من الاتصال ثم حاول مرة أخرى.
+        </Text>
+        <Text style={styles.recoveryBody}>
+          We did not treat you as signed out or start a new registration. Check your connection, then retry secure restoration.
+        </Text>
+        <View style={styles.recoveryAction}>
+          <PrimaryButton onPress={() => setBootAttempt((value) => value + 1)}>إعادة المحاولة · Try again</PrimaryButton>
+        </View>
       </View>
     );
   }
@@ -105,7 +144,42 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.background,
+    paddingHorizontal: 28,
   },
+  loadingArabic: { color: colors.primary, fontSize: 16, lineHeight: 24, fontWeight: "800", marginTop: 16 },
+  loadingEnglish: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 2 },
+  recoveryState: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: colors.background,
+    paddingHorizontal: 28,
+    paddingVertical: 40,
+  },
+  recoveryMark: {
+    width: 58,
+    height: 58,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
+  },
+  recoveryMarkText: { color: colors.primary, fontSize: 25, fontWeight: "900" },
+  recoveryEyebrow: { color: colors.gold, fontSize: 10, lineHeight: 15, letterSpacing: 1.4, fontWeight: "800" },
+  recoveryArabic: {
+    color: colors.primary,
+    fontSize: 27,
+    lineHeight: 38,
+    fontWeight: "900",
+    textAlign: "right",
+    marginTop: 12,
+  },
+  recoveryTitle: { color: colors.foreground, fontSize: 21, lineHeight: 29, fontWeight: "800", marginTop: 3 },
+  recoveryBodyArabic: { color: colors.muted, fontSize: 14, lineHeight: 24, textAlign: "right", marginTop: 16 },
+  recoveryBody: { color: colors.muted, fontSize: 13, lineHeight: 22, marginTop: 7 },
+  recoveryAction: { marginTop: 26 },
   signatureCard: {
     flexDirection: "row",
     alignItems: "center",
