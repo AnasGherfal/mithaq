@@ -43,12 +43,10 @@ Deno.serve(async (request) => {
   });
 
   let reconciled = 0;
-  const { data: reconciliationData, error: reconciliationError } = await admin.rpc(
-    "reconcile_orphaned_account_deletions",
-    {
+  const { data: reconciliationData, error: reconciliationError } =
+    await admin.rpc("reconcile_orphaned_account_deletions", {
       p_limit: 25,
-    },
-  );
+    });
 
   if (reconciliationError) {
     // Reconciliation repairs a previous run's narrow post-Auth-delete failure
