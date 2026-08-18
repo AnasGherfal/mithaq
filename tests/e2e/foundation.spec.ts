@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import packageJson from "../../package.json";
 
 const locales = [
   { path: "/ar", language: "ar", direction: "rtl" },
@@ -131,7 +132,7 @@ test("the health endpoint exposes only privacy-safe release identity", async ({
   expect(body).toMatchObject({
     status: "ok",
     application: "Mithaq",
-    release: { version: "0.1.0", tier: "local" },
+    release: { version: packageJson.version, tier: "local" },
   });
   expect(body.release.revision).toMatch(/^(unknown|[0-9a-f]{7,12})$/);
   expect(JSON.stringify(body)).not.toMatch(
