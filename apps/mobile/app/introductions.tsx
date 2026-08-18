@@ -20,6 +20,11 @@ type IntroductionRow = {
   expires_at: string;
 };
 
+type UnreadRow = {
+  introduction_id: string;
+  unread_count: number | string;
+};
+
 type PreviewRow = {
   display_name: string | null;
   about_me: string | null;
@@ -44,6 +49,7 @@ export default function IntroductionsScreen() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [items, setItems] = useState<IntroductionRow[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<IntroductionRow | null>(null);
   const [preview, setPreview] = useState<PreviewRow | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -64,14 +70,23 @@ export default function IntroductionsScreen() {
       return;
     }
 
-    const { data, error } = await supabase.rpc("list_my_introductions");
-    if (error) {
+    const [introductionResult, unreadResult] = await Promise.all([
+      supabase.rpc("list_my_introductions"),
+      supabase.rpc("list_my_conversation_unread_counts"),
+    ]);
+    if (introductionResult.error || unreadResult.error) {
       setLoadError(true);
       setLoading(false);
       return;
     }
 
-    setItems((data ?? []) as IntroductionRow[]);
+    const unreadMap: Record<string, number> = {};
+    for (const row of (unreadResult.data ?? []) as UnreadRow[]) {
+      unreadMap[row.introduction_id] = Number(row.unread_count) || 0;
+    }
+
+    setItems((introductionResult.data ?? []) as IntroductionRow[]);
+    setUnreadCounts(unreadMap);
     setLoading(false);
   }, [locale]);
 
@@ -289,33 +304,48 @@ export default function IntroductionsScreen() {
             <Text style={[styles.introHeroBody, { textAlign: rtl ? "right" : "left" }]}>{copy.heroBody}</Text>
           </View>
 
-          {items.map((item) => (
-            <Pressable
-              key={item.introduction_id}
-              accessibilityRole="button"
-              onPress={() => void openIntroduction(item)}
-              style={({ pressed }) => [styles.itemCard, pressed ? styles.pressed : null]}
-            >
-              <View style={[styles.itemTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-                <View style={styles.itemCopy}>
-                  <Text style={[styles.itemTitle, { textAlign: rtl ? "right" : "left" }]}>
-                    {copy.privateIntroduction}
-                  </Text>
-                  <Text style={[styles.itemDate, { textAlign: rtl ? "right" : "left" }]}>
-                    {new Date(item.created_at).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </Text>
+          {items.map((item) => {
+            const unreadCount = unreadCounts[item.introduction_id] ?? 0;
+            return (
+              <Pressable
+                key={item.introduction_id}
+                accessibilityRole="button"
+                onPress={() => void openIntroduction(item)}
+                style={({ pressed }) => [styles.itemCard, pressed ? styles.pressed : null]}
+              >
+                <View style={[styles.itemTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+                  <View style={styles.itemCopy}>
+                    <Text style={[styles.itemTitle, { textAlign: rtl ? "right" : "left" }]}>
+                      {copy.privateIntroduction}
+                    </Text>
+                    <Text style={[styles.itemDate, { textAlign: rtl ? "right" : "left" }]}>
+                      {new Date(item.created_at).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </Text>
+                  </View>
+                  <View style={styles.itemAside}>
+                    {unreadCount > 0 ? (
+                      <View
+                        style={styles.unreadBadge}
+                        accessibilityLabel={
+                          rtl ? `${unreadCount} رسائل غير مقروءة` : `${unreadCount} unread messages`
+                        }
+                      >
+                        <Text style={styles.unreadBadgeText}>{unreadCount > 99 ? "99+" : unreadCount}</Text>
+                      </View>
+                    ) : null}
+                    <View style={styles.chevron}>
+                      <Text style={styles.chevronText}>{rtl ? "‹" : "›"}</Text>
+                    </View>
+                  </View>
                 </View>
-                <View style={styles.chevron}>
-                  <Text style={styles.chevronText}>{rtl ? "‹" : "›"}</Text>
-                </View>
-              </View>
-              <StatusPill rtl={rtl} status={item.status} decision={item.my_decision} copy={copy} compact />
-            </Pressable>
-          ))}
+                <StatusPill rtl={rtl} status={item.status} decision={item.my_decision} copy={copy} compact />
+              </Pressable>
+            );
+          })}
         </View>
       )}
     </ScreenShell>
@@ -495,6 +525,17 @@ const styles = StyleSheet.create({
   itemCopy: { flex: 1 },
   itemTitle: { color: colors.foreground, fontSize: 15, fontWeight: "800" },
   itemDate: { color: colors.muted, fontSize: 12, marginTop: 4 },
+  itemAside: { alignItems: "center", gap: 8 },
+  unreadBadge: {
+    minWidth: 28,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+    paddingHorizontal: 7,
+  },
+  unreadBadgeText: { color: colors.white, fontSize: 11, fontWeight: "900" },
   chevron: {
     width: 30,
     height: 30,
