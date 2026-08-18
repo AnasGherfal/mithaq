@@ -74,6 +74,7 @@
     "destructiveMigrationGuardRequired": true,
     "hostedEnvironmentPreflightRequired": true,
     "hostedReleaseVerificationRequired": true,
+    "storeSubmissionReadinessRequired": true,
     "pgtapRequired": true,
     "mobileTypecheckRequired": true,
     "expoDoctorRequired": true,
