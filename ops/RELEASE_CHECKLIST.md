@@ -46,9 +46,9 @@ browser bundles, logs, screenshots, or support tooling.
 
 Hosted web/Supabase tiers are preview, staging, and production. EAS itself
 supports development, preview, and production environment stores; the internal
-EAS `preview` build is therefore Mithaq's mobile staging/acceptance tier and must
-point only at `mithaq-staging`. Production EAS values must point only at the
-production project.
+EAS `preview` build is therefore Mithaq's mobile staging/acceptance tier and
+must point only at `mithaq-staging`. Production EAS values must point only at
+the production project.
 
 ## Maintenance schedules
 
