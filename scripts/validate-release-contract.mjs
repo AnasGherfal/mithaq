@@ -96,12 +96,29 @@ const requiredReleaseRequirements = [
   "releaseMetadataRequired",
   "privacySafeServerObservabilityRequired",
   "contentSecurityPolicyRequired",
+  "disasterRecoveryRunbookRequired",
 ];
 const requirements = contract.releaseRequirements ?? {};
 
 for (const requirementName of requiredReleaseRequirements) {
   if (requirements[requirementName] !== true) {
     errors.push(`Release requirement ${requirementName} must remain enabled`);
+  }
+}
+
+const requiredReleaseArtifacts = [
+  "../ops/RELEASE_CHECKLIST.md",
+  "../ops/DISASTER_RECOVERY.md",
+];
+
+for (const artifactPath of requiredReleaseArtifacts) {
+  try {
+    const artifact = await readFile(new URL(artifactPath, import.meta.url), "utf8");
+    if (!artifact.trim()) {
+      errors.push(`Release artifact ${artifactPath} must not be empty`);
+    }
+  } catch {
+    errors.push(`Missing required release artifact: ${artifactPath}`);
   }
 }
 
@@ -112,5 +129,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Release contract valid: ${requiredEnvironments.length} environments, ${requiredWorkers.length} required maintenance workers, ${requiredReleaseRequirements.length} release gates.`,
+  `Release contract valid: ${requiredEnvironments.length} environments, ${requiredWorkers.length} required maintenance workers, ${requiredReleaseRequirements.length} release gates, ${requiredReleaseArtifacts.length} release artifacts.`,
 );
