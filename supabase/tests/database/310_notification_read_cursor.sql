@@ -123,24 +123,23 @@ select is(
 select is(
   (
     select count(*)::integer
-    from private.member_notifications
-    where user_id = '31313131-3131-4131-8131-313131313111'
-      and id in (
-        '31313131-1111-4111-8111-313131313101',
-        '31313131-1111-4111-8111-313131313102'
-      )
-      and read_at is not null
+    from public.list_my_notifications_v2(null, null, 10)
+    where notification_id in (
+      '31313131-1111-4111-8111-313131313101',
+      '31313131-1111-4111-8111-313131313102'
+    )
+      and is_read
   ),
   2,
-  'cursor event and lower-id tied event are read'
+  'cursor event and lower-id tied event are read through the guarded listing RPC'
 );
 
 select is(
   (
     select count(*)::integer
-    from private.member_notifications
-    where id = '31313131-1111-4111-8111-313131313103'
-      and read_at is null
+    from public.list_my_notifications_v2(null, null, 10)
+    where notification_id = '31313131-1111-4111-8111-313131313103'
+      and not is_read
   ),
   1,
   'higher-id event at the same timestamp stays unread because it was beyond the cursor'
