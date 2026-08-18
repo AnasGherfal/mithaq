@@ -18,6 +18,8 @@ function runPreflight(overrides: Record<string, string> = {}) {
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_example",
       EXPO_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
       EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_example",
+      MITHAQ_CONVERSATION_RETENTION_DAYS: "30",
+      MITHAQ_NOTIFICATION_RETENTION_DAYS: "30",
       SUPABASE_SERVICE_ROLE_KEY: "service-role-test-placeholder",
       ...overrides,
     },
@@ -59,5 +61,20 @@ describe("hosted environment preflight", () => {
 
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("must target the same Supabase project");
+  });
+
+  it("requires explicit positive retention policy values", () => {
+    const result = runPreflight({
+      MITHAQ_CONVERSATION_RETENTION_DAYS: "0",
+      MITHAQ_NOTIFICATION_RETENTION_DAYS: "not-a-number",
+    });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "MITHAQ_CONVERSATION_RETENTION_DAYS must be a positive integer number of days",
+    );
+    expect(result.stderr).toContain(
+      "MITHAQ_NOTIFICATION_RETENTION_DAYS must be a positive integer number of days",
+    );
   });
 });
