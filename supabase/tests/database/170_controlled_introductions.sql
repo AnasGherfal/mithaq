@@ -299,6 +299,8 @@ create temporary table m6_intro_ids (
   id uuid not null
 ) on commit drop;
 
+grant select on m6_intro_ids to authenticated;
+
 insert into m6_intro_ids (name, id)
 select 'mutual', public.create_controlled_introduction(
   '17171717-1717-4717-8717-171717171711',
