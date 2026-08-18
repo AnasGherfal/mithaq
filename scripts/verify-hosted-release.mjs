@@ -15,8 +15,14 @@ export function validateHostedBaseUrl(value) {
   }
 
   const hostname = url.hostname.toLowerCase();
-  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
-    throw new Error("Hosted release verification cannot target a local address");
+  if (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1"
+  ) {
+    throw new Error(
+      "Hosted release verification cannot target a local address",
+    );
   }
 
   return url;
@@ -25,7 +31,9 @@ export function validateHostedBaseUrl(value) {
 export function normalizeExpectedRevision(value) {
   const revision = value?.trim();
   if (!revision || !/^[0-9a-f]{7,64}$/i.test(revision)) {
-    throw new Error("MITHAQ_EXPECTED_REVISION must be a 7-64 character hexadecimal commit SHA");
+    throw new Error(
+      "MITHAQ_EXPECTED_REVISION must be a 7-64 character hexadecimal commit SHA",
+    );
   }
 
   return revision.slice(0, 12).toLowerCase();
@@ -35,15 +43,22 @@ export function validateHealthPayload(payload, { tier, version, revision }) {
   const errors = [];
 
   if (payload?.status !== "ok") errors.push("health status is not ok");
-  if (payload?.application !== "Mithaq") errors.push("health application identity is not Mithaq");
+  if (payload?.application !== "Mithaq")
+    errors.push("health application identity is not Mithaq");
   if (payload?.release?.version !== version) {
-    errors.push(`release version ${payload?.release?.version ?? "missing"} does not match ${version}`);
+    errors.push(
+      `release version ${payload?.release?.version ?? "missing"} does not match ${version}`,
+    );
   }
   if (payload?.release?.tier !== tier) {
-    errors.push(`release tier ${payload?.release?.tier ?? "missing"} does not match ${tier}`);
+    errors.push(
+      `release tier ${payload?.release?.tier ?? "missing"} does not match ${tier}`,
+    );
   }
   if (payload?.release?.revision !== revision) {
-    errors.push(`release revision ${payload?.release?.revision ?? "missing"} does not match ${revision}`);
+    errors.push(
+      `release revision ${payload?.release?.revision ?? "missing"} does not match ${revision}`,
+    );
   }
 
   return errors;
@@ -55,7 +70,8 @@ export function validateHostedHeaders(headers, tier) {
     "x-content-type-options": "nosniff",
     "referrer-policy": "strict-origin-when-cross-origin",
     "x-frame-options": "DENY",
-    "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+    "permissions-policy":
+      "camera=(), microphone=(), geolocation=(), payment=()",
   };
 
   for (const [name, expected] of Object.entries(requiredExact)) {
@@ -65,8 +81,13 @@ export function validateHostedHeaders(headers, tier) {
   }
 
   const csp = headers.get("content-security-policy") ?? "";
-  for (const directive of ["default-src 'self'", "object-src 'none'", "frame-ancestors 'none'"]) {
-    if (!csp.includes(directive)) errors.push(`content-security-policy is missing ${directive}`);
+  for (const directive of [
+    "default-src 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+  ]) {
+    if (!csp.includes(directive))
+      errors.push(`content-security-policy is missing ${directive}`);
   }
 
   if (headers.has("x-powered-by")) {
@@ -75,18 +96,30 @@ export function validateHostedHeaders(headers, tier) {
 
   if (tier === "production") {
     const hsts = headers.get("strict-transport-security") ?? "";
-    if (!hsts.includes("max-age=63072000") || !hsts.includes("includeSubDomains")) {
-      errors.push("production strict-transport-security header is missing or incomplete");
+    if (
+      !hsts.includes("max-age=63072000") ||
+      !hsts.includes("includeSubDomains")
+    ) {
+      errors.push(
+        "production strict-transport-security header is missing or incomplete",
+      );
     }
     if (!csp.includes("upgrade-insecure-requests")) {
-      errors.push("production content-security-policy must upgrade insecure requests");
+      errors.push(
+        "production content-security-policy must upgrade insecure requests",
+      );
     }
   }
 
   return errors;
 }
 
-export async function verifyHostedRelease({ baseUrl, tier, revision, fetchImpl = fetch }) {
+export async function verifyHostedRelease({
+  baseUrl,
+  tier,
+  revision,
+  fetchImpl = fetch,
+}) {
   if (!hostedTiers.has(tier)) {
     throw new Error("Hosted release tier must be staging or production");
   }
@@ -127,7 +160,9 @@ export async function verifyHostedRelease({ baseUrl, tier, revision, fetchImpl =
   errors.push(...validateHostedHeaders(rootResponse.headers, tier));
 
   if (errors.length > 0) {
-    throw new Error(`Hosted release verification failed:\n- ${errors.join("\n- ")}`);
+    throw new Error(
+      `Hosted release verification failed:\n- ${errors.join("\n- ")}`,
+    );
   }
 
   return {
@@ -151,7 +186,9 @@ async function main() {
   );
 }
 
-const invokedPath = process.argv[1] ? new URL(`file://${process.argv[1]}`).href : null;
+const invokedPath = process.argv[1]
+  ? new URL(`file://${process.argv[1]}`).href
+  : null;
 if (invokedPath === import.meta.url) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : String(error));
