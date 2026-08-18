@@ -1,3 +1,5 @@
+grant usage on schema private to service_role;
+
 create or replace function private.members_are_blocked(
   p_user_a uuid,
   p_user_b uuid
