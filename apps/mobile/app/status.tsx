@@ -111,6 +111,8 @@ export default function StatusScreen() {
     Number(registration.questionnaireComplete) +
     Number(registration.submitted) +
     Number(registration.profileComplete);
+  const introductionsReady =
+    registration.submitted && registration.profileComplete && !registration.deletionPending;
 
   return (
     <ScreenShell
@@ -227,6 +229,31 @@ export default function StatusScreen() {
               />
             </>
           )}
+
+          {introductionsReady ? (
+            <View style={styles.introductionsCallout}>
+              <View style={[styles.introductionsTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+                <View style={styles.introductionsMark}>
+                  <Text style={styles.introductionsMarkText}>✦</Text>
+                </View>
+                <View style={styles.introductionsCopy}>
+                  <Text style={[styles.introductionsTitle, { textAlign: rtl ? "right" : "left" }]}>
+                    {rtl ? "التعارفات الخاصة" : "Private introductions"}
+                  </Text>
+                  <Text style={[styles.introductionsBody, { textAlign: rtl ? "right" : "left" }]}>
+                    {rtl
+                      ? "ستظهر هنا فقط التعارفات التي ينشئها ميثاق لك. لا يوجد تصفح عام أو سحب للملفات."
+                      : "Only introductions created for you by Mithaq appear here. There is no public directory or swipe browsing."}
+                  </Text>
+                </View>
+              </View>
+              <PrimaryButton
+                onPress={() => router.push({ pathname: "/introductions", params: { locale } })}
+              >
+                {rtl ? "عرض التعارفات" : "View introductions"}
+              </PrimaryButton>
+            </View>
+          ) : null}
 
           <View style={styles.securityCallout}>
             <View style={styles.securityMark}>
@@ -407,6 +434,30 @@ const styles = StyleSheet.create({
   deletionMarkText: { color: colors.white, fontSize: 24, fontWeight: "900" },
   deletionTitle: { color: colors.primary, fontSize: 17, fontWeight: "800" },
   deletionBody: { color: colors.muted, fontSize: 13, lineHeight: 21 },
+  introductionsCallout: {
+    gap: 14,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.goldSoft,
+    backgroundColor: colors.primaryWash,
+    padding: 17,
+    marginTop: 3,
+  },
+  introductionsTop: { alignItems: "center", gap: 12 },
+  introductionsMark: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.goldSoft,
+  },
+  introductionsMarkText: { color: colors.gold, fontSize: 20, fontWeight: "900" },
+  introductionsCopy: { flex: 1 },
+  introductionsTitle: { color: colors.primary, fontSize: 16, fontWeight: "800" },
+  introductionsBody: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 4 },
   securityCallout: {
     flexDirection: "row",
     alignItems: "center",
