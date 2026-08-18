@@ -47,6 +47,16 @@ Trusted server/worker infrastructure requires `SUPABASE_SERVICE_ROLE_KEY`. It
 must never be exposed through `NEXT_PUBLIC_*`, `EXPO_PUBLIC_*`, mobile source,
 browser bundles, logs, screenshots, or support tooling.
 
+Staging and production also require explicit non-secret retention policy values:
+
+- `MITHAQ_CONVERSATION_RETENTION_DAYS`
+- `MITHAQ_NOTIFICATION_RETENTION_DAYS`
+
+These values are policy inputs, not source-code defaults. Choose them only after
+the applicable product/privacy/legal retention decision has been made. The
+hosted preflight and retention workers reject missing, zero, negative, or
+non-integer values rather than silently inventing a retention period.
+
 Hosted web/Supabase tiers are preview, staging, and production. EAS itself
 supports development, preview, and production environment stores; the internal
 EAS `preview` build is therefore Mithaq's mobile staging/acceptance tier and
@@ -58,14 +68,19 @@ the production project.
 Production scheduling should run at least as frequently as the checked-in
 release contract:
 
-- introduction expiry: every 15 minutes or faster
-- account deletion worker: every 60 minutes or faster
-- closed-conversation message retention: every 24 hours or faster
-- read-notification retention: every 24 hours or faster
+- `introduction-expiry-worker`: every 15 minutes or faster
+- `account-deletion-worker`: every 60 minutes or faster
+- `conversation-retention-worker`: every 24 hours or faster
+- `notification-retention-worker`: every 24 hours or faster
 
-A worker being scheduled is not enough. Before release, confirm the database
-maintenance health/readiness functions show that required workers have actually
-run and are not stale beyond the configured freshness window.
+Each scheduler target is POST-only and must be invoked from trusted
+infrastructure with the service-role credential. Do not put that credential in
+browser, mobile, public environment, or scheduler URL/query-string fields.
+
+A worker being scheduled is not enough. Before release, run each required worker
+once and confirm the database maintenance health/readiness functions show that
+required workers have actually run and are not stale beyond the configured
+freshness window.
 
 ## Staging release
 
@@ -75,18 +90,21 @@ run and are not stale beyond the configured freshness window.
 4. Configure hosted staging web variables separately; configure the EAS
    `preview` environment so its mobile public values point only at
    `mithaq-staging`.
-5. With those real values loaded, run `pnpm release:preflight:staging` and do
+5. Set the reviewed conversation and notification retention policy variables in
+   trusted worker/runtime configuration.
+6. With those real values loaded, run `pnpm release:preflight:staging` and do
    not continue until it passes.
-6. Configure hosted maintenance schedules with service-role credentials stored
-   only in the trusted scheduler/runtime.
-7. Run each required worker once so readiness is based on real successful runs,
+7. Deploy the four maintenance Edge Function entrypoints and configure hosted
+   schedules with service-role credentials stored only in the trusted
+   scheduler/runtime.
+8. Run each required worker once so readiness is based on real successful runs,
    not only configuration.
-8. Verify release readiness.
-9. Build the web staging deployment and EAS preview build.
-10. Set `MITHAQ_RELEASE_BASE_URL` to the hosted staging origin and
+9. Verify release readiness.
+10. Build the web staging deployment and EAS preview build.
+11. Set `MITHAQ_RELEASE_BASE_URL` to the hosted staging origin and
     `MITHAQ_EXPECTED_REVISION` to the reviewed commit SHA. Run
     `pnpm release:verify:staging` and do not continue until it passes.
-11. Execute real-device acceptance: OTP, onboarding, profile, introduction,
+12. Execute real-device acceptance: OTP, onboarding, profile, introduction,
     mutual acceptance, conversation, activity, safety/report/block, privacy
     controls, session restore, biometric lock, and sign-out.
 
@@ -95,12 +113,12 @@ run and are not stale beyond the configured freshness window.
 1. Use the separate `mithaq-production` Supabase project.
 2. Confirm staging passed the same migration set and acceptance path first.
 3. Review and apply production migrations.
-4. Configure production web/mobile public variables and trusted server secrets
-   separately from staging.
+4. Configure production web/mobile public variables, retention policy variables,
+   and trusted server secrets separately from staging.
 5. With those real values loaded, run `pnpm release:preflight:production` and do
    not continue until it passes.
-6. Configure production maintenance schedules and verify successful initial
-   runs.
+6. Deploy the four maintenance Edge Function entrypoints, configure production
+   schedules, and verify successful initial runs.
 7. Require a clean release-readiness result with no blocking workers.
 8. Deploy the reviewed web release.
 9. Set `MITHAQ_RELEASE_BASE_URL` to the production origin and
@@ -125,6 +143,7 @@ Source control intentionally cannot complete these steps:
 - EAS account/project credentials and environment values
 - SMS provider production credentials
 - hosted scheduler credentials for maintenance workers
+- reviewed retention-policy values for the two retention workers
 - external push-notification provider/device-token configuration
 
 Do not weaken source or database security to bypass any of these gates.
