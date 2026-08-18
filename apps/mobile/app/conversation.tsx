@@ -15,6 +15,11 @@ type MessageRow = {
   sent_at: string;
 };
 
+type PendingSend = {
+  body: string;
+  nonce: string;
+};
+
 const PAGE_SIZE = 50;
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -27,6 +32,12 @@ function mergeMessages(current: MessageRow[], incoming: MessageRow[]) {
     const timeDifference = new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime();
     return timeDifference !== 0 ? timeDifference : a.message_id.localeCompare(b.message_id);
   });
+}
+
+function createClientNonce() {
+  const first = Math.random().toString(36).slice(2).padEnd(10, "0").slice(0, 10);
+  const second = Math.random().toString(36).slice(2).padEnd(10, "0").slice(0, 10);
+  return `${Date.now().toString(36)}-${first}-${second}`;
 }
 
 export default function ConversationScreen() {
@@ -48,6 +59,7 @@ export default function ConversationScreen() {
   const [ending, setEnding] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const refreshingRef = useRef(false);
+  const pendingSendRef = useRef<PendingSend | null>(null);
 
   const markVisibleMessagesRead = useCallback(
     async (rows: MessageRow[]) => {
@@ -175,20 +187,29 @@ export default function ConversationScreen() {
     const body = draft.trim();
     if (!body || sending || ending) return;
 
+    let attempt = pendingSendRef.current;
+    if (!attempt || attempt.body !== body) {
+      attempt = { body, nonce: createClientNonce() };
+      pendingSendRef.current = attempt;
+    }
+
     setSending(true);
     setSendError(null);
-    const { error } = await supabase.rpc("send_conversation_message", {
+    const { error } = await supabase.rpc("send_conversation_message_idempotent", {
       p_introduction_id: introductionId,
       p_body: body,
+      p_client_nonce: attempt.nonce,
     });
 
     if (error) {
       const message = error.message.toLowerCase();
+      if (message.includes("idempotency conflict")) pendingSendRef.current = null;
       setSendError(message.includes("rate limit") ? copy.rateLimit : copy.sendError);
       setSending(false);
       return;
     }
 
+    pendingSendRef.current = null;
     setDraft("");
     setSending(false);
     await loadMessages(false);
@@ -306,6 +327,10 @@ export default function ConversationScreen() {
               editable={!sending && !ending}
               value={draft}
               onChangeText={(value) => {
+                const nextBody = value.trim();
+                if (pendingSendRef.current && pendingSendRef.current.body !== nextBody) {
+                  pendingSendRef.current = null;
+                }
                 setDraft(value);
                 setSendError(null);
               }}
@@ -413,7 +438,7 @@ function conversationCopy(locale: MobileLocale) {
       refresh: "تحديث",
       send: "إرسال الرسالة",
       rateLimit: "أرسلت رسائل كثيرة بسرعة. انتظر قليلاً قبل إرسال رسالة أخرى.",
-      sendError: "تعذر إرسال الرسالة الآن. لم يتم حفظها.",
+      sendError: "تعذر تأكيد إرسال الرسالة. اضغط إرسال مرة أخرى؛ إعادة المحاولة محمية من تكرار الرسالة.",
       safetyTitle: "الأمان متاح دائماً",
       safetyBody: "يمكنك الإبلاغ أو الحظر من نفس التعارف. الحظر يوقف التواصل من جهة الخادم.",
       safetyButton: "الأمان والإبلاغ",
@@ -451,7 +476,8 @@ function conversationCopy(locale: MobileLocale) {
     refresh: "Refresh",
     send: "Send message",
     rateLimit: "You are sending too quickly. Wait briefly before sending another message.",
-    sendError: "We couldn’t send that message. It was not saved.",
+    sendError:
+      "We couldn’t confirm that message delivery. Tap Send again; the retry is protected against duplicate messages.",
     safetyTitle: "Safety stays available",
     safetyBody: "Report or block from the same introduction. Blocking stops communication server-side.",
     safetyButton: "Safety & report",
