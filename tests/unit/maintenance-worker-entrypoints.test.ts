@@ -48,7 +48,9 @@ describe("maintenance worker entrypoints", () => {
       expect(source).toContain(
         'request.headers.get("authorization") !== `Bearer ${serviceRoleKey}`',
       );
-      expect(source).toContain(`admin.rpc("${worker.rpcName}"`);
+      expect(source).toMatch(
+        new RegExp(`admin\\.rpc\\(\\s*"${worker.rpcName}"`),
+      );
       expect(source).not.toMatch(/NEXT_PUBLIC_|EXPO_PUBLIC_/);
       expect(source).not.toMatch(/phone|email|message_body|access_token/i);
     });
