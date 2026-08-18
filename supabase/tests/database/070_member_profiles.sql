@@ -1,5 +1,5 @@
 begin;
-select plan(8);
+select plan(11);
 
 select is(
   has_table_privilege('authenticated', 'public.member_profiles', 'SELECT'),
@@ -20,6 +20,12 @@ select is(
 );
 
 select is(
+  has_table_privilege('authenticated', 'public.member_profiles', 'DELETE'),
+  false,
+  'clients cannot delete member profiles directly'
+);
+
+select is(
   has_function_privilege(
     'authenticated',
     'public.save_member_profile(text,text,text,text)',
@@ -27,6 +33,16 @@ select is(
   ),
   true,
   'authenticated members can use the guarded profile save function'
+);
+
+select is(
+  has_function_privilege(
+    'anon',
+    'public.save_member_profile(text,text,text,text)',
+    'EXECUTE'
+  ),
+  false,
+  'anonymous clients cannot call the member profile save function'
 );
 
 insert into auth.users (
@@ -121,6 +137,31 @@ select is(
   ),
   0,
   'another authenticated member cannot browse someone else profile'
+);
+
+reset role;
+
+update public.users
+set account_status = 'deletion_pending'
+where id = '66666666-6666-4666-8666-666666666666';
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '66666666-6666-4666-8666-666666666666',
+  true
+);
+
+select throws_ok(
+  $$select * from public.save_member_profile(
+    'Sara',
+    'I am intentionally trying to save personal data while deletion is pending.',
+    null,
+    null
+  )$$,
+  'P0001',
+  'account unavailable',
+  'deletion-pending accounts cannot add or change profile data'
 );
 
 reset role;
