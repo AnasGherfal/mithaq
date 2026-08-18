@@ -43,6 +43,12 @@ jobs:
       - name: Run formatting, lint, type, unit, and build checks
         run: pnpm check
 
+      - name: Show root formatting diff on failure
+        if: failure()
+        run: |
+          pnpm exec prettier --write .
+          git diff -- .
+
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
