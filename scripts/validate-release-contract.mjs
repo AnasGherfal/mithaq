@@ -92,6 +92,7 @@ const requiredReleaseRequirements = [
   "serviceRoleClientExposureForbidden",
   "databaseMigrationsRequired",
   "destructiveMigrationGuardRequired",
+  "hostedEnvironmentPreflightRequired",
   "pgtapRequired",
   "mobileTypecheckRequired",
   "expoDoctorRequired",
@@ -110,14 +111,14 @@ for (const requirementName of requiredReleaseRequirements) {
   }
 }
 
-const executableGateScripts = {
+const standardExecutableGateScripts = {
   destructiveMigrationGuardRequired: "migration:safety:check",
   serviceRoleClientExposureForbidden: "client-secret-boundary:check",
 };
 const standardCheck = packageJson.scripts?.check ?? "";
 
 for (const [requirementName, scriptName] of Object.entries(
-  executableGateScripts,
+  standardExecutableGateScripts,
 )) {
   if (!packageJson.scripts?.[scriptName]) {
     errors.push(
@@ -126,6 +127,16 @@ for (const [requirementName, scriptName] of Object.entries(
   }
   if (!standardCheck.includes(`pnpm ${scriptName}`)) {
     errors.push(`Standard check must execute ${scriptName}`);
+  }
+}
+
+const hostedPreflightScripts = [
+  "release:preflight:staging",
+  "release:preflight:production",
+];
+for (const scriptName of hostedPreflightScripts) {
+  if (!packageJson.scripts?.[scriptName]) {
+    errors.push(`Hosted environment preflight is missing script ${scriptName}`);
   }
 }
 
