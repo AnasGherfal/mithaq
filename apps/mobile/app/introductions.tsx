@@ -8,13 +8,7 @@ import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
-type IntroductionStatus =
-  | "offered"
-  | "mutually_accepted"
-  | "declined"
-  | "expired"
-  | "cancelled"
-  | "closed";
+type IntroductionStatus = "offered" | "mutually_accepted" | "declined" | "expired" | "cancelled" | "closed";
 
 type IntroductionDecision = "pending" | "accepted" | "declined";
 
@@ -178,7 +172,8 @@ export default function IntroductionsScreen() {
                     {preview.display_name ?? copy.member}
                   </Text>
                   <Text style={[styles.meta, { textAlign: rtl ? "right" : "left" }]}>
-                    {preview.gender ? copy.gender[preview.gender] : copy.member} · {preview.age_band_id ? ageBands[preview.age_band_id - 1] : "—"}
+                    {preview.gender ? copy.gender[preview.gender] : copy.member} ·{" "}
+                    {preview.age_band_id ? ageBands[preview.age_band_id - 1] : "—"}
                   </Text>
                   <Text style={[styles.meta, { textAlign: rtl ? "right" : "left" }]}>
                     {[preview.city, preview.country_code].filter(Boolean).join(", ")}
@@ -253,7 +248,14 @@ export default function IntroductionsScreen() {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : loadError ? (
-        <StateCard rtl={rtl} tone="error" title={copy.errorTitle} body={copy.errorBody} actionLabel={copy.retry} onAction={() => void load()} />
+        <StateCard
+          rtl={rtl}
+          tone="error"
+          title={copy.errorTitle}
+          body={copy.errorBody}
+          actionLabel={copy.retry}
+          onAction={() => void load()}
+        />
       ) : items.length === 0 ? (
         <StateCard rtl={rtl} tone="neutral" title={copy.emptyTitle} body={copy.emptyBody} />
       ) : (
@@ -272,7 +274,9 @@ export default function IntroductionsScreen() {
             >
               <View style={[styles.itemTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
                 <View style={styles.itemCopy}>
-                  <Text style={[styles.itemTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.privateIntroduction}</Text>
+                  <Text style={[styles.itemTitle, { textAlign: rtl ? "right" : "left" }]}>
+                    {copy.privateIntroduction}
+                  </Text>
                   <Text style={[styles.itemDate, { textAlign: rtl ? "right" : "left" }]}>
                     {new Date(item.created_at).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US", {
                       year: "numeric",
@@ -281,7 +285,9 @@ export default function IntroductionsScreen() {
                     })}
                   </Text>
                 </View>
-                <View style={styles.chevron}><Text style={styles.chevronText}>{rtl ? "‹" : "›"}</Text></View>
+                <View style={styles.chevron}>
+                  <Text style={styles.chevronText}>{rtl ? "‹" : "›"}</Text>
+                </View>
               </View>
               <StatusPill rtl={rtl} status={item.status} decision={item.my_decision} copy={copy} compact />
             </Pressable>
@@ -335,7 +341,8 @@ function introductionCopy(locale: MobileLocale) {
       title: "تعارفاتك",
       body: "لا يوجد تصفح عام أو سحب ملفات. يظهر هنا فقط التعارف الذي ينشئه ميثاق وفق الأهلية والخصوصية والحظر.",
       heroTitle: "تعارف واحد، قرار واضح",
-      heroBody: "يمكنك مراجعة المعلومات التي وافق الطرف الآخر على مشاركتها ثم القبول أو الاعتذار. قرار الطرف الآخر يبقى خاصاً حتى يصبح القبول متبادلاً.",
+      heroBody:
+        "يمكنك مراجعة المعلومات التي وافق الطرف الآخر على مشاركتها ثم القبول أو الاعتذار. قرار الطرف الآخر يبقى خاصاً حتى يصبح القبول متبادلاً.",
       privateIntroduction: "تعارف خاص",
       privateEyebrow: "معاينة التعارف",
       detailTitle: "راجع التعارف بهدوء",
@@ -388,21 +395,25 @@ function introductionCopy(locale: MobileLocale) {
     title: "Your introductions",
     body: "There is no public browsing or swipe deck. Only introductions created by Mithaq under eligibility, privacy, and blocking rules appear here.",
     heroTitle: "One introduction, one clear decision",
-    heroBody: "Review only what the other member chose to disclose, then accept or decline. Their decision stays private until acceptance is mutual.",
+    heroBody:
+      "Review only what the other member chose to disclose, then accept or decline. Their decision stays private until acceptance is mutual.",
     privateIntroduction: "Private introduction",
     privateEyebrow: "Introduction preview",
     detailTitle: "Review the introduction calmly",
     detailBody: "This preview is scoped to this introduction. It is not a public or searchable profile.",
     privateTitle: "Mutual privacy",
-    privateBody: "We never reveal the other member’s decision before mutual acceptance. Blocking or safety restrictions stop the introduction server-side.",
+    privateBody:
+      "We never reveal the other member’s decision before mutual acceptance. Blocking or safety restrictions stop the introduction server-side.",
     accept: "I’d like to continue",
     decline: "Decline introduction",
     acceptedTitle: "Your acceptance is saved",
     acceptedBody: "We will not reveal the other member’s decision. You will only be told if acceptance becomes mutual.",
     mutualTitle: "Acceptance is mutual",
-    mutualBody: "Both members accepted. The next step remains subject to safety and privacy controls before any communication opens.",
+    mutualBody:
+      "Both members accepted. The next step remains subject to safety and privacy controls before any communication opens.",
     emptyTitle: "No introductions right now",
-    emptyBody: "That is normal. Mithaq does not show a member catalogue or create introductions simply because a profile is complete.",
+    emptyBody:
+      "That is normal. Mithaq does not show a member catalogue or create introductions simply because a profile is complete.",
     errorTitle: "We couldn’t load introductions",
     errorBody: "No decision was changed. Check your connection and try again.",
     retry: "Try again",
@@ -411,7 +422,8 @@ function introductionCopy(locale: MobileLocale) {
     loading: "Loading introductions",
     loadingPreview: "Loading introduction preview",
     previewUnavailableTitle: "Preview unavailable",
-    previewUnavailable: "The introduction may have expired or closed because of eligibility, blocking, or safety controls.",
+    previewUnavailable:
+      "The introduction may have expired or closed because of eligibility, blocking, or safety controls.",
     actionUnavailable: "We couldn’t save your decision. The introduction state was not changed.",
     member: "Mithaq member",
     about: "About",
@@ -442,21 +454,59 @@ const styles = StyleSheet.create({
   introHero: { borderRadius: radius.lg, backgroundColor: colors.primary, padding: 18 },
   introHeroTitle: { color: colors.white, fontSize: 17, fontWeight: "800" },
   introHeroBody: { color: "rgba(255,255,255,0.76)", fontSize: 13, lineHeight: 21, marginTop: 7 },
-  itemCard: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, backgroundColor: colors.surfaceRaised, padding: 16, gap: 13 },
+  itemCard: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceRaised,
+    padding: 16,
+    gap: 13,
+  },
   pressed: { opacity: 0.86, transform: [{ scale: 0.995 }] },
   itemTop: { alignItems: "center", gap: 12 },
   itemCopy: { flex: 1 },
   itemTitle: { color: colors.foreground, fontSize: 15, fontWeight: "800" },
   itemDate: { color: colors.muted, fontSize: 12, marginTop: 4 },
-  chevron: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceMuted },
+  chevron: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceMuted,
+  },
   chevronText: { color: colors.primary, fontSize: 22, fontWeight: "700" },
-  statusPill: { alignSelf: "stretch", flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.md, backgroundColor: colors.primaryWash, paddingHorizontal: 12, paddingVertical: 10 },
+  statusPill: {
+    alignSelf: "stretch",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: radius.md,
+    backgroundColor: colors.primaryWash,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   statusPillCompact: { alignSelf: "flex-start" },
   statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.gold },
   statusText: { color: colors.primary, fontSize: 12, fontWeight: "800", flexShrink: 1 },
-  profileCard: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, backgroundColor: colors.surfaceRaised, padding: 18 },
+  profileCard: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceRaised,
+    padding: 18,
+  },
   identityRow: { alignItems: "center", gap: 13 },
-  avatar: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", backgroundColor: colors.primaryWash, borderWidth: 1, borderColor: colors.borderStrong },
+  avatar: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primaryWash,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
   avatarText: { color: colors.primary, fontSize: 23, fontWeight: "900" },
   identityCopy: { flex: 1 },
   name: { color: colors.foreground, fontSize: 20, fontWeight: "800" },
@@ -468,7 +518,13 @@ const styles = StyleSheet.create({
   fact: { borderRadius: radius.md, backgroundColor: colors.surfaceMuted, paddingHorizontal: 13, paddingVertical: 11 },
   factLabel: { color: colors.muted, fontSize: 11, fontWeight: "700" },
   factValue: { color: colors.foreground, fontSize: 13, fontWeight: "700", marginTop: 3 },
-  privacyCard: { borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.primaryWash, padding: 15 },
+  privacyCard: {
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.primaryWash,
+    padding: 15,
+  },
   privacyTitle: { color: colors.primary, fontSize: 14, fontWeight: "800" },
   privacyBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 5 },
   actions: { gap: 10 },
