@@ -60,6 +60,7 @@
     "databaseMigrationsRequired": true,
     "destructiveMigrationGuardRequired": true,
     "hostedEnvironmentPreflightRequired": true,
+    "hostedReleaseVerificationRequired": true,
     "pgtapRequired": true,
     "mobileTypecheckRequired": true,
     "expoDoctorRequired": true,
