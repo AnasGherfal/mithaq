@@ -152,8 +152,8 @@ reset role;
 
 select is(
   (select count(*)::integer from private.member_notifications where introduction_id = '32323232-aaaa-4aaa-8aaa-323232323201'),
-  3,
-  'fixture creates two introduction notifications and one incoming-message notification'
+  5,
+  'fixture creates two offer, two mutual-acceptance, and one incoming-message activity records'
 );
 
 select is(
