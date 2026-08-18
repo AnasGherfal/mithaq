@@ -17,13 +17,21 @@ export const clientEnvironmentShape = {
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
 };
 
-function isLoopbackUrl(value: string) {
-  const hostname = new URL(value).hostname.toLowerCase();
+function parseUrl(value: string) {
+  try {
+    return new URL(value);
+  } catch {
+    return null;
+  }
+}
+
+function isLoopbackHost(hostname: string) {
+  const normalized = hostname.toLowerCase();
   return (
-    hostname === "localhost" ||
-    hostname === "::1" ||
-    hostname === "[::1]" ||
-    hostname.startsWith("127.")
+    normalized === "localhost" ||
+    normalized === "::1" ||
+    normalized === "[::1]" ||
+    normalized.startsWith("127.")
   );
 }
 
@@ -39,7 +47,8 @@ export const environmentSchema = z
       ["NEXT_PUBLIC_SITE_URL", environment.NEXT_PUBLIC_SITE_URL],
       ["NEXT_PUBLIC_SUPABASE_URL", environment.NEXT_PUBLIC_SUPABASE_URL],
     ] as const) {
-      const url = new URL(value);
+      const url = parseUrl(value);
+      if (!url) continue;
 
       if (url.protocol !== "https:") {
         context.addIssue({
@@ -49,7 +58,7 @@ export const environmentSchema = z
         });
       }
 
-      if (isLoopbackUrl(value)) {
+      if (isLoopbackHost(url.hostname)) {
         context.addIssue({
           code: "custom",
           path: [key],
