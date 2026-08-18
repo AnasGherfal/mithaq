@@ -88,6 +88,7 @@ const requiredReleaseRequirements = [
   "separateEasEnvironments",
   "serviceRoleClientExposureForbidden",
   "databaseMigrationsRequired",
+  "destructiveMigrationGuardRequired",
   "pgtapRequired",
   "mobileTypecheckRequired",
   "expoDoctorRequired",
