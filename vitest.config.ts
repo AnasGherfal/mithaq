@@ -13,7 +13,10 @@ export default defineConfig({
     environment: "jsdom",
     globals: false,
     setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}", "tests/unit/**/*.test.{ts,tsx}"],
+    include: [
+      "src/**/*.test.{ts,tsx}",
+      "tests/unit/**/*.test.{ts,tsx,mjs}",
+    ],
     exclude: ["tests/e2e/**", "node_modules/**", ".next/**"],
     env: {
       APP_ENV: "local",
