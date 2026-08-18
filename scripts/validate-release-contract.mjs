@@ -58,7 +58,10 @@ for (const environmentName of requiredEnvironments) {
   }
 
   for (const variable of serverVariables) {
-    if (variable.startsWith("NEXT_PUBLIC_") || variable.startsWith("EXPO_PUBLIC_")) {
+    if (
+      variable.startsWith("NEXT_PUBLIC_") ||
+      variable.startsWith("EXPO_PUBLIC_")
+    ) {
       errors.push(
         `${environmentName} server variable ${variable} must not use a public prefix`,
       );
