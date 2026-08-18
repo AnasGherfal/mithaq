@@ -93,6 +93,7 @@ const requiredReleaseRequirements = [
   "databaseMigrationsRequired",
   "destructiveMigrationGuardRequired",
   "hostedEnvironmentPreflightRequired",
+  "hostedReleaseVerificationRequired",
   "pgtapRequired",
   "mobileTypecheckRequired",
   "expoDoctorRequired",
@@ -137,6 +138,16 @@ const hostedPreflightScripts = [
 for (const scriptName of hostedPreflightScripts) {
   if (!packageJson.scripts?.[scriptName]) {
     errors.push(`Hosted environment preflight is missing script ${scriptName}`);
+  }
+}
+
+const hostedVerificationScripts = [
+  "release:verify:staging",
+  "release:verify:production",
+];
+for (const scriptName of hostedVerificationScripts) {
+  if (!packageJson.scripts?.[scriptName]) {
+    errors.push(`Hosted release verification is missing script ${scriptName}`);
   }
 }
 
