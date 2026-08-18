@@ -15,7 +15,19 @@ type MessageRow = {
   sent_at: string;
 };
 
+const PAGE_SIZE = 50;
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function mergeMessages(current: MessageRow[], incoming: MessageRow[]) {
+  const byId = new Map<string, MessageRow>();
+  for (const message of current) byId.set(message.message_id, message);
+  for (const message of incoming) byId.set(message.message_id, message);
+
+  return Array.from(byId.values()).sort((a, b) => {
+    const timeDifference = new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime();
+    return timeDifference !== 0 ? timeDifference : a.message_id.localeCompare(b.message_id);
+  });
+}
 
 export default function ConversationScreen() {
   const params = useLocalSearchParams<{ locale?: string; introductionId?: string }>();
@@ -27,6 +39,9 @@ export default function ConversationScreen() {
   const [loading, setLoading] = useState(validIntroduction);
   const [loadError, setLoadError] = useState(false);
   const [messages, setMessages] = useState<MessageRow[]>([]);
+  const [hasOlder, setHasOlder] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [olderError, setOlderError] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -41,6 +56,7 @@ export default function ConversationScreen() {
       if (showLoading) {
         setLoading(true);
         setLoadError(false);
+        setOlderError(null);
       }
 
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -71,7 +87,7 @@ export default function ConversationScreen() {
       const { data, error } = await supabase.rpc("list_my_conversation_messages", {
         p_introduction_id: introductionId,
         p_before: null,
-        p_limit: 50,
+        p_limit: PAGE_SIZE,
       });
 
       refreshingRef.current = false;
@@ -83,7 +99,9 @@ export default function ConversationScreen() {
         return;
       }
 
-      setMessages((data ?? []) as MessageRow[]);
+      const rows = (data ?? []) as MessageRow[];
+      setMessages((current) => (showLoading ? rows : mergeMessages(current, rows)));
+      if (showLoading) setHasOlder(rows.length === PAGE_SIZE);
       setLoadError(false);
       setLoading(false);
     },
@@ -101,6 +119,32 @@ export default function ConversationScreen() {
     }, 8000);
     return () => clearInterval(timer);
   }, [loadError, loadMessages, validIntroduction]);
+
+  async function loadOlderMessages() {
+    if (!hasOlder || loadingOlder || messages.length === 0 || refreshingRef.current) return;
+
+    const oldestMessage = messages[0];
+    setLoadingOlder(true);
+    setOlderError(null);
+    refreshingRef.current = true;
+
+    const { data, error } = await supabase.rpc("list_my_conversation_messages", {
+      p_introduction_id: introductionId,
+      p_before: oldestMessage.sent_at,
+      p_limit: PAGE_SIZE,
+    });
+
+    refreshingRef.current = false;
+    setLoadingOlder(false);
+    if (error) {
+      setOlderError(copy.olderError);
+      return;
+    }
+
+    const rows = (data ?? []) as MessageRow[];
+    setMessages((current) => mergeMessages(current, rows));
+    setHasOlder(rows.length === PAGE_SIZE);
+  }
 
   async function sendMessage() {
     const body = draft.trim();
@@ -193,6 +237,23 @@ export default function ConversationScreen() {
             <Text style={[styles.boundaryTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.boundaryTitle}</Text>
             <Text style={[styles.boundaryBody, { textAlign: rtl ? "right" : "left" }]}>{copy.boundaryBody}</Text>
           </View>
+
+          {messages.length > 0 ? (
+            <View style={styles.historyControls}>
+              {hasOlder ? (
+                <PrimaryButton tone="quiet" loading={loadingOlder} onPress={() => void loadOlderMessages()}>
+                  {copy.loadEarlier}
+                </PrimaryButton>
+              ) : (
+                <Text style={[styles.historyEnd, { textAlign: "center" }]}>{copy.historyStart}</Text>
+              )}
+              {olderError ? (
+                <Text accessibilityRole="alert" style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>
+                  {olderError}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
 
           <View style={styles.messagesCard} accessibilityLiveRegion="polite">
             {messages.length === 0 ? (
@@ -317,6 +378,9 @@ function conversationCopy(locale: MobileLocale) {
       back: "العودة إلى التعارفات",
       boundaryTitle: "تواصل مقيد بهذا التعارف",
       boundaryBody: "لا نعرض معرف الطرف الآخر أو رقم هاتفه. الرسائل تمر عبر صلاحيات الخادم وتُغلق إذا توقف التعارف.",
+      loadEarlier: "تحميل الرسائل الأقدم",
+      historyStart: "هذه بداية المحادثة",
+      olderError: "تعذر تحميل الرسائل الأقدم. حاول مرة أخرى.",
       emptyTitle: "ابدأ بهدوء ووضوح",
       emptyBody: "لا توجد رسائل بعد. ابدأ بتحية محترمة وتذكر أن الهدف من ميثاق هو تعارف جاد وآمن.",
       composerLabel: "اكتب رسالة",
@@ -351,6 +415,9 @@ function conversationCopy(locale: MobileLocale) {
     boundaryTitle: "Communication is scoped to this introduction",
     boundaryBody:
       "We do not expose the other member’s identifier or phone number. Messages pass through guarded server permissions and stop when the introduction closes.",
+    loadEarlier: "Load earlier messages",
+    historyStart: "This is the beginning of the conversation",
+    olderError: "We couldn’t load earlier messages. Try again.",
     emptyTitle: "Start with clarity and respect",
     emptyBody:
       "There are no messages yet. Begin with a respectful greeting and remember that Mithaq is designed for serious, safe introductions.",
@@ -387,6 +454,8 @@ const styles = StyleSheet.create({
   },
   boundaryTitle: { color: colors.primary, fontSize: 15, fontWeight: "800" },
   boundaryBody: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 5 },
+  historyControls: { gap: 8 },
+  historyEnd: { color: colors.mutedSoft, fontSize: 11 },
   messagesCard: {
     minHeight: 260,
     borderRadius: radius.lg,
