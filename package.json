@@ -26,6 +26,8 @@
     "release:metadata:check": "node scripts/validate-release-metadata.mjs",
     "release:preflight:staging": "node scripts/validate-staging-preflight.mjs staging",
     "release:preflight:production": "node scripts/validate-staging-preflight.mjs production",
+    "release:verify:staging": "node scripts/verify-hosted-release.mjs staging",
+    "release:verify:production": "node scripts/verify-hosted-release.mjs production",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm client-secret-boundary:check && pnpm migration:safety:check && pnpm release:contract:check && pnpm release:metadata:check && pnpm build",
     "db:start": "supabase start",
     "db:stop": "supabase stop --no-backup",
