@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "scheme": "mithaq",
     "userInterfaceStyle": "light",
+    "icon": "../../public/icons/icon-512.png",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.mithaq.app",
@@ -15,6 +16,7 @@
       "package": "com.mithaq.app",
       "versionCode": 1,
       "adaptiveIcon": {
+        "foregroundImage": "../../public/icons/icon-maskable-512.png",
         "backgroundColor": "#F7F3E9"
       }
     },
@@ -36,8 +38,12 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#F7F3E9",
+          "image": "../../public/icons/icon-512.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
           "dark": {
-            "backgroundColor": "#F7F3E9"
+            "backgroundColor": "#F7F3E9",
+            "image": "../../public/icons/icon-512.png"
           }
         }
       ]
