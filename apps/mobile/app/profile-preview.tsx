@@ -22,6 +22,20 @@ type PreviewData = {
   hasChildren: boolean;
 };
 
+type PreviewRow = {
+  display_name: string | null;
+  about_me: string | null;
+  occupation: string | null;
+  education: string | null;
+  gender: PreviewData["gender"] | null;
+  age_band_id: number | null;
+  country_code: string | null;
+  city: string | null;
+  origin_region: string | null;
+  marital_status: PreviewData["maritalStatus"] | null;
+  has_children: boolean | null;
+};
+
 const ageBands = ["18–24", "25–29", "30–34", "35–39", "40–44", "45–49", "50–54", "55+"];
 
 export default function ProfilePreviewScreen() {
@@ -46,47 +60,35 @@ export default function ProfilePreviewScreen() {
         return;
       }
 
-      const userId = sessionData.session.user.id;
-      const [userResult, profileResult, applicationResult] = await Promise.all([
-        supabase.from("users").select("account_status").eq("id", userId).maybeSingle(),
-        supabase
-          .from("member_profiles")
-          .select("display_name, about_me, occupation, education, profile_completed_at")
-          .eq("user_id", userId)
-          .maybeSingle(),
-        supabase
-          .from("waitlist_applications")
-          .select(
-            "status, gender, age_band_id, current_country_code, current_city, libyan_origin_region, marital_status, has_children",
-          )
-          .eq("user_id", userId)
-          .maybeSingle(),
-      ]);
-
-      const readError = userResult.error ?? profileResult.error ?? applicationResult.error;
-      if (readError) throw readError;
-
-      if (userResult.data?.account_status !== "active") {
-        setPreview(null);
-        setLoading(false);
-        return;
+      const { data, error } = await supabase.rpc("get_own_introduction_preview");
+      if (error) {
+        const message = error.message.toLowerCase();
+        if (message.includes("authentication")) {
+          router.replace({ pathname: "/auth", params: { locale } });
+          return;
+        }
+        if (message.includes("account unavailable")) {
+          router.replace({ pathname: "/status", params: { locale } });
+          return;
+        }
+        if (message.includes("profile preview unavailable")) {
+          setPreview(null);
+          setLoading(false);
+          return;
+        }
+        throw error;
       }
 
-      const profile = profileResult.data;
-      const application = applicationResult.data;
-      const submitted =
-        application?.status === "submitted" || application?.status === "qualified" || application?.status === "invited";
-
+      const row = ((Array.isArray(data) ? data[0] : data) ?? null) as PreviewRow | null;
       if (
-        !submitted ||
-        !profile?.profile_completed_at ||
-        !profile.display_name ||
-        !profile.about_me ||
-        !application?.gender ||
-        !application.age_band_id ||
-        !application.current_country_code ||
-        !application.current_city ||
-        !application.marital_status
+        !row?.display_name ||
+        !row.about_me ||
+        !row.gender ||
+        !row.age_band_id ||
+        !row.country_code ||
+        !row.city ||
+        !row.marital_status ||
+        row.has_children === null
       ) {
         setPreview(null);
         setLoading(false);
@@ -94,17 +96,17 @@ export default function ProfilePreviewScreen() {
       }
 
       setPreview({
-        displayName: profile.display_name,
-        aboutMe: profile.about_me,
-        occupation: profile.occupation,
-        education: profile.education,
-        gender: application.gender as PreviewData["gender"],
-        ageBandId: application.age_band_id,
-        countryCode: application.current_country_code,
-        city: application.current_city,
-        originRegion: application.libyan_origin_region,
-        maritalStatus: application.marital_status as PreviewData["maritalStatus"],
-        hasChildren: application.has_children,
+        displayName: row.display_name,
+        aboutMe: row.about_me,
+        occupation: row.occupation,
+        education: row.education,
+        gender: row.gender,
+        ageBandId: row.age_band_id,
+        countryCode: row.country_code,
+        city: row.city,
+        originRegion: row.origin_region,
+        maritalStatus: row.marital_status,
+        hasChildren: row.has_children,
       });
       setLoading(false);
     } catch {
