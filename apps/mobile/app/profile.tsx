@@ -410,7 +410,8 @@ function profileCopy(locale: MobileLocale) {
     preview: "Preview how this could appear in an introduction",
     savedComplete: "Your profile is saved and the core details are complete.",
     savedDraft: "Your private draft is saved. Complete the name and introduction when you are ready.",
-    networkError: "We could not connect to save your profile. We did not assume success; check your network and try again.",
+    networkError:
+      "We could not connect to save your profile. We did not assume success; check your network and try again.",
     saveError: "We couldn’t save your profile. We did not assume success; please try again.",
   };
 }
