@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import packageJson from "../../package.json";
 import {
   getReleaseMetadata,
   sanitizeReleaseRevision,
@@ -9,7 +10,7 @@ describe("release metadata", () => {
     expect(
       getReleaseMetadata({ tier: "staging", revision: "abcdef1234567890" }),
     ).toMatchObject({
-      version: "0.1.0",
+      version: packageJson.version,
       tier: "staging",
       revision: "abcdef123456",
     });
