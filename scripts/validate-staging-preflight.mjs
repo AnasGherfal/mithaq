@@ -2,7 +2,10 @@ import { readFile } from "node:fs/promises";
 
 const environmentName = process.argv[2];
 const contract = JSON.parse(
-  await readFile(new URL("../ops/release-contract.json", import.meta.url), "utf8"),
+  await readFile(
+    new URL("../ops/release-contract.json", import.meta.url),
+    "utf8",
+  ),
 );
 
 const errors = [];
@@ -71,7 +74,11 @@ for (const name of [
 
 const webSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const mobileSupabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-if (webSupabaseUrl && mobileSupabaseUrl && webSupabaseUrl !== mobileSupabaseUrl) {
+if (
+  webSupabaseUrl &&
+  mobileSupabaseUrl &&
+  webSupabaseUrl !== mobileSupabaseUrl
+) {
   errors.push(
     "NEXT_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_URL must target the same Supabase project",
   );
@@ -84,7 +91,9 @@ for (const name of [
   const value = process.env[name];
   if (!value) continue;
   if (value.startsWith("sb_secret_") || value.startsWith("service_role")) {
-    errors.push(`${name} must contain a publishable key, never a secret/service-role key`);
+    errors.push(
+      `${name} must contain a publishable key, never a secret/service-role key`,
+    );
   }
 }
 
