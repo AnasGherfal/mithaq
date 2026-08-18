@@ -1,5 +1,5 @@
 begin;
-select plan(11);
+select plan(12);
 
 select is(
   has_table_privilege('authenticated', 'public.member_profiles', 'SELECT'),
@@ -68,14 +68,44 @@ insert into auth.users (
     'authenticated',
     now(),
     now()
+  ),
+  (
+    '77777777-7777-4777-8777-777777777777',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    now(),
+    now()
   )
 on conflict (id) do nothing;
 
 insert into public.users (id)
 values
   ('55555555-5555-4555-8555-555555555555'),
-  ('66666666-6666-4666-8666-666666666666')
+  ('66666666-6666-4666-8666-666666666666'),
+  ('77777777-7777-4777-8777-777777777777')
 on conflict (id) do nothing;
+
+insert into public.waitlist_applications (id, user_id, status, submitted_at)
+values
+  (
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1',
+    '55555555-5555-4555-8555-555555555555',
+    'submitted',
+    now()
+  ),
+  (
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee2',
+    '66666666-6666-4666-8666-666666666666',
+    'submitted',
+    now()
+  ),
+  (
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee3',
+    '77777777-7777-4777-8777-777777777777',
+    'draft',
+    null
+  );
 
 set local role authenticated;
 select set_config(
@@ -137,6 +167,24 @@ select is(
   ),
   0,
   'another authenticated member cannot browse someone else profile'
+);
+
+select set_config(
+  'request.jwt.claim.sub',
+  '77777777-7777-4777-8777-777777777777',
+  true
+);
+
+select throws_ok(
+  $$select * from public.save_member_profile(
+    'Nour',
+    'This profile attempt happens before waitlist consent and submission are complete.',
+    null,
+    null
+  )$$,
+  'P0001',
+  'waitlist submission required',
+  'pre-submission accounts cannot create additional private profile data'
 );
 
 reset role;
