@@ -42,6 +42,25 @@ Deno.serve(async (request) => {
     },
   });
 
+  let reconciled = 0;
+  const { data: reconciliationData, error: reconciliationError } = await admin.rpc(
+    "reconcile_orphaned_account_deletions",
+    {
+      p_limit: 25,
+    },
+  );
+
+  if (reconciliationError) {
+    // Reconciliation repairs a previous run's narrow post-Auth-delete failure
+    // window. Log it loudly, but do not block newly due deletion requests.
+    console.error(
+      "Could not reconcile interrupted account deletions",
+      reconciliationError.message,
+    );
+  } else {
+    reconciled = Number(reconciliationData ?? 0);
+  }
+
   const { data, error: claimError } = await admin.rpc(
     "claim_due_account_deletions",
     {
@@ -51,7 +70,7 @@ Deno.serve(async (request) => {
 
   if (claimError) {
     console.error("Could not claim due account deletions", claimError.message);
-    return new Response(JSON.stringify({ error: "claim_failed" }), {
+    return new Response(JSON.stringify({ error: "claim_failed", reconciled }), {
       status: 500,
       headers: jsonHeaders,
     });
@@ -111,6 +130,9 @@ Deno.serve(async (request) => {
     );
 
     if (completeError) {
+      // Auth deletion has already succeeded, so the public request may have
+      // cascaded away. A later worker invocation will finalize the surviving
+      // private tombstone through reconcile_orphaned_account_deletions().
       console.error(
         "Auth user deleted but tombstone completion failed",
         item.request_id,
@@ -125,6 +147,7 @@ Deno.serve(async (request) => {
 
   return new Response(
     JSON.stringify({
+      reconciled,
       claimed: claimed.length,
       completed: results.filter((result) => result.status === "completed")
         .length,
