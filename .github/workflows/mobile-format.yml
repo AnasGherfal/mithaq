@@ -1,0 +1,44 @@
+name: Mobile format autofix
+
+on:
+  push:
+    branches:
+      - agent/mobile-app-foundation
+    paths:
+      - "apps/mobile/**"
+      - ".github/workflows/mobile-format.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v7
+        with:
+          ref: agent/mobile-app-foundation
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - name: Install mobile dependencies
+        working-directory: apps/mobile
+        run: npm ci --legacy-peer-deps
+      - name: Format mobile package
+        working-directory: apps/mobile
+        run: npx prettier --write .
+      - name: Commit formatting changes
+        run: |
+          if git diff --quiet -- apps/mobile; then
+            echo "Mobile package already formatted."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/mobile
+          git commit -m "Format mobile package"
+          git push origin HEAD:agent/mobile-app-foundation
