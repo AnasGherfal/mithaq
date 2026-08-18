@@ -8,10 +8,12 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.mithaq.app"
+      "bundleIdentifier": "com.mithaq.app",
+      "buildNumber": "1"
     },
     "android": {
       "package": "com.mithaq.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#F7F3E9"
       }
