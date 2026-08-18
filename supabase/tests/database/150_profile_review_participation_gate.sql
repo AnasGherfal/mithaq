@@ -282,9 +282,11 @@ select is(
   'clearing the safety restriction restores participation when every other gate is satisfied'
 );
 
+reset role;
 update public.member_profiles
 set about_me = 'I value family, responsibility, kindness, and a serious path toward marriage, with updated profile details.'
 where user_id = '15151515-1515-4515-8515-151515151511';
+set local role service_role;
 
 select is(
   (
