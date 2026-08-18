@@ -1,10 +1,9 @@
-import packageJson from "../../package.json" with { type: "json" };
-
 const releaseTiers = ["local", "preview", "staging", "production"] as const;
 
 type ReleaseTier = (typeof releaseTiers)[number] | "unknown";
 
 type ReleaseMetadataInput = {
+  version?: string;
   tier?: string;
   revision?: string;
 };
@@ -34,7 +33,7 @@ export function getReleaseMetadata(input: ReleaseMetadataInput = {}) {
     process.env.CF_PAGES_COMMIT_SHA;
 
   return {
-    version: packageJson.version,
+    version: input.version ?? process.env.MITHAQ_RELEASE_VERSION ?? "unknown",
     tier: normalizeTier(input.tier ?? process.env.APP_ENV),
     revision: sanitizeReleaseRevision(revision),
   } as const;
