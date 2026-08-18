@@ -13,6 +13,7 @@ import { colors, radius } from "@/theme";
 export function BiometricGate({ children }: PropsWithChildren) {
   const [checking, setChecking] = useState(true);
   const [locked, setLocked] = useState(false);
+  const [obscured, setObscured] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
   const authenticationInFlight = useRef(false);
   const shouldLockOnResume = useRef(false);
@@ -57,7 +58,15 @@ export function BiometricGate({ children }: PropsWithChildren) {
     void initialize();
 
     const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "inactive") {
+        // iOS takes its app-switcher snapshot while the app is leaving the active state.
+        // Hide private member content immediately without treating biometric system UI as a full background event.
+        setObscured(true);
+        return;
+      }
+
       if (nextState === "background") {
+        setObscured(true);
         shouldLockOnResume.current = true;
         return;
       }
@@ -72,12 +81,19 @@ export function BiometricGate({ children }: PropsWithChildren) {
 
           if (!data.session || !enabled || !availability.available) {
             shouldLockOnResume.current = false;
+            setObscured(false);
             return;
           }
 
           setLocked(true);
+          setObscured(false);
           void unlock();
         })();
+        return;
+      }
+
+      if (nextState === "active") {
+        setObscured(false);
       }
     });
 
@@ -91,11 +107,12 @@ export function BiometricGate({ children }: PropsWithChildren) {
     await setBiometricLockEnabled(false);
     await supabase.auth.signOut({ scope: "local" });
     setLocked(false);
+    setObscured(false);
     shouldLockOnResume.current = false;
   }
 
-  if (checking) {
-    return <View style={styles.blank} />;
+  if (checking || obscured) {
+    return <PrivacyCover />;
   }
 
   if (!locked) {
@@ -125,8 +142,57 @@ export function BiometricGate({ children }: PropsWithChildren) {
   );
 }
 
+function PrivacyCover() {
+  return (
+    <View style={styles.cover} accessibilityLabel="Mithaq private session protected">
+      <View style={styles.coverMark}>
+        <View style={styles.coverArch} />
+      </View>
+      <Text style={styles.coverArabic}>ميثاق</Text>
+      <Text style={styles.coverEnglish}>MITHAQ</Text>
+      <Text style={styles.coverBody}>Private by design · خصوصيتك أولاً</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  blank: { flex: 1, backgroundColor: colors.background },
+  cover: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+    paddingHorizontal: 28,
+  },
+  coverMark: {
+    width: 58,
+    height: 58,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 18,
+  },
+  coverArch: {
+    width: 21,
+    height: 25,
+    borderWidth: 2,
+    borderBottomWidth: 0,
+    borderColor: colors.primary,
+    borderTopLeftRadius: 13,
+    borderTopRightRadius: 13,
+  },
+  coverArabic: { color: colors.primary, fontSize: 25, lineHeight: 34, fontWeight: "900" },
+  coverEnglish: {
+    color: colors.gold,
+    fontSize: 10,
+    lineHeight: 15,
+    fontWeight: "800",
+    letterSpacing: 2,
+    marginTop: 2,
+  },
+  coverBody: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 12 },
   locked: {
     flex: 1,
     justifyContent: "center",
