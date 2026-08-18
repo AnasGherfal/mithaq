@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
+import { StateCard } from "@/components/state-card";
 import { mobileCopy, type MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { setBiometricLockEnabled } from "@/security/biometric";
@@ -20,47 +21,64 @@ export default function StatusScreen() {
   const copy = mobileCopy[locale];
   const rtl = locale === "ar";
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [registration, setRegistration] = useState<RegistrationState>({
     questionnaireComplete: false,
     submitted: false,
     deletionPending: false,
   });
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
+
+    const { data, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+
+    if (!data.session) {
+      router.replace({ pathname: "/auth", params: { locale } });
+      return;
+    }
+
+    const [userResult, applicationResult] = await Promise.all([
+      supabase.from("users").select("account_status").eq("id", data.session.user.id).maybeSingle(),
+      supabase
+        .from("waitlist_applications")
+        .select("status, questionnaire_completed_at")
+        .eq("user_id", data.session.user.id)
+        .maybeSingle(),
+    ]);
+
+    if (userResult.error || applicationResult.error) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+
+    const application = applicationResult.data;
+    setRegistration({
+      questionnaireComplete: Boolean(application?.questionnaire_completed_at),
+      submitted: application?.status === "submitted",
+      deletionPending: userResult.data?.account_status === "deletion_pending",
+    });
+    setLoading(false);
+  }, [locale]);
+
   useEffect(() => {
     let active = true;
 
-    async function load() {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        router.replace({ pathname: "/auth", params: { locale } });
-        return;
-      }
+    void load().then(() => {
+      if (!active) return;
+    });
 
-      const [userResult, applicationResult] = await Promise.all([
-        supabase.from("users").select("account_status").eq("id", data.session.user.id).maybeSingle(),
-        supabase
-          .from("waitlist_applications")
-          .select("status, questionnaire_completed_at")
-          .eq("user_id", data.session.user.id)
-          .maybeSingle(),
-      ]);
-
-      if (active) {
-        const application = applicationResult.data;
-        setRegistration({
-          questionnaireComplete: Boolean(application?.questionnaire_completed_at),
-          submitted: application?.status === "submitted",
-          deletionPending: userResult.data?.account_status === "deletion_pending",
-        });
-        setLoading(false);
-      }
-    }
-
-    void load();
     return () => {
       active = false;
     };
-  }, [locale]);
+  }, [load]);
 
   async function signOut() {
     await setBiometricLockEnabled(false);
@@ -91,9 +109,22 @@ export default function StatusScreen() {
       }
     >
       {loading ? (
-        <View style={styles.loadingState}>
+        <View style={styles.loadingState} accessibilityLabel={rtl ? "جارٍ تحميل حالة الحساب" : "Loading account status"}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
+      ) : loadError ? (
+        <StateCard
+          rtl={rtl}
+          tone="error"
+          title={rtl ? "تعذر تحميل حالة حسابك" : "We couldn’t load your account status"}
+          body={
+            rtl
+              ? "لم نغيّر أي بيانات. تحقق من اتصالك وحاول مرة أخرى."
+              : "No data was changed. Check your connection and try again."
+          }
+          actionLabel={rtl ? "إعادة المحاولة" : "Try again"}
+          onAction={() => void load()}
+        />
       ) : (
         <View style={styles.list}>
           {registration.deletionPending ? (
