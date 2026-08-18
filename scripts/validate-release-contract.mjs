@@ -6,6 +6,9 @@ const contract = JSON.parse(
     "utf8",
   ),
 );
+const packageJson = JSON.parse(
+  await readFile(new URL("../package.json", import.meta.url), "utf8"),
+);
 
 const errors = [];
 const requiredEnvironments = ["preview", "staging", "production"];
@@ -104,6 +107,23 @@ const requirements = contract.releaseRequirements ?? {};
 for (const requirementName of requiredReleaseRequirements) {
   if (requirements[requirementName] !== true) {
     errors.push(`Release requirement ${requirementName} must remain enabled`);
+  }
+}
+
+const executableGateScripts = {
+  destructiveMigrationGuardRequired: "migration:safety:check",
+  serviceRoleClientExposureForbidden: "client-secret-boundary:check",
+};
+const standardCheck = packageJson.scripts?.check ?? "";
+
+for (const [requirementName, scriptName] of Object.entries(
+  executableGateScripts,
+)) {
+  if (!packageJson.scripts?.[scriptName]) {
+    errors.push(`Release requirement ${requirementName} is missing script ${scriptName}`);
+  }
+  if (!standardCheck.includes(`pnpm ${scriptName}`)) {
+    errors.push(`Standard check must execute ${scriptName}`);
   }
 }
 
