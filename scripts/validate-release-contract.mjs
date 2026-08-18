@@ -83,10 +83,25 @@ for (const workerName of requiredWorkers) {
   }
 }
 
+const requiredReleaseRequirements = [
+  "separateSupabaseProjects",
+  "separateEasEnvironments",
+  "serviceRoleClientExposureForbidden",
+  "databaseMigrationsRequired",
+  "pgtapRequired",
+  "mobileTypecheckRequired",
+  "expoDoctorRequired",
+  "productionE2eRequired",
+  "maintenanceReadinessRequired",
+  "releaseMetadataRequired",
+  "privacySafeServerObservabilityRequired",
+  "contentSecurityPolicyRequired",
+];
 const requirements = contract.releaseRequirements ?? {};
-for (const [name, enabled] of Object.entries(requirements)) {
-  if (enabled !== true) {
-    errors.push(`Release requirement ${name} must remain enabled`);
+
+for (const requirementName of requiredReleaseRequirements) {
+  if (requirements[requirementName] !== true) {
+    errors.push(`Release requirement ${requirementName} must remain enabled`);
   }
 }
 
@@ -97,5 +112,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Release contract valid: ${requiredEnvironments.length} environments, ${requiredWorkers.length} required maintenance workers.`,
+  `Release contract valid: ${requiredEnvironments.length} environments, ${requiredWorkers.length} required maintenance workers, ${requiredReleaseRequirements.length} release gates.`,
 );
