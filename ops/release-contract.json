@@ -58,6 +58,7 @@
     "separateEasEnvironments": true,
     "serviceRoleClientExposureForbidden": true,
     "databaseMigrationsRequired": true,
+    "destructiveMigrationGuardRequired": true,
     "pgtapRequired": true,
     "mobileTypecheckRequired": true,
     "expoDoctorRequired": true,
