@@ -90,8 +90,8 @@ set local role service_role;
 
 select is(
   private.member_can_participate('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1'),
-  true,
-  'an active member with no safety-state row is clear by default'
+  false,
+  'a clear safety state alone does not bypass the centralized onboarding and profile gates'
 );
 
 select is(
@@ -187,8 +187,8 @@ select ok(
 
 select is(
   private.member_can_participate('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1'),
-  true,
-  'a cleared active member can participate again'
+  false,
+  'clearing safety does not bypass the remaining centralized participation gates'
 );
 
 select is(
@@ -221,9 +221,11 @@ select is(
   'a separate member can hold an independent safety state'
 );
 
+reset role;
 update public.users
 set account_status = 'deleted'
 where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee3';
+set local role service_role;
 
 select throws_ok(
   $$select public.set_member_safety_state(
