@@ -59,6 +59,7 @@
     "serviceRoleClientExposureForbidden": true,
     "databaseMigrationsRequired": true,
     "destructiveMigrationGuardRequired": true,
+    "hostedEnvironmentPreflightRequired": true,
     "pgtapRequired": true,
     "mobileTypecheckRequired": true,
     "expoDoctorRequired": true,
