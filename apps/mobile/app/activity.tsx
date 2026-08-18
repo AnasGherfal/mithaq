@@ -33,7 +33,10 @@ export default function ActivityScreen() {
   const markVisibleRead = useCallback(async (rows: NotificationRow[]) => {
     const newest = rows[0];
     if (!newest) return;
-    await supabase.rpc("mark_my_notifications_read", { p_through: newest.created_at });
+    await supabase.rpc("mark_my_notifications_read_v2", {
+      p_through_created_at: newest.created_at,
+      p_through_notification_id: newest.notification_id,
+    });
   }, []);
 
   const load = useCallback(async () => {
