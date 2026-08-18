@@ -113,7 +113,10 @@ const requiredReleaseArtifacts = [
 
 for (const artifactPath of requiredReleaseArtifacts) {
   try {
-    const artifact = await readFile(new URL(artifactPath, import.meta.url), "utf8");
+    const artifact = await readFile(
+      new URL(artifactPath, import.meta.url),
+      "utf8",
+    );
     if (!artifact.trim()) {
       errors.push(`Release artifact ${artifactPath} must not be empty`);
     }
