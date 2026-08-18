@@ -110,9 +110,10 @@ export default function ConversationScreen() {
         return;
       }
 
-      const { data, error } = await supabase.rpc("list_my_conversation_messages", {
+      const { data, error } = await supabase.rpc("list_my_conversation_messages_v2", {
         p_introduction_id: introductionId,
-        p_before: null,
+        p_before_sent_at: null,
+        p_before_message_id: null,
         p_limit: PAGE_SIZE,
       });
 
@@ -165,9 +166,10 @@ export default function ConversationScreen() {
     setOlderError(null);
     refreshingRef.current = true;
 
-    const { data, error } = await supabase.rpc("list_my_conversation_messages", {
+    const { data, error } = await supabase.rpc("list_my_conversation_messages_v2", {
       p_introduction_id: introductionId,
-      p_before: oldestMessage.sent_at,
+      p_before_sent_at: oldestMessage.sent_at,
+      p_before_message_id: oldestMessage.message_id,
       p_limit: PAGE_SIZE,
     });
 
