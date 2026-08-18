@@ -8,13 +8,7 @@ import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
-type ReportCategory =
-  | "fake_identity"
-  | "harassment"
-  | "inappropriate_content"
-  | "fraud_or_money"
-  | "safety_concern"
-  | "other";
+type ReportCategory = "fake_identity" | "harassment" | "inappropriate_content" | "fraud_or_money" | "safety_concern" | "other";
 
 const categories: Array<{ value: ReportCategory; ar: string; en: string }> = [
   { value: "fake_identity", ar: "هوية أو معلومات غير حقيقية", en: "Fake identity or information" },
@@ -228,13 +222,13 @@ export default function IntroductionSafetyScreen() {
             textAlign={rtl ? "right" : "left"}
             style={[styles.input, { writingDirection: rtl ? "rtl" : "ltr" }]}
           />
-          <Text style={[styles.counter, { textAlign: rtl ? "left" : "right" }]}>
-            {details.length}/1200
-          </Text>
+          <Text style={[styles.counter, { textAlign: rtl ? "left" : "right" }]}>{details.length}/1200</Text>
 
           <View style={[styles.switchRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
             <View style={styles.switchCopy}>
-              <Text style={[styles.switchTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.blockWithReportTitle}</Text>
+              <Text style={[styles.switchTitle, { textAlign: rtl ? "right" : "left" }]}>
+                {copy.blockWithReportTitle}
+              </Text>
               <Text style={[styles.switchBody, { textAlign: rtl ? "right" : "left" }]}>{copy.blockWithReportBody}</Text>
             </View>
             <Switch value={blockWithReport} disabled={savingReport} onValueChange={setBlockWithReport} />
@@ -325,14 +319,16 @@ function safetyCopy(locale: MobileLocale) {
     blockWithReportBody: "On by default so Mithaq will not create another introduction between you.",
     submitReport: "Submit report",
     blockTitle: "Block only",
-    blockBody: "Use blocking when you do not want any future introduction with this member even without submitting a report.",
+    blockBody:
+      "Use blocking when you do not want any future introduction with this member even without submitting a report.",
     blockConfirmBody: "This will stop the introduction and prevent future introductions between you. Continue?",
     blockButton: "Block this member",
     blockConfirm: "Confirm block",
     cancelBlock: "Cancel",
     reasonRequired: "Choose a report reason first.",
     duplicate: "A similar report was submitted recently. Your earlier report is already saved.",
-    rateLimit: "You have reached the temporary reporting limit. If there is immediate danger, use local emergency services.",
+    rateLimit:
+      "You have reached the temporary reporting limit. If there is immediate danger, use local emergency services.",
     unavailable: "We couldn’t complete that action right now. Check your connection and try again.",
     invalidTitle: "Safety action unavailable",
     invalidBody: "Open this page from a valid Mithaq introduction.",
