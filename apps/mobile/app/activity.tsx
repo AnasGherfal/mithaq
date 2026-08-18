@@ -52,8 +52,9 @@ export default function ActivityScreen() {
       return;
     }
 
-    const { data, error } = await supabase.rpc("list_my_notifications", {
-      p_before: null,
+    const { data, error } = await supabase.rpc("list_my_notifications_v2", {
+      p_before_created_at: null,
+      p_before_notification_id: null,
       p_limit: PAGE_SIZE,
     });
     if (error) {
@@ -80,8 +81,9 @@ export default function ActivityScreen() {
 
     setLoadingOlder(true);
     setOlderError(null);
-    const { data, error } = await supabase.rpc("list_my_notifications", {
-      p_before: oldest.created_at,
+    const { data, error } = await supabase.rpc("list_my_notifications_v2", {
+      p_before_created_at: oldest.created_at,
+      p_before_notification_id: oldest.notification_id,
       p_limit: PAGE_SIZE,
     });
     setLoadingOlder(false);
