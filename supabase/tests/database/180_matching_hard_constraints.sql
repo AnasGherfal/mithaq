@@ -74,29 +74,43 @@ select is(private.members_match_hard_constraints('18181818-1818-4818-8818-181818
 select is(private.member_accepts_partner('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181814'), false, 'same-gender candidate is excluded');
 select is(private.member_accepts_partner('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181813'), false, 'diaspora candidate is excluded when diaspora is disabled');
 
+reset role;
 update public.waitlist_preferences set open_to_diaspora = true where application_id = '18181818-aaaa-4aaa-8aaa-181818181811';
+set local role service_role;
 select is(private.member_accepts_partner('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181813'), false, 'opening diaspora does not bypass age constraints');
 
+reset role;
 update public.waitlist_preferences set preferred_partner_age_max = 50 where application_id = '18181818-aaaa-4aaa-8aaa-181818181811';
+set local role service_role;
 select is(private.member_accepts_partner('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181813'), false, 'partner with children is excluded when preference is no');
 
+reset role;
 update public.waitlist_preferences set accepts_partner_with_children = 'depends' where application_id = '18181818-aaaa-4aaa-8aaa-181818181811';
+set local role service_role;
 select is(private.member_accepts_partner('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181813'), true, 'depends permits partner with children when other constraints pass');
 
+reset role;
 insert into public.waitlist_accepted_marital_statuses (application_id, marital_status)
 values ('18181818-aaaa-4aaa-8aaa-181818181811', 'never_married');
+set local role service_role;
 select is(private.member_accepts_partner('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181813'), false, 'configured marital-status list excludes non-selected status');
 
+reset role;
 insert into public.waitlist_accepted_marital_statuses (application_id, marital_status)
 values ('18181818-aaaa-4aaa-8aaa-181818181811', 'divorced');
+set local role service_role;
 select is(private.member_accepts_partner('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181813'), true, 'adding partner marital status restores acceptance');
 
+reset role;
 insert into public.waitlist_preferred_countries (application_id, country_code)
 values ('18181818-aaaa-4aaa-8aaa-181818181811', 'LY');
+set local role service_role;
 select is(private.member_accepts_partner('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181813'), false, 'preferred-country list excludes other countries');
 
+reset role;
 insert into public.waitlist_preferred_countries (application_id, country_code)
 values ('18181818-aaaa-4aaa-8aaa-181818181811', 'GB');
+set local role service_role;
 select is(private.member_accepts_partner('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181813'), true, 'adding partner country restores country eligibility');
 select is(private.members_match_hard_constraints('18181818-1818-4818-8818-181818181811', '18181818-1818-4818-8818-181818181813'), true, 'fully compatible diaspora pair passes symmetric constraints');
 
