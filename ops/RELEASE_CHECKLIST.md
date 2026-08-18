@@ -9,18 +9,24 @@ captures the operator steps that cannot be proven from source control alone.
 - Confirm CI is green for application checks, production E2E, mobile
   TypeScript/formatting, Expo Doctor, pgTAP, build, and the verified OTP
   journey.
+- Confirm `pnpm release:metadata:check` passes so web, mobile, and Expo versions
+  agree and native build baselines are valid.
 - Confirm the target Supabase project is the correct environment and is not
   shared with another release tier.
 - Apply reviewed database migrations before deploying web or mobile clients that
   depend on them.
 - Confirm the release-readiness RPC reports ready with no blocking maintenance
   workers.
+- Confirm the health endpoint identifies only the expected release version,
+  deployment tier, and sanitized revision.
+- Confirm the deployed web response carries the reviewed CSP and security-header
+  baseline.
 - Confirm no service-role, secret, database-password, SMS-provider secret, Apple
   credential, or EAS credential is present in client-visible variables or
   committed files.
 - Confirm public Supabase variables are the publishable values for the target
   environment.
-- Confirm the mobile EAS environment matches the target environment and does not
+- Confirm the mobile EAS environment matches its build tier and does not
   reference local `127.0.0.1` services.
 
 ## Required environment contract
@@ -37,6 +43,12 @@ values:
 Trusted server/worker infrastructure requires `SUPABASE_SERVICE_ROLE_KEY`. It
 must never be exposed through `NEXT_PUBLIC_*`, `EXPO_PUBLIC_*`, mobile source,
 browser bundles, logs, screenshots, or support tooling.
+
+Hosted web/Supabase tiers are preview, staging, and production. EAS itself
+supports development, preview, and production environment stores; the internal
+EAS `preview` build is therefore Mithaq's mobile staging/acceptance tier and must
+point only at `mithaq-staging`. Production EAS values must point only at the
+production project.
 
 ## Maintenance schedules
 
@@ -57,8 +69,9 @@ run and are not stale beyond the configured freshness window.
 1. Link only the `mithaq-staging` Supabase project.
 2. Review `supabase db push --dry-run` output.
 3. Apply migrations.
-4. Configure preview/staging public variables and server secrets in their
-   respective hosting/EAS environments.
+4. Configure hosted staging web variables separately; configure the EAS
+   `preview` environment so its mobile public values point only at
+   `mithaq-staging`.
 5. Configure hosted maintenance schedules with service-role credentials stored
    only in the trusted scheduler/runtime.
 6. Run each required worker once so readiness is based on real successful runs,
@@ -79,12 +92,14 @@ run and are not stale beyond the configured freshness window.
 5. Configure production maintenance schedules and verify successful initial
    runs.
 6. Require a clean release-readiness result with no blocking workers.
-7. Build signed production mobile binaries only from the reviewed release
+7. Verify the health endpoint release identity matches the reviewed commit and
+   the production CSP/security-header baseline is present.
+8. Build signed production mobile binaries only from the reviewed release
    commit.
-8. Perform final smoke tests against production-safe test accounts.
-9. Submit the reviewed binary to TestFlight / Google Play testing before public
-   rollout.
-10. Use a staged public rollout and monitor authentication, database errors,
+9. Perform final smoke tests against production-safe test accounts.
+10. Submit the reviewed binary to TestFlight / Google Play testing before public
+    rollout.
+11. Use a staged public rollout and monitor authentication, database errors,
     safety reports, messaging failures, worker health, crash reports, and
     account-deletion backlog.
 
