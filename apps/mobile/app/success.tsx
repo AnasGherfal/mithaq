@@ -18,7 +18,8 @@ export default function SuccessScreen() {
           privateTitle: "تسجيل خاص",
           privateBody: "إجاباتك لا تظهر كملف عام ولا يمكن للأعضاء تصفحها.",
           nextTitle: "ما التالي؟",
-          nextBody: "تقدر الآن تبدأ ملفك الخاص للتعارف. سيبقى غير قابل للتصفح العام، ولن يظهر لشخص آخر إلا ضمن تعارف مصرح به مستقبلاً.",
+          nextBody:
+            "تقدر الآن تبدأ ملفك الخاص للتعارف. سيبقى غير قابل للتصفح العام، ولن يظهر لشخص آخر إلا ضمن تعارف مصرح به مستقبلاً.",
           statusTitle: "تم حفظ طلبك",
           statusBody: "ستجد حالة تسجيلك وأي خطوات مستقبلية داخل حسابك.",
           profileButton: "ابدأ ملفك الخاص",
@@ -31,7 +32,8 @@ export default function SuccessScreen() {
           privateTitle: "Stored privately",
           privateBody: "Your answers are not a public profile and cannot be browsed by other members.",
           nextTitle: "What happens next?",
-          nextBody: "You can now begin your private introduction profile. It will not be publicly browsable and will only be shown later through an authorized introduction.",
+          nextBody:
+            "You can now begin your private introduction profile. It will not be publicly browsable and will only be shown later through an authorized introduction.",
           statusTitle: "Your application is saved",
           statusBody: "Your account will show registration status and any future steps.",
           profileButton: "Start your private profile",
@@ -68,10 +70,7 @@ export default function SuccessScreen() {
           <PrimaryButton onPress={() => router.push({ pathname: "/profile", params: { locale } })}>
             {copy.profileButton}
           </PrimaryButton>
-          <PrimaryButton
-            tone="quiet"
-            onPress={() => router.replace({ pathname: "/status", params: { locale } })}
-          >
+          <PrimaryButton tone="quiet" onPress={() => router.replace({ pathname: "/status", params: { locale } })}>
             {copy.button}
           </PrimaryButton>
         </View>

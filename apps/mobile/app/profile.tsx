@@ -143,12 +143,7 @@ export default function ProfileScreen() {
           onAction={() => void load()}
         />
       ) : deletionPending ? (
-        <StateCard
-          rtl={rtl}
-          tone="neutral"
-          title={copy.unavailableTitle}
-          body={copy.unavailableBody}
-        />
+        <StateCard rtl={rtl} tone="neutral" title={copy.unavailableTitle} body={copy.unavailableBody} />
       ) : (
         <View style={styles.stack}>
           <View style={styles.privacyCard}>
@@ -156,21 +151,15 @@ export default function ProfileScreen() {
               <Text style={styles.privacyMarkText}>✦</Text>
             </View>
             <View style={styles.flex}>
-              <Text style={[styles.privacyTitle, { textAlign: rtl ? "right" : "left" }]}>
-                {copy.privateTitle}
-              </Text>
-              <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>
-                {copy.privateBody}
-              </Text>
+              <Text style={[styles.privacyTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.privateTitle}</Text>
+              <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.privateBody}</Text>
             </View>
           </View>
 
           <View style={styles.progressCard}>
             <View style={[styles.progressTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
               <View style={styles.flex}>
-                <Text style={[styles.progressLabel, { textAlign: rtl ? "right" : "left" }]}>
-                  {copy.progress}
-                </Text>
+                <Text style={[styles.progressLabel, { textAlign: rtl ? "right" : "left" }]}>{copy.progress}</Text>
                 <Text style={[styles.progressTitle, { textAlign: rtl ? "right" : "left" }]}>
                   {complete ? copy.complete : ready ? copy.ready : copy.draft}
                 </Text>
@@ -183,10 +172,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.progressTrack}>
               <View
-                style={[
-                  styles.progressFill,
-                  { width: `${((Number(nameReady) + Number(bioReady)) / 2) * 100}%` },
-                ]}
+                style={[styles.progressFill, { width: `${((Number(nameReady) + Number(bioReady)) / 2) * 100}%` }]}
               />
             </View>
           </View>
@@ -231,11 +217,7 @@ export default function ProfileScreen() {
           {message ? (
             <Text
               accessibilityLiveRegion="polite"
-              style={[
-                styles.message,
-                complete ? styles.messageSuccess : null,
-                { textAlign: rtl ? "right" : "left" },
-              ]}
+              style={[styles.message, complete ? styles.messageSuccess : null, { textAlign: rtl ? "right" : "left" }]}
             >
               {message}
             </Text>
@@ -331,7 +313,8 @@ function profileCopy(locale: MobileLocale) {
     unavailableTitle: "Profile editing is paused",
     unavailableBody: "Your account deletion request is being processed, so we won’t accept new personal data.",
     privateTitle: "Private by default",
-    privateBody: "Mithaq does not create a public member directory. Showing your details to another person will later require an authorized introduction.",
+    privateBody:
+      "Mithaq does not create a public member directory. Showing your details to another person will later require an authorized introduction.",
     progress: "Profile completion",
     complete: "Your core profile is complete",
     ready: "Ready to save as complete",
