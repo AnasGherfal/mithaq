@@ -8,7 +8,8 @@ import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
-type ReportCategory = "fake_identity" | "harassment" | "inappropriate_content" | "fraud_or_money" | "safety_concern" | "other";
+type ReportCategory =
+  "fake_identity" | "harassment" | "inappropriate_content" | "fraud_or_money" | "safety_concern" | "other";
 
 const categories: Array<{ value: ReportCategory; ar: string; en: string }> = [
   { value: "fake_identity", ar: "هوية أو معلومات غير حقيقية", en: "Fake identity or information" },
