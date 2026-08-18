@@ -44,7 +44,9 @@ if (!Number.isInteger(androidVersionCode) || androidVersionCode < 1) {
 const bundleIdentifier = appConfig.expo?.ios?.bundleIdentifier;
 const androidPackage = appConfig.expo?.android?.package;
 if (!bundleIdentifier || !androidPackage) {
-  errors.push("Both iOS bundleIdentifier and Android package must be configured");
+  errors.push(
+    "Both iOS bundleIdentifier and Android package must be configured",
+  );
 }
 
 const expectedProfileEnvironments = {
