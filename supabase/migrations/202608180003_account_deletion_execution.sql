@@ -81,13 +81,13 @@ begin
       c.attempt_count,
       null
     from claimed c
-    on conflict (request_id) do update
+    on conflict on constraint account_deletion_tombstones_pkey do update
     set user_id = excluded.user_id,
         processing_started_at = excluded.processing_started_at,
         state = 'processing',
         attempt_count = excluded.attempt_count,
         last_error_code = null
-    returning request_id
+    returning account_deletion_tombstones.request_id
   )
   select c.id, c.user_id
   from claimed c
