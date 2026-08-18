@@ -2,7 +2,8 @@ import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const migrationDirectory = resolve(process.cwd(), "supabase/migrations");
-const reviewedOverridePattern = /^\s*--\s*MITHAQ-DESTRUCTIVE-MIGRATION-REVIEWED:\s*(\S.*)$/im;
+const reviewedOverridePattern =
+  /^\s*--\s*MITHAQ-DESTRUCTIVE-MIGRATION-REVIEWED:\s*(\S.*)$/im;
 const destructiveRules = [
   { label: "DROP TABLE", pattern: /\bdrop\s+table\b/i },
   { label: "DROP SCHEMA", pattern: /\bdrop\s+schema\b/i },
