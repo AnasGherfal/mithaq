@@ -51,8 +51,8 @@ Deno.serve(async (request) => {
     });
   }
 
-  return new Response(
-    JSON.stringify({ expired: Number(data ?? 0) }),
-    { status: 200, headers: jsonHeaders },
-  );
+  return new Response(JSON.stringify({ expired: Number(data ?? 0) }), {
+    status: 200,
+    headers: jsonHeaders,
+  });
 });
