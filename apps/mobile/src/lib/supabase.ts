@@ -11,19 +11,15 @@ const supabaseConfig = validateMobileSupabaseConfig({
   allowInsecureLocal: __DEV__,
 });
 
-export const supabase = createClient(
-  supabaseConfig.url,
-  supabaseConfig.publishableKey,
-  {
-    auth: {
-      storage: secureSessionStorage,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-      lock: processLock,
-    },
+export const supabase = createClient(supabaseConfig.url, supabaseConfig.publishableKey, {
+  auth: {
+    storage: secureSessionStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+    lock: processLock,
   },
-);
+});
 
 AppState.addEventListener("change", (state) => {
   if (state === "active") {
