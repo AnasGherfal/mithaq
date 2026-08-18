@@ -14,12 +14,7 @@ function parseUrl(value: string) {
 
 function isLoopbackHost(hostname: string) {
   const normalized = hostname.toLowerCase();
-  return (
-    normalized === "localhost" ||
-    normalized === "::1" ||
-    normalized === "[::1]" ||
-    normalized.startsWith("127.")
-  );
+  return normalized === "localhost" || normalized === "::1" || normalized === "[::1]" || normalized.startsWith("127.");
 }
 
 export function validateMobileSupabaseConfig(input: MobileSupabaseConfigInput) {
