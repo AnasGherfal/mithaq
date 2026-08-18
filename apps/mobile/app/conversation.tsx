@@ -151,7 +151,10 @@ export default function ConversationScreen() {
       <ScreenShell eyebrow={copy.eyebrow} title={copy.title} body={copy.body} rtl={rtl}>
         <StateCard rtl={rtl} tone="error" title={copy.unavailableTitle} body={copy.unavailableBody} />
         <View style={styles.singleAction}>
-          <PrimaryButton tone="quiet" onPress={() => router.replace({ pathname: "/introductions", params: { locale } })}>
+          <PrimaryButton
+            tone="quiet"
+            onPress={() => router.replace({ pathname: "/introductions", params: { locale } })}
+          >
             {copy.back}
           </PrimaryButton>
         </View>
@@ -361,7 +364,8 @@ function conversationCopy(locale: MobileLocale) {
     safetyBody: "Report or block from the same introduction. Blocking stops communication server-side.",
     safetyButton: "Safety & report",
     endTitle: "End communication",
-    endBody: "You can end this introduction without blocking the other member. The current communication path will close.",
+    endBody:
+      "You can end this introduction without blocking the other member. The current communication path will close.",
     endConfirmBody: "This will close the current introduction and conversation. Continue?",
     endButton: "End this communication",
     endConfirm: "Confirm ending",
