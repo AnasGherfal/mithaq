@@ -80,7 +80,8 @@ export default function WelcomeScreen() {
           لم نعتبرك مسجلاً للخروج ولم نرسلْك إلى تسجيل جديد. تحقق من الاتصال ثم حاول مرة أخرى.
         </Text>
         <Text style={styles.recoveryBody}>
-          We did not treat you as signed out or start a new registration. Check your connection, then retry secure restoration.
+          We did not treat you as signed out or start a new registration. Check your connection, then retry secure
+          restoration.
         </Text>
         <View style={styles.recoveryAction}>
           <PrimaryButton onPress={() => setBootAttempt((value) => value + 1)}>إعادة المحاولة · Try again</PrimaryButton>

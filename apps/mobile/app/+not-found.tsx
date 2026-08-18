@@ -16,7 +16,8 @@ export default function NotFoundScreen() {
         قد يكون الرابط قديماً أو غير مكتمل. ارجع إلى ميثاق وسنستعيد حسابك أو تسجيلك بشكل آمن.
       </Text>
       <Text style={styles.bodyEnglish}>
-        This link may be old or incomplete. Return to Mithaq and we will safely restore your account or registration state.
+        This link may be old or incomplete. Return to Mithaq and we will safely restore your account or registration
+        state.
       </Text>
       <View style={styles.action}>
         <PrimaryButton onPress={() => router.replace("/")}>العودة إلى ميثاق · Return to Mithaq</PrimaryButton>

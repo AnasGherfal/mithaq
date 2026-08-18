@@ -168,7 +168,8 @@ function consentCopy(locale: MobileLocale) {
       noteTitle: "التحديثات اختيارية",
       noteBody: "يمكنك إيقاف رسائل ميثاق لاحقاً دون التأثير على تسجيلك.",
       submit: "تأكيد والانضمام إلى القائمة",
-      questionnaireError: "لا يمكن تثبيت التسجيل لأن الاستبيان غير مكتمل. ارجع إلى حالة التسجيل وأكمل الإجابات المطلوبة.",
+      questionnaireError:
+        "لا يمكن تثبيت التسجيل لأن الاستبيان غير مكتمل. ارجع إلى حالة التسجيل وأكمل الإجابات المطلوبة.",
       accountError: "لا يمكن إكمال التسجيل لأن الحساب غير نشط حالياً. راجع حالة حسابك للمتابعة.",
       networkError: "تعذر الاتصال لإكمال التسجيل. لم نحذف إجاباتك؛ تحقق من الشبكة ثم حاول مرة أخرى.",
       error: "تعذر إكمال التسجيل الآن. لم نفترض نجاح العملية؛ حاول مرة أخرى.",
@@ -185,9 +186,12 @@ function consentCopy(locale: MobileLocale) {
     noteTitle: "Updates are optional",
     noteBody: "You can stop Mithaq communications later without affecting your registration.",
     submit: "Confirm and join the waitlist",
-    questionnaireError: "We cannot finalize registration because the questionnaire is incomplete. Return to registration status and complete the required answers.",
-    accountError: "We cannot complete registration because this account is not active right now. Review your account status to continue.",
-    networkError: "We could not connect to complete registration. Your saved answers were not removed; check your network and try again.",
+    questionnaireError:
+      "We cannot finalize registration because the questionnaire is incomplete. Return to registration status and complete the required answers.",
+    accountError:
+      "We cannot complete registration because this account is not active right now. Review your account status to continue.",
+    networkError:
+      "We could not connect to complete registration. Your saved answers were not removed; check your network and try again.",
     error: "We could not complete registration right now. We did not assume the operation succeeded; try again.",
   };
 }
