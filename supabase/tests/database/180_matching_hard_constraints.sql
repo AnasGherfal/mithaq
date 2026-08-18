@@ -57,10 +57,10 @@ insert into public.waitlist_preferences (
   ('18181818-dddd-4ddd-8ddd-181818181814', true, true, 18, 60, 'yes');
 
 insert into public.member_profiles (user_id, display_name, about_me, profile_completed_at) values
-  ('18181818-1818-4818-8818-181818181811', 'A', 'A serious complete member profile for deterministic hard matching tests.', now()),
-  ('18181818-1818-4818-8818-181818181812', 'B', 'A serious complete member profile for deterministic hard matching tests.', now()),
-  ('18181818-1818-4818-8818-181818181813', 'C', 'A serious complete member profile for deterministic hard matching tests.', now()),
-  ('18181818-1818-4818-8818-181818181814', 'D', 'A serious complete member profile for deterministic hard matching tests.', now());
+  ('18181818-1818-4818-8818-181818181811', 'Adam', 'A serious complete member profile for deterministic hard matching tests.', now()),
+  ('18181818-1818-4818-8818-181818181812', 'Basma', 'A serious complete member profile for deterministic hard matching tests.', now()),
+  ('18181818-1818-4818-8818-181818181813', 'Cora', 'A serious complete member profile for deterministic hard matching tests.', now()),
+  ('18181818-1818-4818-8818-181818181814', 'Dani', 'A serious complete member profile for deterministic hard matching tests.', now());
 
 set local role service_role;
 select public.set_member_profile_review_state('18181818-1818-4818-8818-181818181811', 'approved', 'm6', 'matching-test', null);
