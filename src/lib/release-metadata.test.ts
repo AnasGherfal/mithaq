@@ -8,7 +8,11 @@ import {
 describe("release metadata", () => {
   it("keeps only allowlisted deployment tiers", () => {
     expect(
-      getReleaseMetadata({ tier: "staging", revision: "abcdef1234567890" }),
+      getReleaseMetadata({
+        version: packageJson.version,
+        tier: "staging",
+        revision: "abcdef1234567890",
+      }),
     ).toMatchObject({
       version: packageJson.version,
       tier: "staging",
@@ -16,7 +20,11 @@ describe("release metadata", () => {
     });
 
     expect(
-      getReleaseMetadata({ tier: "secret-project", revision: "abcdef1" }).tier,
+      getReleaseMetadata({
+        version: packageJson.version,
+        tier: "secret-project",
+        revision: "abcdef1",
+      }).tier,
     ).toBe("unknown");
   });
 
