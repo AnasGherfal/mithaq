@@ -1,6 +1,10 @@
+import { readFileSync } from "node:fs";
 import { withSerwist } from "@serwist/turbopack";
 import createNextIntlPlugin from "next-intl/plugin";
 
+const packageJson = JSON.parse(
+  readFileSync(new URL("./package.json", import.meta.url), "utf8"),
+);
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const isDevelopment = process.env.NODE_ENV === "development";
 const isProduction = process.env.APP_ENV === "production";
@@ -66,6 +70,9 @@ const securityHeaders = [
 const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  env: {
+    MITHAQ_RELEASE_VERSION: packageJson.version,
+  },
   async headers() {
     return [
       {
