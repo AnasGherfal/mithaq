@@ -1,6 +1,15 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ConnectivityBanner } from "@/components/connectivity-banner";
 import { colors, radius, shadows, spacing } from "@/theme";
 
 type ScreenShellProps = PropsWithChildren<{
@@ -12,6 +21,8 @@ type ScreenShellProps = PropsWithChildren<{
 }>;
 
 export function ScreenShell({ eyebrow, title, body, footer, rtl = false, children }: ScreenShellProps) {
+  const { width } = useWindowDimensions();
+  const compact = width < 370;
   const direction = rtl ? "rtl" : "ltr";
   const textAlign = rtl ? "right" : "left";
 
@@ -22,7 +33,7 @@ export function ScreenShell({ eyebrow, title, body, footer, rtl = false, childre
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, compact ? styles.scrollContentCompact : null]}
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -39,19 +50,24 @@ export function ScreenShell({ eyebrow, title, body, footer, rtl = false, childre
             <View style={styles.brandRule} />
           </View>
 
+          <ConnectivityBanner rtl={rtl} />
+
           <View style={[styles.hero, { direction }]}>
             {eyebrow ? (
               <View style={[styles.eyebrowPill, rtl ? styles.alignEnd : styles.alignStart]}>
                 <Text style={[styles.eyebrow, { textAlign }]}>{eyebrow}</Text>
               </View>
             ) : null}
-            <Text accessibilityRole="header" style={[styles.title, { textAlign }]}>
+            <Text
+              accessibilityRole="header"
+              style={[styles.title, compact ? styles.titleCompact : null, { textAlign }]}
+            >
               {title}
             </Text>
             {body ? <Text style={[styles.body, { textAlign }]}>{body}</Text> : null}
           </View>
 
-          <View style={styles.panel}>{children}</View>
+          <View style={[styles.panel, compact ? styles.panelCompact : null]}>{children}</View>
           {footer ? <View style={styles.footer}>{footer}</View> : null}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -91,6 +107,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
+  },
+  scrollContentCompact: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
   },
   topRow: {
     flexDirection: "row",
@@ -158,6 +178,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.8,
   },
+  titleCompact: {
+    fontSize: 31,
+    lineHeight: 38,
+    letterSpacing: -0.5,
+  },
   body: {
     color: colors.muted,
     fontSize: 16,
@@ -173,6 +198,10 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
     ...shadows.card,
+  },
+  panelCompact: {
+    padding: spacing.md,
+    borderRadius: radius.lg,
   },
   footer: {
     marginTop: spacing.md,
