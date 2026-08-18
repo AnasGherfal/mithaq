@@ -25,7 +25,9 @@ if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(expectedVersion ?? "")) {
 
 for (const [label, version] of versions) {
   if (version !== expectedVersion) {
-    errors.push(`${label} version ${version ?? "missing"} must equal ${expectedVersion}`);
+    errors.push(
+      `${label} version ${version ?? "missing"} must equal ${expectedVersion}`,
+    );
   }
 }
 
@@ -45,23 +47,30 @@ if (!bundleIdentifier || !androidPackage) {
   errors.push("Both iOS bundleIdentifier and Android package must be configured");
 }
 
-const requiredBuildProfiles = ["development", "preview", "staging", "production"];
-for (const profileName of requiredBuildProfiles) {
+const expectedProfileEnvironments = {
+  development: "development",
+  preview: "preview",
+  production: "production",
+};
+
+for (const [profileName, environmentName] of Object.entries(
+  expectedProfileEnvironments,
+)) {
   const profile = easConfig.build?.[profileName];
   if (!profile) {
     errors.push(`Missing EAS build profile: ${profileName}`);
     continue;
   }
 
-  if (profile.environment !== profileName) {
-    errors.push(`${profileName} EAS profile must use the ${profileName} environment`);
+  if (profile.environment !== environmentName) {
+    errors.push(
+      `${profileName} EAS profile must use the ${environmentName} environment`,
+    );
   }
 }
 
-for (const profileName of ["preview", "staging"]) {
-  if (easConfig.build?.[profileName]?.distribution !== "internal") {
-    errors.push(`${profileName} EAS profile must remain internal distribution`);
-  }
+if (easConfig.build?.preview?.distribution !== "internal") {
+  errors.push("Preview EAS profile must remain internal distribution");
 }
 
 if (easConfig.build?.production?.autoIncrement !== true) {
