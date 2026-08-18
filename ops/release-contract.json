@@ -10,6 +10,7 @@
         "EXPO_PUBLIC_SUPABASE_URL",
         "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
       ],
+      "serverVariables": [],
       "serverSecrets": ["SUPABASE_SERVICE_ROLE_KEY"]
     },
     "staging": {
@@ -20,6 +21,10 @@
         "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
         "EXPO_PUBLIC_SUPABASE_URL",
         "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+      ],
+      "serverVariables": [
+        "MITHAQ_CONVERSATION_RETENTION_DAYS",
+        "MITHAQ_NOTIFICATION_RETENTION_DAYS"
       ],
       "serverSecrets": ["SUPABASE_SERVICE_ROLE_KEY"]
     },
@@ -32,23 +37,31 @@
         "EXPO_PUBLIC_SUPABASE_URL",
         "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
       ],
+      "serverVariables": [
+        "MITHAQ_CONVERSATION_RETENTION_DAYS",
+        "MITHAQ_NOTIFICATION_RETENTION_DAYS"
+      ],
       "serverSecrets": ["SUPABASE_SERVICE_ROLE_KEY"]
     }
   },
   "maintenanceWorkers": {
     "account_deletion": {
+      "function": "account-deletion-worker",
       "maxIntervalMinutes": 60,
       "requiredBeforeRelease": true
     },
     "introduction_expiry": {
+      "function": "introduction-expiry-worker",
       "maxIntervalMinutes": 15,
       "requiredBeforeRelease": true
     },
     "conversation_message_retention": {
+      "function": "conversation-retention-worker",
       "maxIntervalMinutes": 1440,
       "requiredBeforeRelease": true
     },
     "notification_retention": {
+      "function": "notification-retention-worker",
       "maxIntervalMinutes": 1440,
       "requiredBeforeRelease": true
     }
