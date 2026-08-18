@@ -24,7 +24,11 @@ export type QuestionnaireDraft = {
   preferredCountries: string[];
   willingIdentityVerification: boolean;
   photoPrivacyPreference:
-    "none" | "blurred" | "after_mutual_interest" | "explicit_approval" | "after_family_involvement";
+    | "none"
+    | "blurred"
+    | "after_mutual_interest"
+    | "explicit_approval"
+    | "after_family_involvement";
   familyInvolvementPreference: "early" | "after_initial_interest" | "later" | "unsure";
 };
 
@@ -75,11 +79,13 @@ export function validateQuestionnaire(value: QuestionnaireDraft): string | null 
 }
 
 export async function loadQuestionnaire(): Promise<QuestionnaireDraft | null> {
-  const { data: sessionData } = await supabase.auth.getSession();
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+
   const userId = sessionData.session?.user.id;
   if (!userId) return null;
 
-  const { data: application } = await supabase
+  const { data: application, error: applicationError } = await supabase
     .from("waitlist_applications")
     .select(
       "id, gender, age_band_id, residency_type, current_country_code, current_city, libyan_origin_region, marital_status, has_children, libyan_self_attestation",
@@ -87,6 +93,7 @@ export async function loadQuestionnaire(): Promise<QuestionnaireDraft | null> {
     .eq("user_id", userId)
     .maybeSingle();
 
+  if (applicationError) throw applicationError;
   if (!application) return null;
 
   const [preferencesResult, statusesResult, countriesResult] = await Promise.all([
@@ -101,8 +108,13 @@ export async function loadQuestionnaire(): Promise<QuestionnaireDraft | null> {
     supabase.from("waitlist_preferred_countries").select("country_code").eq("application_id", application.id),
   ]);
 
+  const readError = preferencesResult.error ?? statusesResult.error ?? countriesResult.error;
+  if (readError) throw readError;
+
   const preferences = preferencesResult.data;
-  if (!preferences) return null;
+  if (!preferences) {
+    throw new Error("Saved questionnaire is incomplete");
+  }
 
   return {
     gender: application.gender as QuestionnaireDraft["gender"],
@@ -134,15 +146,19 @@ export async function saveQuestionnaire(value: QuestionnaireDraft) {
   const invalid = validateQuestionnaire(value);
   if (invalid) return { ok: false as const, reason: invalid };
 
-  const { data: sessionData } = await supabase.auth.getSession();
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) return { ok: false as const, reason: "database" };
+
   const userId = sessionData.session?.user.id;
   if (!userId) return { ok: false as const, reason: "unauthorized" };
 
-  const { data: existingApplication } = await supabase
+  const { data: existingApplication, error: existingApplicationError } = await supabase
     .from("waitlist_applications")
     .select("status")
     .eq("user_id", userId)
     .maybeSingle();
+
+  if (existingApplicationError) return { ok: false as const, reason: "database" };
 
   const now = new Date().toISOString();
   const { data: application, error: applicationError } = await supabase
