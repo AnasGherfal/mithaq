@@ -74,7 +74,11 @@ if (!/^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(bundleIdentifier ?? "")) {
 requirePositiveInteger(expo.ios?.buildNumber, "iOS buildNumber");
 
 const androidPackage = expo.android?.package;
-if (!/^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$/.test(androidPackage ?? "")) {
+if (
+  !/^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$/.test(
+    androidPackage ?? "",
+  )
+) {
   errors.push("Android package must be a reverse-DNS identifier");
 }
 requirePositiveInteger(expo.android?.versionCode, "Android versionCode");
@@ -91,8 +95,13 @@ const splashPlugin = (expo.plugins ?? []).find(
 await resolveAsset(splashPlugin?.[1]?.image, "Splash image");
 
 const preview = easConfig.build?.preview;
-if (preview?.environment !== "preview" || preview?.distribution !== "internal") {
-  errors.push("EAS preview must remain an internal build using the preview environment");
+if (
+  preview?.environment !== "preview" ||
+  preview?.distribution !== "internal"
+) {
+  errors.push(
+    "EAS preview must remain an internal build using the preview environment",
+  );
 }
 if (preview?.ios?.autoIncrement !== "buildNumber") {
   errors.push("EAS preview must auto-increment the iOS build number");
@@ -106,11 +115,7 @@ if (production?.autoIncrement !== true) {
   errors.push("EAS production must auto-increment native build versions");
 }
 
-const requiredPublicStoreRoutes = [
-  "privacy",
-  "account-deletion",
-  "contact",
-];
+const requiredPublicStoreRoutes = ["privacy", "account-deletion", "contact"];
 for (const route of requiredPublicStoreRoutes) {
   const pagePath = resolve(
     repositoryRoot,
