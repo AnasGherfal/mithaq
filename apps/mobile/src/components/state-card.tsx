@@ -20,19 +20,9 @@ export function StateCard({ title, body, rtl = false, tone = "neutral", actionLa
       style={[styles.card, error ? styles.errorCard : null, success ? styles.successCard : null]}
       accessibilityRole={error ? "alert" : undefined}
     >
-      <View
-        style={[
-          styles.marker,
-          error ? styles.errorMarker : null,
-          success ? styles.successMarker : null,
-        ]}
-      >
+      <View style={[styles.marker, error ? styles.errorMarker : null, success ? styles.successMarker : null]}>
         <Text
-          style={[
-            styles.markerText,
-            error ? styles.errorMarkerText : null,
-            success ? styles.successMarkerText : null,
-          ]}
+          style={[styles.markerText, error ? styles.errorMarkerText : null, success ? styles.successMarkerText : null]}
         >
           {error ? "!" : success ? "✓" : "•"}
         </Text>
