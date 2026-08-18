@@ -25,39 +25,62 @@ export default function AuthScreen() {
   const valid = phonePattern.test(normalizedPhone);
 
   async function sendCode() {
-    if (!valid || loading) {
-      if (!valid) setError(copy.invalidPhone);
+    if (loading) return;
+
+    if (!valid) {
+      setError(copy.invalidPhone);
       return;
     }
 
     setLoading(true);
     setError(null);
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      phone: normalizedPhone,
-      options: {
-        shouldCreateUser: true,
-        data: { preferred_locale: locale },
-      },
-    });
 
-    if (otpError) {
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        phone: normalizedPhone,
+        options: {
+          shouldCreateUser: true,
+          data: { preferred_locale: locale },
+        },
+      });
+
+      if (otpError) {
+        setError(
+          otpError.status === 429
+            ? rtl
+              ? "تم طلب رموز كثيرة خلال وقت قصير. انتظر قليلاً ثم حاول مرة أخرى."
+              : "Too many codes were requested in a short time. Wait a moment and try again."
+            : rtl
+              ? "تعذر إرسال رمز التحقق الآن. تحقق من الاتصال وحاول مرة أخرى."
+              : "We could not send the verification code right now. Check your connection and try again.",
+        );
+        return;
+      }
+
+      try {
+        await Promise.all([
+          SecureStore.setItemAsync(pendingPhoneKey, normalizedPhone),
+          SecureStore.setItemAsync(pendingLocaleKey, locale),
+        ]);
+      } catch {
+        setError(
+          rtl
+            ? "تم إرسال الرمز، لكن تعذر حفظ جلسة التحقق بأمان على جهازك. ابدأ من جديد لطلب رمز جديد."
+            : "The code was sent, but we could not securely save the verification session on your device. Start again to request a new code.",
+        );
+        return;
+      }
+
+      router.push({ pathname: "/verify", params: { locale } });
+    } catch {
       setError(
-        otpError.status === 429
-          ? rtl
-            ? "تم طلب رموز كثيرة خلال وقت قصير. انتظر قليلاً ثم حاول مرة أخرى."
-            : "Too many codes were requested in a short time. Wait a moment and try again."
-          : copy.genericError,
+        rtl
+          ? "تعذر الاتصال لإرسال رمز التحقق. تحقق من الشبكة وحاول مرة أخرى."
+          : "We could not connect to send the verification code. Check your network and try again.",
       );
+    } finally {
       setLoading(false);
-      return;
     }
-
-    await Promise.all([
-      SecureStore.setItemAsync(pendingPhoneKey, normalizedPhone),
-      SecureStore.setItemAsync(pendingLocaleKey, locale),
-    ]);
-    setLoading(false);
-    router.push({ pathname: "/verify", params: { locale } });
   }
 
   return (
@@ -76,6 +99,11 @@ export default function AuthScreen() {
         <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>{copy.phoneLabel}</Text>
         <TextInput
           accessibilityLabel={copy.phoneLabel}
+          accessibilityHint={
+            rtl
+              ? "أدخل رقم الهاتف بالصيغة الدولية، مثل +218910000000"
+              : "Enter your phone number in international format, such as +218910000000"
+          }
           autoComplete="tel"
           keyboardType="phone-pad"
           value={phone}
@@ -111,7 +139,11 @@ export default function AuthScreen() {
         </Text>
       </View>
 
-      {error ? <Text style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>{error}</Text> : null}
+      {error ? (
+        <Text accessibilityRole="alert" style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>
+          {error}
+        </Text>
+      ) : null}
 
       <PrimaryButton disabled={!valid} loading={loading} onPress={() => void sendCode()}>
         {loading ? copy.sending : copy.sendCode}
