@@ -4,7 +4,10 @@ import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { afterEach, describe, expect, it } from "vitest";
 
-const validatorPath = resolve(process.cwd(), "scripts/validate-migration-safety.mjs");
+const validatorPath = resolve(
+  process.cwd(),
+  "scripts/validate-migration-safety.mjs",
+);
 const temporaryDirectories: string[] = [];
 
 async function createMigrationDirectory(source: string) {
@@ -22,9 +25,9 @@ function runValidator(directory: string) {
 
 afterEach(async () => {
   await Promise.all(
-    temporaryDirectories.splice(0).map((directory) =>
-      rm(directory, { recursive: true, force: true }),
-    ),
+    temporaryDirectories
+      .splice(0)
+      .map((directory) => rm(directory, { recursive: true, force: true })),
   );
 });
 
@@ -37,7 +40,9 @@ describe("migration safety validator", () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("1 migrations scanned");
-    expect(result.stdout).toContain("0 explicitly reviewed destructive migration(s)");
+    expect(result.stdout).toContain(
+      "0 explicitly reviewed destructive migration(s)",
+    );
   });
 
   it("fails closed on destructive DDL without a reviewed marker", async () => {
