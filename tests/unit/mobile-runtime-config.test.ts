@@ -14,10 +14,15 @@ type MobileSupabaseConfig = {
   readonly publishableKey: string;
 };
 
-type ValidateMobileSupabaseConfig = (input: MobileSupabaseConfigInput) => MobileSupabaseConfig;
+type ValidateMobileSupabaseConfig = (
+  input: MobileSupabaseConfigInput,
+) => MobileSupabaseConfig;
 
 async function loadValidator(): Promise<ValidateMobileSupabaseConfig> {
-  const sourcePath = resolve(process.cwd(), "apps/mobile/src/lib/runtime-config.ts");
+  const sourcePath = resolve(
+    process.cwd(),
+    "apps/mobile/src/lib/runtime-config.ts",
+  );
   const source = await readFile(sourcePath, "utf8");
   const output = ts.transpileModule(source, {
     compilerOptions: {
