@@ -75,8 +75,8 @@ run and are not stale beyond the configured freshness window.
 4. Configure hosted staging web variables separately; configure the EAS
    `preview` environment so its mobile public values point only at
    `mithaq-staging`.
-5. With those real values loaded, run `pnpm release:preflight:staging` and do not
-   continue until it passes.
+5. With those real values loaded, run `pnpm release:preflight:staging` and do
+   not continue until it passes.
 6. Configure hosted maintenance schedules with service-role credentials stored
    only in the trusted scheduler/runtime.
 7. Run each required worker once so readiness is based on real successful runs,
