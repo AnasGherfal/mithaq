@@ -20,6 +20,10 @@ const requiredPublic = [
   "EXPO_PUBLIC_SUPABASE_URL",
   "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
 ];
+const requiredRetentionVariables = [
+  "MITHAQ_CONVERSATION_RETENTION_DAYS",
+  "MITHAQ_NOTIFICATION_RETENTION_DAYS",
+];
 
 for (const environmentName of requiredEnvironments) {
   const environment = contract.environments?.[environmentName];
@@ -34,6 +38,7 @@ for (const environmentName of requiredEnvironments) {
   }
 
   const publicVariables = environment.publicVariables ?? [];
+  const serverVariables = environment.serverVariables ?? [];
   const serverSecrets = environment.serverSecrets ?? [];
 
   for (const variable of requiredPublic) {
@@ -52,6 +57,24 @@ for (const environmentName of requiredEnvironments) {
     }
   }
 
+  for (const variable of serverVariables) {
+    if (variable.startsWith("NEXT_PUBLIC_") || variable.startsWith("EXPO_PUBLIC_")) {
+      errors.push(
+        `${environmentName} server variable ${variable} must not use a public prefix`,
+      );
+    }
+  }
+
+  if (["staging", "production"].includes(environmentName)) {
+    for (const variable of requiredRetentionVariables) {
+      if (!serverVariables.includes(variable)) {
+        errors.push(
+          `${environmentName} is missing server retention variable ${variable}`,
+        );
+      }
+    }
+  }
+
   if (!serverSecrets.includes("SUPABASE_SERVICE_ROLE_KEY")) {
     errors.push(
       `${environmentName} must declare SUPABASE_SERVICE_ROLE_KEY as server-only`,
@@ -59,12 +82,13 @@ for (const environmentName of requiredEnvironments) {
   }
 }
 
-const requiredWorkers = [
-  "account_deletion",
-  "introduction_expiry",
-  "conversation_message_retention",
-  "notification_retention",
-];
+const requiredWorkerFunctions = {
+  account_deletion: "account-deletion-worker",
+  introduction_expiry: "introduction-expiry-worker",
+  conversation_message_retention: "conversation-retention-worker",
+  notification_retention: "notification-retention-worker",
+};
+const requiredWorkers = Object.keys(requiredWorkerFunctions);
 
 for (const workerName of requiredWorkers) {
   const worker = contract.maintenanceWorkers?.[workerName];
@@ -72,6 +96,28 @@ for (const workerName of requiredWorkers) {
   if (!worker) {
     errors.push(`Missing maintenance worker contract: ${workerName}`);
     continue;
+  }
+
+  const expectedFunction = requiredWorkerFunctions[workerName];
+  if (worker.function !== expectedFunction) {
+    errors.push(`${workerName}.function must remain ${expectedFunction}`);
+  }
+
+  try {
+    const workerSource = await readFile(
+      new URL(
+        `../supabase/functions/${expectedFunction}/index.ts`,
+        import.meta.url,
+      ),
+      "utf8",
+    );
+    if (!workerSource.trim()) {
+      errors.push(`${workerName} worker entrypoint must not be empty`);
+    }
+  } catch {
+    errors.push(
+      `${workerName} is missing deployable function ${expectedFunction}/index.ts`,
+    );
   }
 
   if (
@@ -177,5 +223,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Release contract valid: ${requiredEnvironments.length} environments, ${requiredWorkers.length} required maintenance workers, ${requiredReleaseRequirements.length} release gates, ${requiredReleaseArtifacts.length} release artifacts.`,
+  `Release contract valid: ${requiredEnvironments.length} environments, ${requiredWorkers.length} deployable maintenance workers, ${requiredReleaseRequirements.length} release gates, ${requiredReleaseArtifacts.length} release artifacts.`,
 );
