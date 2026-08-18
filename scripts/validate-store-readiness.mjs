@@ -1,6 +1,7 @@
 import { access, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const mobileRoot = resolve(repositoryRoot, "apps/mobile");
@@ -22,16 +23,37 @@ function requirePositiveInteger(value, label) {
   }
 }
 
-async function requireAsset(relativePath, label) {
+async function resolveAsset(relativePath, label) {
   if (!relativePath || typeof relativePath !== "string") {
     errors.push(`${label} must reference a committed asset`);
-    return;
+    return null;
   }
 
+  const assetPath = resolve(mobileRoot, relativePath);
   try {
-    await access(resolve(mobileRoot, relativePath));
+    await access(assetPath);
+    return assetPath;
   } catch {
     errors.push(`${label} asset does not exist: ${relativePath}`);
+    return null;
+  }
+}
+
+async function requireNativeIcon(relativePath, label) {
+  const assetPath = await resolveAsset(relativePath, label);
+  if (!assetPath) return;
+
+  try {
+    const metadata = await sharp(assetPath).metadata();
+    if (
+      metadata.format !== "png" ||
+      metadata.width !== 1024 ||
+      metadata.height !== 1024
+    ) {
+      errors.push(`${label} must be a square 1024x1024 PNG`);
+    }
+  } catch {
+    errors.push(`${label} must be a readable PNG asset`);
   }
 }
 
@@ -57,8 +79,8 @@ if (!/^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$/.test(androidPackage ?
 }
 requirePositiveInteger(expo.android?.versionCode, "Android versionCode");
 
-await requireAsset(expo.icon, "Expo icon");
-await requireAsset(
+await requireNativeIcon(expo.icon, "Expo icon");
+await requireNativeIcon(
   expo.android?.adaptiveIcon?.foregroundImage,
   "Android adaptive foreground",
 );
@@ -66,7 +88,7 @@ await requireAsset(
 const splashPlugin = (expo.plugins ?? []).find(
   (plugin) => Array.isArray(plugin) && plugin[0] === "expo-splash-screen",
 );
-await requireAsset(splashPlugin?.[1]?.image, "Splash image");
+await resolveAsset(splashPlugin?.[1]?.image, "Splash image");
 
 const preview = easConfig.build?.preview;
 if (preview?.environment !== "preview" || preview?.distribution !== "internal") {
@@ -114,5 +136,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, native artwork present, EAS preview/production profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
+  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, 1024px native artwork present, EAS preview/production profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
 );
