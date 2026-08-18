@@ -10,13 +10,7 @@ import { colors, radius } from "@/theme";
 
 type SafetyReport = {
   id: string;
-  category:
-    | "fake_identity"
-    | "harassment"
-    | "inappropriate_content"
-    | "fraud_or_money"
-    | "safety_concern"
-    | "other";
+  category: "fake_identity" | "harassment" | "inappropriate_content" | "fraud_or_money" | "safety_concern" | "other";
   status: "submitted" | "triaged" | "investigating" | "actioned" | "dismissed" | "closed";
   reported_at: string;
 };
@@ -83,9 +77,11 @@ export default function SafetyScreen() {
               "When private introductions launch, report and block controls will appear directly on the introduction and conversation. Reports block the other member by default, while review stays private from the reported member.",
             reportsTitle: "Your reports",
             noReportsTitle: "No reports submitted",
-            noReportsBody: "That is a good thing. If you ever need it, reporting will be available from the private introduction itself.",
+            noReportsBody:
+              "That is a good thing. If you ever need it, reporting will be available from the private introduction itself.",
             blockedTitle: "Blocked members",
-            blockedBody: "Blocking prevents Mithaq from creating an introduction between you and the blocked member in either direction.",
+            blockedBody:
+              "Blocking prevents Mithaq from creating an introduction between you and the blocked member in either direction.",
             immediateTitle: "If you feel in immediate danger",
             immediateBody:
               "Do not rely on the app alone. Leave the situation, contact someone you trust, and use local emergency services when needed.",
@@ -175,23 +171,15 @@ export default function SafetyScreen() {
             <View style={styles.heroMark}>
               <Text style={styles.heroMarkText}>✓</Text>
             </View>
-            <Text style={[styles.heroTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.controlsTitle}
-            </Text>
-            <Text style={[styles.heroBody, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.controlsBody}
-            </Text>
+            <Text style={[styles.heroTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.controlsTitle}</Text>
+            <Text style={[styles.heroBody, { textAlign: rtl ? "right" : "left" }]}>{copy.controlsBody}</Text>
           </View>
 
           <View style={styles.metricCard}>
             <View style={[styles.metricRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
               <View style={styles.metricCopy}>
-                <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
-                  {copy.blockedTitle}
-                </Text>
-                <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>
-                  {copy.blockedBody}
-                </Text>
+                <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.blockedTitle}</Text>
+                <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.blockedBody}</Text>
               </View>
               <View style={styles.metricPill}>
                 <Text style={styles.metricNumber}>{blockedCount}</Text>
@@ -201,17 +189,11 @@ export default function SafetyScreen() {
           </View>
 
           <View style={styles.sectionCard}>
-            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.reportsTitle}
-            </Text>
+            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.reportsTitle}</Text>
             {reports.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={[styles.emptyTitle, { textAlign: rtl ? "right" : "left" }]}>
-                  {copy.noReportsTitle}
-                </Text>
-                <Text style={[styles.emptyBody, { textAlign: rtl ? "right" : "left" }]}>
-                  {copy.noReportsBody}
-                </Text>
+                <Text style={[styles.emptyTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.noReportsTitle}</Text>
+                <Text style={[styles.emptyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.noReportsBody}</Text>
               </View>
             ) : (
               <View style={styles.reportList}>
@@ -223,21 +205,13 @@ export default function SafetyScreen() {
           </View>
 
           <View style={styles.privateCard}>
-            <Text style={[styles.privateTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.privateTitle}
-            </Text>
-            <Text style={[styles.privateBody, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.privateBody}
-            </Text>
+            <Text style={[styles.privateTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.privateTitle}</Text>
+            <Text style={[styles.privateBody, { textAlign: rtl ? "right" : "left" }]}>{copy.privateBody}</Text>
           </View>
 
           <View style={styles.emergencyCard}>
-            <Text style={[styles.emergencyTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.immediateTitle}
-            </Text>
-            <Text style={[styles.emergencyBody, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.immediateBody}
-            </Text>
+            <Text style={[styles.emergencyTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.immediateTitle}</Text>
+            <Text style={[styles.emergencyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.immediateBody}</Text>
           </View>
         </View>
       )}
@@ -245,15 +219,7 @@ export default function SafetyScreen() {
   );
 }
 
-function ReportRow({
-  report,
-  locale,
-  rtl,
-}: {
-  report: SafetyReport;
-  locale: MobileLocale;
-  rtl: boolean;
-}) {
+function ReportRow({ report, locale, rtl }: { report: SafetyReport; locale: MobileLocale; rtl: boolean }) {
   const language = locale === "ar" ? "ar" : "en";
   const date = new Date(report.reported_at).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US", {
     year: "numeric",
