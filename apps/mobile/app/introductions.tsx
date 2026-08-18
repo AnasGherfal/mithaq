@@ -236,7 +236,19 @@ export default function IntroductionsScreen() {
           ) : selected.my_decision === "accepted" && selected.status === "offered" ? (
             <StateCard rtl={rtl} tone="neutral" title={copy.acceptedTitle} body={copy.acceptedBody} />
           ) : selected.status === "mutually_accepted" ? (
-            <StateCard rtl={rtl} tone="success" title={copy.mutualTitle} body={copy.mutualBody} />
+            <View style={styles.actions}>
+              <StateCard rtl={rtl} tone="success" title={copy.mutualTitle} body={copy.mutualBody} />
+              <PrimaryButton
+                onPress={() =>
+                  router.push({
+                    pathname: "/introduction-handoff",
+                    params: { locale, introductionId: selected.introduction_id },
+                  })
+                }
+              >
+                {copy.continueAfterMutual}
+              </PrimaryButton>
+            </View>
           ) : null}
         </View>
       </ScreenShell>
@@ -368,6 +380,7 @@ function introductionCopy(locale: MobileLocale) {
       acceptedBody: "لن نكشف قرار الطرف الآخر. سنخبرك فقط إذا أصبح القبول متبادلاً.",
       mutualTitle: "القبول متبادل",
       mutualBody: "تم قبول التعارف من الطرفين. تبقى الخطوة التالية خاضعة لقواعد الأمان والخصوصية قبل فتح أي تواصل.",
+      continueAfterMutual: "متابعة الخطوة التالية",
       emptyTitle: "لا توجد تعارفات حالياً",
       emptyBody: "هذا طبيعي. ميثاق لا يعرض كتالوجاً من الأعضاء ولا ينشئ تعارفاً لمجرد وجود ملف مكتمل.",
       errorTitle: "تعذر تحميل التعارفات",
@@ -425,6 +438,7 @@ function introductionCopy(locale: MobileLocale) {
     mutualTitle: "Acceptance is mutual",
     mutualBody:
       "Both members accepted. The next step remains subject to safety and privacy controls before any communication opens.",
+    continueAfterMutual: "Continue to the next step",
     emptyTitle: "No introductions right now",
     emptyBody:
       "That is normal. Mithaq does not show a member catalogue or create introductions simply because a profile is complete.",
