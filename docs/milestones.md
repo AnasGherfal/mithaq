@@ -104,15 +104,16 @@ Completed independent slices include:
 
 ### M9 acceptance gate
 
-1. Keep root formatting, lint, TypeScript, unit tests, and production build green.
+1. Keep root formatting, lint, TypeScript, unit tests, and production build
+   green.
 2. Keep mobile TypeScript, Prettier, and Expo Doctor green.
 3. Keep Supabase pgTAP and the verified OTP/waitlist integration green.
 4. Keep production E2E green, including security-header and health metadata
    checks.
 5. Keep idempotent retries at exactly one message and one recipient activity
    event.
-6. Keep retention preserving unresolved safety evidence and unread activity while
-   purging only eligible old data.
+6. Keep retention preserving unresolved safety evidence and unread activity
+   while purging only eligible old data.
 7. Keep Activity pagination free of skips/duplicates at equal timestamps.
 8. Keep all locked requirements in `ops/release-contract.json` machine-checked.
 9. Complete remaining independent production-readiness work before declaring M9
