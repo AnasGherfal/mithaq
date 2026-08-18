@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.goldSoft,
-    backgroundColor: colors.goldWash,
+    backgroundColor: colors.goldSoft,
     padding: 15,
   },
   previewBannerTitle: { color: colors.gold, fontSize: 13, fontWeight: "900" },
