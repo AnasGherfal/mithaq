@@ -12,6 +12,12 @@ export function questionnaireCopy(locale: MobileLocale) {
     back: ar ? "رجوع" : "Back",
     next: ar ? "متابعة" : "Continue",
     save: ar ? "حفظ ومتابعة" : "Save and continue",
+    loading: ar ? "جارٍ تحميل إجاباتك الخاصة" : "Loading your private answers",
+    loadErrorTitle: ar ? "تعذر تحميل إجاباتك بأمان" : "We could not load your answers safely",
+    loadErrorBody: ar
+      ? "لم نعرض نموذجاً فارغاً حتى لا تستبدل إجابات محفوظة بالخطأ. تحقق من الاتصال ثم حاول مرة أخرى."
+      : "We did not show a blank form because it could overwrite saved answers. Check your connection and try again.",
+    retry: ar ? "إعادة المحاولة" : "Try again",
     aboutYou: ar ? "عنك" : "About you",
     aboutYouBody: ar
       ? "معلومات أساسية تساعدنا على فهم جاهزية الشبكة."
