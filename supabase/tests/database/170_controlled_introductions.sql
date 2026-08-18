@@ -107,6 +107,7 @@ insert into public.waitlist_applications (
   status,
   gender,
   age_band_id,
+  residency_type,
   current_country_code,
   current_city,
   libyan_origin_region,
@@ -121,6 +122,7 @@ insert into public.waitlist_applications (
     'submitted',
     'man',
     2,
+    'libya',
     'LY',
     'Tripoli',
     'Tripoli',
@@ -135,6 +137,7 @@ insert into public.waitlist_applications (
     'submitted',
     'woman',
     2,
+    'libya',
     'LY',
     'Benghazi',
     'Benghazi',
@@ -149,6 +152,7 @@ insert into public.waitlist_applications (
     'submitted',
     'woman',
     3,
+    'libya',
     'LY',
     'Misrata',
     'Misrata',
@@ -163,6 +167,7 @@ insert into public.waitlist_applications (
     'submitted',
     'man',
     3,
+    'libya',
     'LY',
     'Zawiya',
     'Zawiya',
@@ -171,6 +176,19 @@ insert into public.waitlist_applications (
     now(),
     now()
   );
+
+insert into public.waitlist_preferences (
+  application_id,
+  open_to_libya,
+  open_to_diaspora,
+  preferred_partner_age_min,
+  preferred_partner_age_max,
+  accepts_partner_with_children
+) values
+  ('17171717-aaaa-4aaa-8aaa-171717171711', true, true, 18, 60, 'depends'),
+  ('17171717-bbbb-4bbb-8bbb-171717171712', true, true, 18, 60, 'depends'),
+  ('17171717-cccc-4ccc-8ccc-171717171713', true, true, 18, 60, 'depends'),
+  ('17171717-dddd-4ddd-8ddd-171717171714', true, true, 18, 60, 'depends');
 
 insert into public.member_profiles (
   user_id,
