@@ -11,6 +11,9 @@ captures the operator steps that cannot be proven from source control alone.
   journey.
 - Confirm `pnpm release:metadata:check` passes so web, mobile, and Expo versions
   agree and native build baselines are valid.
+- Confirm `pnpm release:store:check` passes so bundle/package IDs, EAS profiles,
+  localized privacy/deletion/support routes, and canonical 1024x1024 native
+  artwork remain submission-ready.
 - After loading the real hosted environment values, run the matching preflight:
   `pnpm release:preflight:staging` for staging or
   `pnpm release:preflight:production` for production.
@@ -127,9 +130,11 @@ freshness window.
 10. Build signed production mobile binaries only from the reviewed release
     commit.
 11. Perform final smoke tests against production-safe test accounts.
-12. Submit the reviewed binary to TestFlight / Google Play testing before public
+12. Complete `ops/STORE_SUBMISSION_CHECKLIST.md` against the exact signed
+    binaries and hosted production URLs.
+13. Submit the reviewed binary to TestFlight / Google Play testing before public
     rollout.
-13. Use a staged public rollout and monitor authentication, database errors,
+14. Use a staged public rollout and monitor authentication, database errors,
     safety reports, messaging failures, worker health, crash reports, and
     account-deletion backlog.
 
