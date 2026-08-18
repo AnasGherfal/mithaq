@@ -5,6 +5,8 @@ type ClaimedDeletion = {
   user_id: string;
 };
 
+type WorkerRunStatus = "succeeded" | "partial" | "failed";
+
 const jsonHeaders = { "content-type": "application/json; charset=utf-8" };
 
 Deno.serve(async (request) => {
@@ -42,6 +44,28 @@ Deno.serve(async (request) => {
     },
   });
 
+  async function recordRun(
+    runStatus: WorkerRunStatus,
+    reconciled: number,
+    claimed: number,
+    completed: number,
+    failed: number,
+    errorCode: string | null,
+  ) {
+    const { error } = await admin.rpc("record_account_deletion_worker_run", {
+      p_run_status: runStatus,
+      p_reconciled: reconciled,
+      p_claimed: claimed,
+      p_completed: completed,
+      p_failed: failed,
+      p_error_code: errorCode,
+    });
+
+    if (error) {
+      console.error("Could not record account deletion worker run", error.message);
+    }
+  }
+
   let reconciled = 0;
   const { data: reconciliationData, error: reconciliationError } =
     await admin.rpc("reconcile_orphaned_account_deletions", {
@@ -68,6 +92,14 @@ Deno.serve(async (request) => {
 
   if (claimError) {
     console.error("Could not claim due account deletions", claimError.message);
+    await recordRun(
+      "failed",
+      reconciled,
+      0,
+      0,
+      0,
+      reconciliationError ? "reconciliation_and_claim_failed" : "claim_failed",
+    );
     return new Response(JSON.stringify({ error: "claim_failed", reconciled }), {
       status: 500,
       headers: jsonHeaders,
@@ -143,13 +175,35 @@ Deno.serve(async (request) => {
     results.push({ requestId: item.request_id, status: "completed" });
   }
 
+  const completed = results.filter(
+    (result) => result.status === "completed",
+  ).length;
+  const failed = results.filter((result) => result.status === "failed").length;
+  const runStatus: WorkerRunStatus =
+    reconciliationError || failed > 0 ? "partial" : "succeeded";
+  const errorCode = reconciliationError
+    ? failed > 0
+      ? "reconciliation_and_item_failures"
+      : "reconciliation_failed"
+    : failed > 0
+      ? "item_failures"
+      : null;
+
+  await recordRun(
+    runStatus,
+    reconciled,
+    claimed.length,
+    completed,
+    failed,
+    errorCode,
+  );
+
   return new Response(
     JSON.stringify({
       reconciled,
       claimed: claimed.length,
-      completed: results.filter((result) => result.status === "completed")
-        .length,
-      failed: results.filter((result) => result.status === "failed").length,
+      completed,
+      failed,
     }),
     { status: 200, headers: jsonHeaders },
   );
