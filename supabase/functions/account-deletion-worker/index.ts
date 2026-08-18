@@ -62,7 +62,10 @@ Deno.serve(async (request) => {
     });
 
     if (error) {
-      console.error("Could not record account deletion worker run", error.message);
+      console.error(
+        "Could not record account deletion worker run",
+        error.message,
+      );
     }
   }
 
