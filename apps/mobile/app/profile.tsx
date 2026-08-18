@@ -284,12 +284,20 @@ export default function ProfileScreen() {
               {saving ? copy.saving : complete ? copy.saveChanges : copy.save}
             </PrimaryButton>
             {complete ? (
-              <PrimaryButton
-                tone="quiet"
-                onPress={() => router.push({ pathname: "/profile-preview", params: { locale } })}
-              >
-                {copy.preview}
-              </PrimaryButton>
+              <>
+                <PrimaryButton
+                  tone="quiet"
+                  onPress={() => router.push({ pathname: "/profile-preview", params: { locale } })}
+                >
+                  {copy.preview}
+                </PrimaryButton>
+                <PrimaryButton
+                  tone="quiet"
+                  onPress={() => router.push({ pathname: "/profile-visibility", params: { locale } })}
+                >
+                  {copy.visibility}
+                </PrimaryButton>
+              </>
             ) : null}
           </View>
         </View>
@@ -371,6 +379,7 @@ function profileCopy(locale: MobileLocale) {
       saveChanges: "حفظ التعديلات",
       saving: "جارٍ الحفظ...",
       preview: "معاينة الملف كما قد يظهر في تعارف",
+      visibility: "التحكم في التفاصيل الإضافية التي يمكن مشاركتها",
       savedComplete: "تم حفظ ملفك، والبيانات الأساسية مكتملة.",
       savedDraft: "تم حفظ المسودة. أكمل الاسم والنبذة عندما تكون جاهزاً.",
       networkError: "تعذر الاتصال لحفظ ملفك. لم نفترض نجاح الحفظ؛ تحقق من الشبكة ثم حاول مرة أخرى.",
@@ -408,6 +417,7 @@ function profileCopy(locale: MobileLocale) {
     saveChanges: "Save changes",
     saving: "Saving...",
     preview: "Preview how this could appear in an introduction",
+    visibility: "Control which optional details can be shared",
     savedComplete: "Your profile is saved and the core details are complete.",
     savedDraft: "Your private draft is saved. Complete the name and introduction when you are ready.",
     networkError:
