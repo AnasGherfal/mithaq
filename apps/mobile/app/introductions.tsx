@@ -330,9 +330,7 @@ export default function IntroductionsScreen() {
                     {unreadCount > 0 ? (
                       <View
                         style={styles.unreadBadge}
-                        accessibilityLabel={
-                          rtl ? `${unreadCount} رسائل غير مقروءة` : `${unreadCount} unread messages`
-                        }
+                        accessibilityLabel={rtl ? `${unreadCount} رسائل غير مقروءة` : `${unreadCount} unread messages`}
                       >
                         <Text style={styles.unreadBadgeText}>{unreadCount > 99 ? "99+" : unreadCount}</Text>
                       </View>
