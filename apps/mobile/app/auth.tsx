@@ -8,28 +8,34 @@ import { mobileCopy, type MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
-const phonePattern = /^\+[1-9]\d{7,14}$/;
+const libyaDialCode = "+218";
+const localPhonePattern = /^9\d{8}$/;
 const pendingPhoneKey = "mithaq.pending.phone";
 const pendingLocaleKey = "mithaq.pending.locale";
-const previewTestPhone = "+218910000001";
+const previewTestLocalPhone = "910000001";
 
 export default function AuthScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
   const locale: MobileLocale = params.locale === "en" ? "en" : "ar";
   const copy = mobileCopy[locale];
   const rtl = locale === "ar";
-  const [phone, setPhone] = useState(__DEV__ ? previewTestPhone : "");
+  const [phone, setPhone] = useState(__DEV__ ? previewTestLocalPhone : "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const normalizedPhone = useMemo(() => phone.replace(/[\s()-]/g, ""), [phone]);
-  const valid = phonePattern.test(normalizedPhone);
+  const localPhone = useMemo(() => phone.replace(/\D/g, "").slice(0, 9), [phone]);
+  const normalizedPhone = `${libyaDialCode}${localPhone}`;
+  const valid = localPhonePattern.test(localPhone);
 
   async function sendCode() {
     if (loading) return;
 
     if (!valid) {
-      setError(copy.invalidPhone);
+      setError(
+        rtl
+          ? "أدخل رقم هاتف ليبي صحيح يبدأ بالرقم 9 ويتكون من 9 أرقام."
+          : "Enter a valid Libyan mobile number starting with 9 and containing 9 digits.",
+      );
       return;
     }
 
@@ -88,7 +94,11 @@ export default function AuthScreen() {
     <ScreenShell
       eyebrow={copy.privateByDesign}
       title={copy.phoneTitle}
-      body={copy.phoneBody}
+      body={
+        rtl
+          ? "أدخل رقمك الليبي. سنضيف رمز ليبيا تلقائياً ولن تحتاج إلى كتابة +218."
+          : "Enter your Libyan mobile number. We add Libya's +218 code automatically."
+      }
       rtl={rtl}
       footer={
         <PrimaryButton tone="quiet" onPress={() => router.back()}>
@@ -97,48 +107,62 @@ export default function AuthScreen() {
       }
     >
       <View style={{ direction: rtl ? "rtl" : "ltr" }}>
-        <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>{copy.phoneLabel}</Text>
-        <TextInput
-          accessibilityLabel={copy.phoneLabel}
-          accessibilityHint={
-            rtl
-              ? "أدخل رقم الهاتف بالصيغة الدولية، مثل +218910000000"
-              : "Enter your phone number in international format, such as +218910000000"
-          }
-          autoComplete="tel"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={(value) => {
-            setPhone(value);
-            if (error) setError(null);
-          }}
-          onSubmitEditing={() => {
-            if (valid) void sendCode();
-          }}
-          returnKeyType="done"
-          placeholder={copy.phonePlaceholder}
-          placeholderTextColor={colors.mutedSoft}
-          selectionColor={colors.primary}
-          textAlign="left"
-          style={styles.input}
-        />
+        <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>
+          {rtl ? "رقم الهاتف" : "Mobile number"}
+        </Text>
+        <View style={[styles.phoneField, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+          <View style={styles.countryCode}>
+            <Text style={styles.countryCodeText}>+218</Text>
+            <Text style={styles.countryLabel}>{rtl ? "ليبيا" : "Libya"}</Text>
+          </View>
+          <View style={styles.phoneDivider} />
+          <TextInput
+            accessibilityLabel={rtl ? "رقم الهاتف الليبي" : "Libyan mobile number"}
+            accessibilityHint={
+              rtl
+                ? "أدخل تسعة أرقام تبدأ بالرقم 9"
+                : "Enter nine digits beginning with 9"
+            }
+            autoComplete="tel"
+            keyboardType="number-pad"
+            value={localPhone}
+            onChangeText={(value) => {
+              setPhone(value.replace(/\D/g, "").slice(0, 9));
+              if (error) setError(null);
+            }}
+            onSubmitEditing={() => {
+              if (valid) void sendCode();
+            }}
+            returnKeyType="done"
+            maxLength={9}
+            placeholder="9XXXXXXXX"
+            placeholderTextColor={colors.mutedSoft}
+            selectionColor={colors.primary}
+            textAlign="left"
+            style={styles.input}
+          />
+        </View>
+        <View style={styles.fieldMeta}>
+          <Text style={[styles.hint, { textAlign: rtl ? "right" : "left" }]}>
+            {rtl ? "يبدأ الرقم بـ 9 · 9 أرقام" : "Starts with 9 · 9 digits"}
+          </Text>
+          {valid ? <Text style={styles.normalizedPreview}>{normalizedPhone}</Text> : null}
+        </View>
         {__DEV__ ? (
           <Text style={[styles.previewHint, { textAlign: rtl ? "right" : "left" }]}>
             {rtl
-              ? "معاينة محلية: استخدم الرقم المعبأ مسبقاً ثم الرمز 123456."
-              : "Local preview: use the prefilled number, then enter 123456."}
+              ? "معاينة: الرقم التجريبي جاهز. استخدم الرمز 123456."
+              : "Preview: the test number is ready. Use code 123456."}
           </Text>
         ) : null}
       </View>
 
       <View style={[styles.privacyNote, { direction: rtl ? "rtl" : "ltr" }]}>
-        <View style={styles.privacyIcon}>
-          <View style={styles.privacyIconCore} />
-        </View>
+        <View style={styles.privacyDot} />
         <Text style={[styles.privacyText, { textAlign: rtl ? "right" : "left" }]}>
           {rtl
-            ? "يُستخدم رقمك للتحقق والدخول الآمن فقط، ويمكن أن يكون رقماً ليبياً أو دولياً."
-            : "Your number is used for verification and secure access only, and can be Libyan or international."}
+            ? "نستخدم رقمك للتحقق والدخول الآمن، ولا نعرضه للأعضاء الآخرين."
+            : "We use your number for verification and secure access. It is not shown to other members."}
         </Text>
       </View>
 
@@ -160,20 +184,67 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     fontSize: 14,
     fontWeight: "800",
-    marginBottom: 9,
+    marginBottom: 10,
   },
-  input: {
-    minHeight: 62,
+  phoneField: {
+    minHeight: 68,
+    alignItems: "center",
     borderWidth: 1,
     borderColor: colors.borderStrong,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.surfaceRaised,
+    paddingHorizontal: 14,
+  },
+  countryCode: {
+    minWidth: 62,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  countryCodeText: {
     color: colors.foreground,
-    fontSize: 18,
-    paddingHorizontal: 16,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  countryLabel: {
+    color: colors.muted,
+    fontSize: 10,
+    marginTop: 2,
+  },
+  phoneDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: colors.border,
+    marginHorizontal: 12,
+  },
+  input: {
+    flex: 1,
+    minHeight: 64,
+    color: colors.foreground,
+    fontSize: 22,
+    fontWeight: "700",
+    letterSpacing: 1.1,
+    paddingHorizontal: 2,
+  },
+  fieldMeta: {
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  hint: {
+    flex: 1,
+    color: colors.muted,
+    fontSize: 11,
+    lineHeight: 17,
+  },
+  normalizedPreview: {
+    color: colors.mutedSoft,
+    fontSize: 10,
+    fontWeight: "700",
   },
   previewHint: {
-    marginTop: 9,
+    marginTop: 10,
     color: colors.primary,
     fontSize: 12,
     lineHeight: 19,
@@ -183,25 +254,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    marginTop: 18,
-    marginBottom: 18,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
-    padding: 13,
+    marginTop: 22,
+    marginBottom: 20,
   },
-  privacyIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.gold,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.goldSoft,
-  },
-  privacyIconCore: {
-    width: 8,
-    height: 8,
+  privacyDot: {
+    width: 7,
+    height: 7,
     borderRadius: 4,
     backgroundColor: colors.gold,
   },
