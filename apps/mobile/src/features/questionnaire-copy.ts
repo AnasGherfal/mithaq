@@ -2,16 +2,53 @@ import type { MobileLocale } from "@/i18n";
 
 export function questionnaireCopy(locale: MobileLocale) {
   const ar = locale === "ar";
+
   return {
-    eyebrow: ar ? "إعداد التسجيل الخاص" : "Private registration",
+    eyebrow: ar ? "تفضيلاتك الخاصة" : "Private preferences",
     title: ar ? "دعنا نفهم ما يناسبك" : "Help us understand what fits you",
     body: ar
-      ? "ثلاث خطوات هادئة. إجاباتك خاصة وليست ملفاً عاماً."
-      : "Three calm steps. Your answers stay private and never become a public profile.",
-    steps: ar ? ["عنك", "التفضيلات", "الخصوصية"] : ["About you", "Preferences", "Privacy"],
+      ? "إجاباتك خاصة وتُستخدم لتقييم التوافق فقط."
+      : "Your answers stay private and are used only to evaluate compatibility.",
+    steps: ar
+      ? ["الأساسيات", "المكان", "الزواج", "النطاق", "الخصوصية", "الأسرة"]
+      : ["Basics", "Location", "Marriage", "Reach", "Privacy", "Family"],
+    stageTitles: ar
+      ? [
+          "لنبدأ بالأساسيات",
+          "أين تعيش اليوم؟",
+          "ما الذي تبحث عنه؟",
+          "أين يمكن أن يكون التعارف؟",
+          "ما مستوى الخصوصية المناسب؟",
+          "كيف تفضّل إشراك الأسرة؟",
+        ]
+      : [
+          "Let’s start with the basics",
+          "Where do you live today?",
+          "What are you looking for?",
+          "Where could an introduction be?",
+          "What level of privacy feels right?",
+          "How should family be involved?",
+        ],
+    stageBodies: ar
+      ? [
+          "اختر المعلومات الأساسية التي تساعد ميثاق على فهم ملفك.",
+          "المكان والحالة الاجتماعية من أهم حدود التوافق الأولية.",
+          "حدد استعدادك وما تقبله بوضوح. يمكنك تعديل ذلك لاحقاً.",
+          "أخبرنا بمرونتك تجاه ليبيا والخارج والانتقال.",
+          "أنت تتحكم في الصورة والتحقق وما يُكشف داخل التعارف.",
+          "راجع تفضيلاتك الأخيرة قبل حفظها والمتابعة.",
+        ]
+      : [
+          "Choose the basic details Mithaq needs to understand your profile.",
+          "Location and marital status are important first compatibility boundaries.",
+          "Set your readiness and boundaries clearly. You can change them later.",
+          "Tell us how flexible you are across Libya, the diaspora, and relocation.",
+          "You control photos, verification, and what is revealed in an introduction.",
+          "Review the final preferences before saving and continuing.",
+        ],
     back: ar ? "رجوع" : "Back",
     next: ar ? "متابعة" : "Continue",
-    save: ar ? "حفظ ومتابعة" : "Save and continue",
+    save: ar ? "حفظ والمتابعة" : "Save and continue",
     loading: ar ? "جارٍ تحميل إجاباتك الخاصة" : "Loading your private answers",
     loadErrorTitle: ar ? "تعذر تحميل إجاباتك بأمان" : "We could not load your answers safely",
     loadErrorBody: ar
@@ -20,8 +57,8 @@ export function questionnaireCopy(locale: MobileLocale) {
     retry: ar ? "إعادة المحاولة" : "Try again",
     aboutYou: ar ? "عنك" : "About you",
     aboutYouBody: ar
-      ? "معلومات أساسية تساعدنا على فهم جاهزية الشبكة."
-      : "Basic details that help us understand network readiness.",
+      ? "معلومات أساسية تساعدنا على فهم ملفك."
+      : "Basic details that help us understand your profile.",
     woman: ar ? "امرأة" : "Woman",
     man: ar ? "رجل" : "Man",
     ageRange: ar ? "الفئة العمرية" : "Age range",
@@ -38,11 +75,13 @@ export function questionnaireCopy(locale: MobileLocale) {
       widowed: ar ? "أرمل/أرملة" : "Widowed",
     },
     children: ar ? "لدي أطفال" : "I have children",
-    libyanAttestation: ar ? "أؤكد أنني ليبي/ليبية أو من أصل ليبي" : "I confirm I am Libyan or of Libyan origin",
+    libyanAttestation: ar
+      ? "أؤكد أنني ليبي/ليبية أو من أصل ليبي"
+      : "I confirm I am Libyan or of Libyan origin",
     preferences: ar ? "ما تبحث عنه" : "What you are looking for",
     preferencesBody: ar
-      ? "هذه التفضيلات خاصة وتُستخدم لتقييم التوافق مستقبلاً."
-      : "These preferences stay private and support future compatibility assessment.",
+      ? "هذه التفضيلات خاصة وتُستخدم لتقييم التوافق."
+      : "These preferences stay private and support compatibility assessment.",
     timeline: ar ? "الاستعداد للزواج" : "Marriage timeline",
     timelineValues: {
       within_6_months: ar ? "خلال 6 أشهر" : "Within 6 months",
@@ -59,13 +98,17 @@ export function questionnaireCopy(locale: MobileLocale) {
     relocation: ar ? "الاستعداد للانتقال" : "Relocation willingness",
     countries: ar ? "دول مفضلة" : "Preferred countries",
     countriesHelp: ar ? "اختياري — رموز مثل GB, CA" : "Optional — codes such as GB, CA",
-    tri: { yes: ar ? "نعم" : "Yes", no: ar ? "لا" : "No", depends: ar ? "يعتمد" : "Depends" },
+    tri: {
+      yes: ar ? "نعم" : "Yes",
+      no: ar ? "لا" : "No",
+      depends: ar ? "يعتمد" : "Depends",
+    },
     privacyTitle: ar ? "الخصوصية والثقة" : "Privacy and trust",
     privacyBody: ar
-      ? "حدد مستوى الراحة الذي تفضله قبل إطلاق التعارف الخاص."
-      : "Set the level of comfort you want before private introductions ever launch.",
+      ? "حدد مستوى الراحة الذي تفضله داخل التعارف الخاص."
+      : "Set the level of comfort you want inside private introductions.",
     identity: ar ? "مستعد للتحقق من الهوية لاحقاً" : "Willing to verify identity later",
-    photo: ar ? "خصوصية الصورة مستقبلاً" : "Future photo privacy",
+    photo: ar ? "خصوصية الصورة" : "Photo privacy",
     photoValues: {
       none: ar ? "لا أريد إظهار صورة" : "Do not show a photo",
       blurred: ar ? "صورة ضبابية أولاً" : "Blurred first",
@@ -82,8 +125,19 @@ export function questionnaireCopy(locale: MobileLocale) {
     },
     reassuranceTitle: ar ? "أنت تتحكم في الخصوصية" : "You stay in control",
     reassuranceBody: ar
-      ? "هذه الإجابات لا تنشئ ملفاً عاماً، وتأكيد الهاتف لا يعني توثيق الهوية."
-      : "These answers do not create a public profile, and phone confirmation does not mean identity verification.",
+      ? "لا يوجد ملف عام أو سحب عشوائي. تظهر معلوماتك فقط داخل تعارف مؤهل ووفق إعداداتك."
+      : "There is no public profile or random swipe deck. Your details appear only inside an eligible introduction under your settings.",
+    reviewTitle: ar ? "ملخص تفضيلاتك" : "Your preference summary",
+    reviewBody: ar
+      ? "هذه ليست نتيجة توافق. إنها مراجعة لما سيستخدمه ميثاق عند البحث عن تعارف مناسب."
+      : "This is not a compatibility score. It is a review of what Mithaq will use when looking for a suitable introduction.",
+    reviewAge: ar ? "العمر المناسب" : "Preferred age",
+    reviewLocations: ar ? "نطاق البحث" : "Search reach",
+    reviewPhoto: ar ? "الصورة" : "Photo",
+    reviewFamily: ar ? "الأسرة" : "Family",
+    locationBoth: ar ? "ليبيا والخارج" : "Libya and diaspora",
+    locationLibya: ar ? "ليبيا" : "Libya",
+    locationDiaspora: ar ? "خارج ليبيا" : "Diaspora",
     validation: {
       country: ar
         ? "أدخل رمز دولة صحيحاً من حرفين، مثل LY أو GB."
@@ -95,7 +149,9 @@ export function questionnaireCopy(locale: MobileLocale) {
       age: ar
         ? "راجع نطاق العمر المفضل وتأكد أن الحد الأدنى لا يتجاوز الحد الأعلى."
         : "Check the preferred age range and make sure the minimum does not exceed the maximum.",
-      status: ar ? "اختر حالة اجتماعية مقبولة واحدة على الأقل." : "Choose at least one accepted marital status.",
+      status: ar
+        ? "اختر حالة اجتماعية مقبولة واحدة على الأقل."
+        : "Choose at least one accepted marital status.",
       location: ar
         ? "اختر الانفتاح على شخص في ليبيا أو في الخارج على الأقل."
         : "Choose at least one location option: Libya or diaspora.",
