@@ -1,4 +1,3 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, radius } from "@/theme";
 
@@ -33,20 +32,10 @@ export function ProfilePortrait({
           <View style={styles.monogram}>
             <Text style={styles.monogramText}>{initials || "م"}</Text>
           </View>
-          <Text
-            style={[
-              styles.fallbackTitle,
-              { textAlign: "center", writingDirection: rtl ? "rtl" : "ltr" },
-            ]}
-          >
+          <Text style={[styles.fallbackTitle, { writingDirection: rtl ? "rtl" : "ltr" }]}> 
             {rtl ? "صورة خاصة" : "Private portrait"}
           </Text>
-          <Text
-            style={[
-              styles.fallbackBody,
-              { textAlign: "center", writingDirection: rtl ? "rtl" : "ltr" },
-            ]}
-          >
+          <Text style={[styles.fallbackBody, { writingDirection: rtl ? "rtl" : "ltr" }]}> 
             {rtl
               ? "تظهر الصور هنا فقط عندما يسمح بها ملف التعارف."
               : "Photos appear here only when the introduction permits them."}
@@ -61,7 +50,10 @@ export function ProfilePortrait({
           { flexDirection: rtl ? "row-reverse" : "row" },
         ]}
       >
-        <Ionicons name="lock-closed" size={12} color={colors.white} />
+        <View style={styles.lockIcon}>
+          <View style={styles.lockShackle} />
+          <View style={styles.lockBody} />
+        </View>
         <Text style={styles.privacyLabel}>{privacyLabel}</Text>
       </View>
     </View>
@@ -121,6 +113,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: "800",
     marginTop: 18,
+    textAlign: "center",
   },
   fallbackBody: {
     maxWidth: 260,
@@ -128,6 +121,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 19,
     marginTop: 4,
+    textAlign: "center",
   },
   privacyBadge: {
     position: "absolute",
@@ -141,6 +135,28 @@ const styles = StyleSheet.create({
   },
   privacyBadgeLtr: { left: 14 },
   privacyBadgeRtl: { right: 14 },
+  lockIcon: { width: 12, height: 12, position: "relative" },
+  lockShackle: {
+    position: "absolute",
+    top: 0,
+    left: 2.5,
+    width: 7,
+    height: 6,
+    borderWidth: 1.4,
+    borderColor: colors.white,
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+  },
+  lockBody: {
+    position: "absolute",
+    bottom: 0,
+    left: 1,
+    width: 10,
+    height: 7,
+    borderRadius: 2,
+    backgroundColor: colors.white,
+  },
   privacyLabel: {
     color: colors.white,
     fontSize: 10,
