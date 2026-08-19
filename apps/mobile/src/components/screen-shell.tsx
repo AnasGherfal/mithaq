@@ -36,7 +36,6 @@ export function ScreenShell({
   const { width } = useWindowDimensions();
   const pathname = usePathname();
   const compact = width < 370;
-  const direction = rtl ? "rtl" : "ltr";
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
   const rowDirection = rtl ? "row-reverse" : "row";
@@ -60,33 +59,21 @@ export function ScreenShell({
   const memberMode = Boolean(resolvedBottomBar);
 
   const content = (
-    <View style={[styles.pageColumn, { direction, alignItems: horizontalAlignment }]}>
+    <View style={[styles.pageColumn, { alignItems: horizontalAlignment }]}>
       <View
         style={[
           styles.navRow,
-          { flexDirection: rowDirection, justifyContent: "flex-start" },
+          { alignItems: horizontalAlignment },
         ]}
       >
-        <View style={[styles.brandLockup, { flexDirection: rowDirection }]}>
+        <View style={[styles.brandLockup, { flexDirection: rowDirection, alignSelf: rtl ? "flex-end" : "flex-start" }]}>
           <View style={styles.brandMark} accessibilityElementsHidden>
             <View style={[styles.linkRing, styles.linkRingStart]} />
             <View style={[styles.linkRing, styles.linkRingEnd]} />
             <View style={styles.linkJoint} />
           </View>
-          <View
-            style={[
-              styles.wordmarkStack,
-              { alignItems: horizontalAlignment },
-            ]}
-          >
-            <Text
-              style={[
-                styles.brandArabic,
-                { textAlign, writingDirection, letterSpacing: 0 },
-              ]}
-            >
-              ميثاق
-            </Text>
+          <View style={[styles.wordmarkStack, { alignItems: horizontalAlignment }]}>
+            <Text style={[styles.brandArabic, { textAlign, writingDirection }]}>ميثاق</Text>
             <Text style={[styles.brandWordmark, { textAlign }]}>MITHAQ</Text>
           </View>
         </View>
@@ -96,7 +83,7 @@ export function ScreenShell({
         style={[
           styles.hero,
           memberMode ? styles.heroMember : null,
-          { direction, alignItems: horizontalAlignment },
+          { alignItems: horizontalAlignment, alignSelf: "stretch" },
         ]}
       >
         {eyebrow ? (
@@ -142,25 +129,18 @@ export function ScreenShell({
         style={[
           styles.content,
           memberMode ? styles.contentMember : null,
-          { direction, alignItems: "stretch" },
+          { alignItems: "stretch", alignSelf: "stretch" },
         ]}
       >
         {children}
       </View>
-      {footer ? (
-        <View style={[styles.footer, { direction, alignSelf: "stretch" }]}>
-          {footer}
-        </View>
-      ) : null}
+      {footer ? <View style={[styles.footer, { alignSelf: "stretch" }]}>{footer}</View> : null}
     </View>
   );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         {scrollEnabled ? (
           <ScrollView
             style={styles.flex}
@@ -168,7 +148,6 @@ export function ScreenShell({
               styles.scrollContent,
               compact ? styles.scrollContentCompact : null,
               memberMode ? styles.scrollContentWithBar : null,
-              { direction },
             ]}
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             keyboardShouldPersistTaps="handled"
@@ -182,16 +161,13 @@ export function ScreenShell({
               styles.fixedContent,
               compact ? styles.scrollContentCompact : null,
               memberMode ? styles.fixedContentWithBar : null,
-              { direction },
             ]}
           >
             {content}
           </View>
         )}
       </KeyboardAvoidingView>
-      {resolvedBottomBar ? (
-        <View style={styles.bottomBar}>{resolvedBottomBar}</View>
-      ) : null}
+      {resolvedBottomBar ? <View style={styles.bottomBar}>{resolvedBottomBar}</View> : null}
     </SafeAreaView>
   );
 }
@@ -199,130 +175,34 @@ export function ScreenShell({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: colors.background },
-  pageColumn: {
-    width: "100%",
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    paddingBottom: 24,
-  },
+  pageColumn: { width: "100%", flex: 1 },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 24 },
   scrollContentWithBar: { paddingBottom: 16 },
-  fixedContent: {
-    flex: 1,
-    alignItems: "stretch",
-    paddingHorizontal: 24,
-    paddingTop: 6,
-    paddingBottom: 8,
-  },
+  fixedContent: { flex: 1, alignItems: "stretch", paddingHorizontal: 24, paddingTop: 6, paddingBottom: 8 },
   fixedContentWithBar: { paddingBottom: 8 },
   scrollContentCompact: { paddingHorizontal: 18 },
-  navRow: {
-    width: "100%",
-    minHeight: 48,
-    alignItems: "center",
-  },
-  brandLockup: {
-    alignItems: "center",
-    gap: 11,
-  },
-  brandMark: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    backgroundColor: colors.foreground,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  linkRing: {
-    position: "absolute",
-    width: 16,
-    height: 22,
-    borderRadius: 9,
-    borderWidth: 1.4,
-    borderColor: colors.white,
-    transform: [{ rotate: "18deg" }],
-  },
+  navRow: { width: "100%", minHeight: 48, justifyContent: "center" },
+  brandLockup: { alignItems: "center", gap: 11 },
+  brandMark: { width: 38, height: 38, borderRadius: 13, backgroundColor: colors.foreground, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  linkRing: { position: "absolute", width: 16, height: 22, borderRadius: 9, borderWidth: 1.4, borderColor: colors.white, transform: [{ rotate: "18deg" }] },
   linkRingStart: { left: 8 },
   linkRingEnd: { right: 8, transform: [{ rotate: "-18deg" }] },
-  linkJoint: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.gold,
-  },
+  linkJoint: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.gold },
   wordmarkStack: { justifyContent: "center" },
-  brandArabic: {
-    color: colors.foreground,
-    fontSize: 18,
-    lineHeight: 26,
-    fontWeight: "700",
-  },
-  brandWordmark: {
-    color: colors.muted,
-    fontSize: 8,
-    lineHeight: 11,
-    fontWeight: "700",
-    letterSpacing: 1.7,
-  },
-  hero: {
-    flexGrow: 0,
-    paddingTop: 38,
-    width: "100%",
-    maxWidth: 560,
-  },
+  brandArabic: { color: colors.foreground, fontSize: 18, lineHeight: 28, fontWeight: "700", letterSpacing: 0 },
+  brandWordmark: { color: colors.muted, fontSize: 8, lineHeight: 11, fontWeight: "700", letterSpacing: 1.7 },
+  hero: { flexGrow: 0, paddingTop: 38, width: "100%", maxWidth: 560 },
   heroMember: { paddingTop: 12 },
-  eyebrow: {
-    width: "100%",
-    color: colors.primary,
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: "800",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
-    marginBottom: 12,
-  },
-  eyebrowArabic: {
-    fontSize: 14,
-    lineHeight: 23,
-    letterSpacing: 0,
-    textTransform: "none",
-  },
-  title: {
-    width: "100%",
-    color: colors.foreground,
-    fontSize: 42,
-    lineHeight: 50,
-    fontWeight: "800",
-    letterSpacing: -1.5,
-  },
+  eyebrow: { width: "100%", color: colors.primary, fontSize: 12, lineHeight: 18, fontWeight: "800", letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 12 },
+  eyebrowArabic: { fontSize: 14, lineHeight: 24, letterSpacing: 0, textTransform: "none" },
+  title: { width: "100%", color: colors.foreground, fontSize: 42, lineHeight: 50, fontWeight: "800", letterSpacing: -1.5 },
   titleCompact: { fontSize: 36, lineHeight: 43, letterSpacing: -1 },
-  titleArabic: {
-    fontSize: 39,
-    lineHeight: 59,
-    letterSpacing: 0,
-    fontWeight: "700",
-  },
-  titleArabicCompact: { fontSize: 34, lineHeight: 53, letterSpacing: 0 },
+  titleArabic: { fontSize: 39, lineHeight: 60, letterSpacing: 0, fontWeight: "700" },
+  titleArabicCompact: { fontSize: 34, lineHeight: 54, letterSpacing: 0 },
   titleMember: { fontSize: 28, lineHeight: 35, letterSpacing: -0.35 },
-  titleMemberArabic: {
-    fontSize: 30,
-    lineHeight: 45,
-    letterSpacing: 0,
-    fontWeight: "700",
-  },
-  body: {
-    width: "100%",
-    color: colors.muted,
-    fontSize: 16,
-    lineHeight: 27,
-    marginTop: 14,
-    maxWidth: 520,
-  },
-  bodyArabic: { fontSize: 17, lineHeight: 31, letterSpacing: 0 },
+  titleMemberArabic: { fontSize: 30, lineHeight: 46, letterSpacing: 0, fontWeight: "700" },
+  body: { width: "100%", color: colors.muted, fontSize: 16, lineHeight: 27, marginTop: 14, maxWidth: 520 },
+  bodyArabic: { fontSize: 17, lineHeight: 32, letterSpacing: 0 },
   bodyMember: { fontSize: 14, lineHeight: 23, marginTop: 8 },
   content: { marginTop: 32, width: "100%", alignSelf: "stretch" },
   contentMember: { marginTop: 14, flex: 1, minHeight: 0 },
