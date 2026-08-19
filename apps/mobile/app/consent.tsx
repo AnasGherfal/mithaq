@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { PrimaryButton } from "@/components/primary-button";
+import { AppIcon } from "@/components/app-icon";
+import { GuidedActionBar } from "@/components/guided-action-bar";
 import { ScreenShell } from "@/components/screen-shell";
 import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
@@ -11,6 +12,8 @@ export default function ConsentScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
   const locale: MobileLocale = params.locale === "en" ? "en" : "ar";
   const rtl = locale === "ar";
+  const textAlign = rtl ? "right" : "left";
+  const writingDirection = rtl ? "rtl" : "ltr";
   const copy = consentCopy(locale);
   const [required, setRequired] = useState(false);
   const [communications, setCommunications] = useState(false);
@@ -57,20 +60,49 @@ export default function ConsentScreen() {
   }
 
   return (
-    <ScreenShell eyebrow={copy.eyebrow} title={copy.title} body={copy.body} rtl={rtl}>
-      <View style={styles.stack}>
-        <View style={[styles.summary, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-          <View style={styles.summaryMark}>
-            <Text style={styles.summaryMarkText}>3</Text>
+    <ScreenShell
+      eyebrow={copy.eyebrow}
+      title={copy.title}
+      body={copy.body}
+      rtl={rtl}
+      bottomBar={
+        <GuidedActionBar
+          rtl={rtl}
+          backLabel={copy.back}
+          primaryLabel={copy.submit}
+          onBack={() => router.back()}
+          onPrimary={() => void finalize()}
+          loading={saving}
+          primaryDisabled={!required}
+        />
+      }
+    >
+      <View style={styles.page}>
+        <View
+          style={[
+            styles.privacyIntro,
+            { flexDirection: rtl ? "row-reverse" : "row" },
+          ]}
+        >
+          <View style={styles.privacyIcon}>
+            <AppIcon name="privacy" active size={20} />
           </View>
-          <View style={styles.summaryCopy}>
-            <Text style={[styles.summaryTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.summaryTitle}</Text>
-            <Text style={[styles.summaryBody, { textAlign: rtl ? "right" : "left" }]}>{copy.summaryBody}</Text>
+          <View style={[styles.flex, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+            <Text style={[styles.privacyTitle, { textAlign, writingDirection }]}>
+              {copy.privacyTitle}
+            </Text>
+            <Text style={[styles.privacyBody, { textAlign, writingDirection }]}>
+              {copy.privacyBody}
+            </Text>
           </View>
         </View>
 
-        <ConsentCard
+        <Text style={[styles.sectionLabel, { textAlign, writingDirection }]}>
+          {copy.requiredSection}
+        </Text>
+        <ConsentChoice
           label={copy.required}
+          badge={copy.requiredBadge}
           checked={required}
           onPress={() => {
             setRequired((value) => !value);
@@ -78,10 +110,14 @@ export default function ConsentScreen() {
           }}
           rtl={rtl}
           disabled={saving}
-          required
         />
-        <ConsentCard
+
+        <Text style={[styles.sectionLabel, { textAlign, writingDirection }]}>
+          {copy.optionalSection}
+        </Text>
+        <ConsentChoice
           label={copy.communications}
+          badge={copy.optionalBadge}
           checked={communications}
           onPress={() => {
             setCommunications((value) => !value);
@@ -91,40 +127,43 @@ export default function ConsentScreen() {
           disabled={saving}
         />
 
-        <View style={styles.note}>
-          <Text style={[styles.noteTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.noteTitle}</Text>
-          <Text style={[styles.noteBody, { textAlign: rtl ? "right" : "left" }]}>{copy.noteBody}</Text>
+        <View style={styles.nextSection}>
+          <Text style={[styles.nextTitle, { textAlign, writingDirection }]}>
+            {copy.nextTitle}
+          </Text>
+          <JourneyRow rtl={rtl} number="1" text={copy.nextOne} />
+          <JourneyRow rtl={rtl} number="2" text={copy.nextTwo} />
+          <JourneyRow rtl={rtl} number="3" text={copy.nextThree} last />
         </View>
 
         {error ? (
-          <Text accessibilityRole="alert" style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>
+          <Text accessibilityRole="alert" style={[styles.error, { textAlign, writingDirection }]}>
             {error}
           </Text>
         ) : null}
-
-        <PrimaryButton disabled={!required} loading={saving} onPress={() => void finalize()}>
-          {copy.submit}
-        </PrimaryButton>
       </View>
     </ScreenShell>
   );
 }
 
-function ConsentCard({
+function ConsentChoice({
   label,
+  badge,
   checked,
   onPress,
   rtl,
   disabled = false,
-  required = false,
 }: {
   label: string;
+  badge: string;
   checked: boolean;
   onPress: () => void;
   rtl: boolean;
   disabled?: boolean;
-  required?: boolean;
 }) {
+  const textAlign = rtl ? "right" : "left";
+  const writingDirection = rtl ? "rtl" : "ltr";
+
   return (
     <Pressable
       accessibilityRole="checkbox"
@@ -132,62 +171,114 @@ function ConsentCard({
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
-        styles.card,
-        checked ? styles.cardChecked : null,
+        styles.choice,
+        checked ? styles.choiceChecked : null,
+        { flexDirection: rtl ? "row-reverse" : "row" },
         pressed && !disabled ? styles.pressed : null,
         disabled ? styles.disabled : null,
       ]}
     >
-      <View style={styles.cardCopy}>
-        {required ? (
-          <Text style={[styles.requiredBadge, { textAlign: rtl ? "right" : "left" }]}>
-            {rtl ? "مطلوب" : "Required"}
-          </Text>
-        ) : null}
-        <Text style={[styles.cardText, checked ? styles.cardTextChecked : null, { textAlign: rtl ? "right" : "left" }]}>
+      <View style={[styles.mark, checked ? styles.markChecked : null]}>
+        <Text style={[styles.markText, checked ? styles.markTextChecked : null]}>
+          {checked ? "✓" : ""}
+        </Text>
+      </View>
+      <View style={[styles.flex, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+        <Text style={[styles.badge, { textAlign, writingDirection }]}>{badge}</Text>
+        <Text
+          style={[
+            styles.choiceText,
+            checked ? styles.choiceTextChecked : null,
+            { textAlign, writingDirection },
+          ]}
+        >
           {label}
         </Text>
       </View>
-      <View style={[styles.mark, checked ? styles.markChecked : null]}>
-        <Text style={[styles.markText, checked ? styles.markTextChecked : null]}>{checked ? "✓" : ""}</Text>
-      </View>
     </Pressable>
+  );
+}
+
+function JourneyRow({
+  rtl,
+  number,
+  text,
+  last = false,
+}: {
+  rtl: boolean;
+  number: string;
+  text: string;
+  last?: boolean;
+}) {
+  const textAlign = rtl ? "right" : "left";
+  const writingDirection = rtl ? "rtl" : "ltr";
+
+  return (
+    <View style={[styles.journeyRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+      <View style={styles.journeyRail}>
+        <View style={styles.journeyNumber}>
+          <Text style={styles.journeyNumberText}>{number}</Text>
+        </View>
+        {!last ? <View style={styles.journeyLine} /> : null}
+      </View>
+      <Text style={[styles.journeyText, { textAlign, writingDirection }]}>{text}</Text>
+    </View>
   );
 }
 
 function consentCopy(locale: MobileLocale) {
   if (locale === "ar") {
     return {
-      eyebrow: "الخطوة الأخيرة",
-      title: "موافقتك واضحة ومحددة",
-      body: "نحفظ نسخة وتاريخ كل موافقة. تأكيد الهاتف يثبت ملكية الرقم فقط ولا يعني توثيق الهوية.",
-      summaryTitle: "أنت على بُعد خطوة واحدة",
-      summaryBody: "راجع الموافقات أدناه ثم ثبّت مكانك في قائمة انتظار ميثاق.",
-      required: "أوافق على شروط الاستخدام وسياسة الخصوصية ومعالجة بيانات قائمة الانتظار، وأؤكد أن عمري 18 سنة أو أكثر.",
-      communications: "أرغب في تلقي تحديثات ميثاق المتعلقة بقائمة الانتظار والإطلاق.",
-      noteTitle: "التحديثات اختيارية",
-      noteBody: "يمكنك إيقاف رسائل ميثاق لاحقاً دون التأثير على تسجيلك.",
-      submit: "تأكيد والانضمام إلى القائمة",
+      eyebrow: "المراجعة الأخيرة",
+      title: "راجع موافقتك",
+      body: "الموافقة المطلوبة منفصلة بوضوح عن التحديثات الاختيارية.",
+      back: "رجوع",
+      privacyTitle: "بياناتك تبقى خاصة",
+      privacyBody:
+        "نحفظ نسخة وتاريخ كل موافقة. تأكيد الهاتف يثبت ملكية الرقم فقط ولا يعني توثيق الهوية.",
+      requiredSection: "مطلوب للمتابعة",
+      optionalSection: "اختياري",
+      requiredBadge: "مطلوب",
+      optionalBadge: "اختياري ويمكن تغييره لاحقاً",
+      required:
+        "أوافق على شروط الاستخدام وسياسة الخصوصية ومعالجة بيانات التسجيل، وأؤكد أن عمري 18 سنة أو أكثر.",
+      communications: "أرغب في تلقي تحديثات ميثاق المهمة المتعلقة بالإطلاق وحسابي.",
+      nextTitle: "ماذا يحدث بعد التأكيد؟",
+      nextOne: "نحفظ موافقتك وإجاباتك الخاصة بأمان.",
+      nextTwo: "تنتقل إلى ملفك الخاص لإكمال ما يظهر في التعارف.",
+      nextThree: "عندما يصبح ملفك مؤهلاً، يمكن لميثاق البحث عن تعارف مناسب.",
+      submit: "تأكيد والمتابعة",
       questionnaireError:
-        "لا يمكن تثبيت التسجيل لأن الاستبيان غير مكتمل. ارجع إلى حالة التسجيل وأكمل الإجابات المطلوبة.",
+        "لا يمكن إكمال التسجيل لأن الاستبيان غير مكتمل. ارجع وأكمل الإجابات المطلوبة.",
       accountError: "لا يمكن إكمال التسجيل لأن الحساب غير نشط حالياً. راجع حالة حسابك للمتابعة.",
-      networkError: "تعذر الاتصال لإكمال التسجيل. لم نحذف إجاباتك؛ تحقق من الشبكة ثم حاول مرة أخرى.",
+      networkError:
+        "تعذر الاتصال لإكمال التسجيل. لم نحذف إجاباتك؛ تحقق من الشبكة ثم حاول مرة أخرى.",
       error: "تعذر إكمال التسجيل الآن. لم نفترض نجاح العملية؛ حاول مرة أخرى.",
     };
   }
+
   return {
-    eyebrow: "Final step",
-    title: "Your consent stays explicit",
-    body: "We record the version and time of each consent. Phone confirmation proves control of a number only, not identity.",
-    summaryTitle: "You’re one step away",
-    summaryBody: "Review the choices below, then secure your place on the Mithaq waitlist.",
-    required: "I agree to the Terms, Privacy Policy and waitlist data processing, and confirm I am 18 or older.",
-    communications: "I would like Mithaq waitlist and launch updates.",
-    noteTitle: "Updates are optional",
-    noteBody: "You can stop Mithaq communications later without affecting your registration.",
-    submit: "Confirm and join the waitlist",
+    eyebrow: "Final review",
+    title: "Review your consent",
+    body: "Required consent is kept clearly separate from optional updates.",
+    back: "Back",
+    privacyTitle: "Your data stays private",
+    privacyBody:
+      "We record the version and time of each consent. Phone confirmation proves control of a number only, not identity.",
+    requiredSection: "Required to continue",
+    optionalSection: "Optional",
+    requiredBadge: "Required",
+    optionalBadge: "Optional and changeable later",
+    required:
+      "I agree to the Terms, Privacy Policy, and registration data processing, and confirm I am 18 or older.",
+    communications: "I would like important Mithaq launch and account updates.",
+    nextTitle: "What happens after confirmation?",
+    nextOne: "Your consent and private answers are saved securely.",
+    nextTwo: "You continue to your private profile and choose what an introduction can reveal.",
+    nextThree: "Once your profile is eligible, Mithaq can look for a suitable introduction.",
+    submit: "Confirm and continue",
     questionnaireError:
-      "We cannot finalize registration because the questionnaire is incomplete. Return to registration status and complete the required answers.",
+      "We cannot complete registration because the questionnaire is incomplete. Go back and finish the required answers.",
     accountError:
       "We cannot complete registration because this account is not active right now. Review your account status to continue.",
     networkError:
@@ -197,51 +288,59 @@ function consentCopy(locale: MobileLocale) {
 }
 
 const styles = StyleSheet.create({
-  stack: { gap: 14 },
-  summary: {
-    alignItems: "center",
+  flex: { flex: 1 },
+  page: { width: "100%", gap: 14 },
+  privacyIntro: {
+    width: "100%",
+    alignItems: "flex-start",
     gap: 12,
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.primaryWash,
     padding: 16,
   },
-  summaryMark: {
+  privacyIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primary,
+    backgroundColor: colors.surfaceRaised,
   },
-  summaryMarkText: { color: colors.white, fontSize: 15, fontWeight: "900" },
-  summaryCopy: { flex: 1 },
-  summaryTitle: { color: colors.primary, fontSize: 14, fontWeight: "800" },
-  summaryBody: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 4 },
-  card: {
-    minHeight: 84,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 14,
-    padding: 16,
+  privacyTitle: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: "800",
+  },
+  privacyBody: {
+    width: "100%",
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 21,
+    marginTop: 3,
+  },
+  sectionLabel: {
+    width: "100%",
+    color: colors.muted,
+    fontSize: 11,
+    lineHeight: 18,
+    fontWeight: "800",
+    marginTop: 6,
+  },
+  choice: {
+    width: "100%",
+    minHeight: 96,
+    alignItems: "flex-start",
+    gap: 13,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceRaised,
   },
-  cardChecked: { borderColor: colors.primary, backgroundColor: colors.primaryWash },
-  cardCopy: { flex: 1 },
-  requiredBadge: {
-    color: colors.gold,
-    fontSize: 10,
-    fontWeight: "900",
-    marginBottom: 6,
-    textTransform: "uppercase",
-  },
-  cardText: { color: colors.foreground, fontSize: 14, lineHeight: 23, fontWeight: "600" },
-  cardTextChecked: { color: colors.primary, fontWeight: "800" },
+  choiceChecked: { borderColor: colors.primary, backgroundColor: colors.primaryWash },
   mark: {
     width: 30,
     height: 30,
@@ -253,18 +352,61 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceRaised,
   },
   markChecked: { borderColor: colors.primary, backgroundColor: colors.primary },
-  markText: { color: colors.muted, fontSize: 15, fontWeight: "900" },
+  markText: { color: colors.muted, fontSize: 14, lineHeight: 18, fontWeight: "900" },
   markTextChecked: { color: colors.white },
-  pressed: { opacity: 0.84, transform: [{ scale: 0.99 }] },
-  disabled: { opacity: 0.65 },
-  note: {
-    padding: 16,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceRaised,
+  badge: {
+    width: "100%",
+    color: colors.gold,
+    fontSize: 10,
+    lineHeight: 16,
+    fontWeight: "900",
   },
-  noteTitle: { color: colors.primary, fontWeight: "800", fontSize: 14 },
-  noteBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 5 },
-  error: { color: colors.danger, fontSize: 13, fontWeight: "700", lineHeight: 20 },
+  choiceText: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 14,
+    lineHeight: 24,
+    fontWeight: "600",
+    marginTop: 5,
+  },
+  choiceTextChecked: { color: colors.primary, fontWeight: "700" },
+  pressed: { opacity: 0.72, transform: [{ scale: 0.993 }] },
+  disabled: { opacity: 0.6 },
+  nextSection: {
+    width: "100%",
+    marginTop: 8,
+    paddingTop: 18,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  nextTitle: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 17,
+    lineHeight: 28,
+    fontWeight: "800",
+    marginBottom: 13,
+  },
+  journeyRow: { width: "100%", alignItems: "flex-start", gap: 12 },
+  journeyRail: { width: 28, alignItems: "center" },
+  journeyNumber: {
+    width: 27,
+    height: 27,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primaryWash,
+    borderWidth: 1,
+    borderColor: colors.primarySoft,
+  },
+  journeyNumberText: { color: colors.primary, fontSize: 10, lineHeight: 14, fontWeight: "900" },
+  journeyLine: { width: 1, minHeight: 28, flex: 1, backgroundColor: colors.borderStrong },
+  journeyText: {
+    flex: 1,
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 22,
+    paddingBottom: 15,
+  },
+  error: { color: colors.danger, fontSize: 13, lineHeight: 21, fontWeight: "700" },
 });
