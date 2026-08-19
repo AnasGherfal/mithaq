@@ -1,167 +1,254 @@
 # Mithaq implementation roadmap
 
-This document is the locked implementation roadmap for the current branch.
-Milestones move in order. Existing security/privacy contracts remain binding as
-later milestones are added.
+This is the locked implementation roadmap for the current product. Milestones
+move in order. Existing privacy, RLS, matching, moderation, and disclosure
+contracts remain binding as later milestones are added.
+
+## Current position
+
+- M1–M8: core mobile, account/privacy, profiles, safety, introductions,
+  conversations, and activity foundations are implemented.
+- M9: source-controlled production hardening is substantially implemented, but
+  hosted acceptance and preview/release stabilization remain open.
+- M10: premium native product redesign is active on the SDK 54 Expo Go preview
+  branch so physical-iPhone feedback can be incorporated continuously.
+- SDK 57 remains the production release target after the approved UI is ported
+  from the temporary SDK 54 preview branch.
 
 ## M1 — Mobile foundation ✅
 
-- Expo SDK 57 + React Native 0.86 + Expo Router.
-- Arabic-first RTL member experience with English parity.
-- International E.164 Supabase phone OTP.
-- SecureStore-backed persisted sessions.
-- Native questionnaire, consent/finalization, success, and registration-status
-  flows.
-- Returning-user hydration/editing.
-- Development, preview, and production EAS build profiles.
+- Expo Router native member application.
+- Arabic-first member journey with English parity.
+- Supabase phone OTP and persisted SecureStore sessions.
+- Questionnaire, consent/finalization, success, and account-status flows.
+- Returning-user hydration/editing and EAS environment separation.
 
 ## M2 — Account, security, and privacy ✅
 
-- Opt-in biometric re-entry protection.
-- Session-resume lock and local sign-out hygiene.
-- Revoke other Supabase Auth sessions.
-- OTP resend/rate-limit recovery.
-- Privacy Center with append-only consent history.
-- Reversible optional communications consent.
-- Guarded account-deletion request and privileged deletion execution.
-- Server-controlled lifecycle/write-boundary hardening.
+- Opt-in biometric re-entry protection and session-resume lock.
+- Local sign-out hygiene and revocation of other Auth sessions.
+- Privacy Center, append-only consent history, communications withdrawal, and
+  guarded account deletion.
+- Server-controlled lifecycle and client-write boundaries.
 
-## M3 — Premium resilience ✅
+## M3 — Resilience foundation ✅
 
-- Narrow-phone and keyboard-safe layouts.
+- Narrow-device and keyboard-safe layouts.
 - Recoverable loading/network/backend states.
-- Bilingual root error boundary and unknown-route recovery.
-- Private app-switcher cover for sensitive screens.
-- Questionnaire validation and duplicate-submit protection.
-- Accessibility live regions, alerts, and loading labels.
+- Bilingual error and unknown-route recovery.
+- App-switcher privacy cover, validation, duplicate-submit protection, and
+  accessibility states.
 
 ## M4 — Private profile foundation ✅
 
-- RLS-protected self-only member profiles.
-- Guarded profile save path and completeness state.
-- Self-only introduction preview.
-- Server-whitelisted profile disclosure.
-- Privacy-off-by-default optional occupation, education, and origin disclosure.
-- No public member directory, search, or swipe surface.
+- RLS-protected self-only profiles and guarded save/completeness state.
+- Self-preview and server-whitelisted introduction disclosure.
+- Optional occupation, education, and origin disclosure defaulting to private.
+- No public directory, member search, or swipe catalogue.
 
-## M5 — Trust and safety ✅
+## M5 — Trust and safety foundation ✅
 
-- Private member blocking and safety reports.
-- Introduction-scoped report/block actions without exposing raw member IDs.
-- Report-abuse limits and moderation audit trail.
-- Safety participation states and profile-review participation gate.
-- Safety-aware account-deletion retention.
-- Server-side blocked-pair enforcement.
+- Private blocking and introduction-scoped safety reports.
+- Abuse limits, moderation audit trail, safety participation state, and profile
+  review gate.
+- Safety-aware deletion retention and blocked-pair enforcement.
 
-## M6 — Controlled introductions and matching ✅
+## M6 — Controlled introductions and matching foundation ✅
 
-- Service-only introduction creation.
-- Hard-constraint candidate matching.
-- Pair cooldowns after decline, cancel, expiry, or closure.
-- Expiry worker with private audit records.
-- Member-only introduction listing and whitelisted counterpart preview.
-- Private accept/decline state machine without leaking the other member's
-  pending decision.
-- Mutual-acceptance handoff before communication opens.
+- Service-only introduction creation and hard-constraint matching.
+- Pair cooldowns and audited expiry.
+- Member-only listing and whitelisted counterpart preview.
+- Private accept/decline state machine and mutual-acceptance handoff.
 
-## M7 — Private conversations ✅ foundation
+## M7 — Private conversations foundation ✅
 
 - Conversation creation only after mutual acceptance.
-- Private raw conversation/message tables.
-- Guarded message send/list RPCs with cursor pagination and rate limits.
-- Idempotent send/retry behavior with client nonces.
-- Conversation closure and safety/participation access gates.
-- Arabic/English native conversation experience.
-- Self-only read cursor and unread counts.
+- Private raw messages, guarded send/list RPCs, pagination, rate limits, and
+  idempotent retries.
+- Conversation closure, safety access gates, read cursors, and unread counts.
 
-## M8 — Activity and notification foundation ✅
+## M8 — Activity foundation ✅
 
-- Private server-side activity inbox for introductions and incoming messages.
-- Privacy-minimal event payloads without message text or counterpart IDs.
-- Guarded self-only list/unread/read RPCs.
-- Cursor-safe pagination, including equal-timestamp boundaries.
-- Arabic/English native Activity Center.
-- Account entry points for introductions and activity.
-- Account-deletion cascade behavior separated from moderation retention.
+- Private server-side activity inbox and privacy-minimal event payloads.
+- Guarded list/unread/read RPCs with cursor-safe pagination.
+- Native Activity Center and account-deletion behavior separated from safety
+  retention.
 
-## M9 — Production hardening 🚧 hosted acceptance pending
+## M9 — Hosted preview and release stabilization 🚧
 
-Credential-free/source-controlled implementation is complete once the exact
-release head is green in CI. Completed independent slices include:
+### Independent/source-controlled work
 
-- GitHub Actions pinned to reviewed immutable commit SHAs.
-- Private-schema deny-by-default ACL regression coverage.
-- `SECURITY DEFINER` search-path regression coverage.
-- Production indexes for messaging and unresolved safety hot paths.
-- Idempotent messaging and serialized rate-limit enforcement.
-- Conversation-message and read-activity retention with safety/unread guards.
-- Introduction-expiry and maintenance-run auditing.
-- Account-deletion reconciliation and worker auditing.
-- Service-role-only maintenance backlog, health, and release-readiness checks.
-- Deployable POST-only Edge Function entrypoints for account deletion,
-  introduction expiry, conversation retention, and notification retention.
-- Machine-checked preview/staging/production environment, worker cadence,
-  retention-policy, and release-gate contract.
-- Client-secret exposure and destructive-migration guards bound into the normal
-  release check.
-- Hosted environment preflight commands for staging and production.
-- Hosted release verification for HTTPS, release identity, health cache policy,
-  CSP/security headers, HSTS, and expected commit revision.
-- Root/mobile/Expo release-version and native-build metadata checks.
-- Privacy-safe web release identity and server-error observations without member
-  or request payloads.
-- Tested CSP and baseline web security headers.
-- Public bilingual account-deletion information linked from the legal footer and
-  covered by production E2E.
-- Machine-checked store readiness for bundle/package identifiers, EAS profiles,
-  native 1024×1024 artwork, splash configuration, and localized privacy,
-  deletion, and support routes.
-- Operator release, disaster-recovery, and store-submission checklists.
+- Keep root and mobile TypeScript, formatting, tests, Expo Doctor, release
+  checks, migrations, and production build green.
+- Replace the temporary SDK 54 preview branch's stale SDK 57 lockfile with a
+  reproducible SDK 54 dependency lock.
+- Keep SDK 54 preview-only changes portable to the SDK 57 production branch.
+- Preserve immutable CI action pins, private-schema deny-by-default checks,
+  `SECURITY DEFINER` search-path checks, message idempotency, retention guards,
+  release identity, CSP/security headers, store metadata checks, and worker
+  contracts.
 
-### M9 acceptance gate
+### Hosted acceptance
 
-1. Keep root formatting, lint, TypeScript, unit tests, migration/secret/release/
-   store checks, and production build green.
-2. Keep mobile TypeScript, Prettier, and Expo Doctor green.
-3. Keep Supabase pgTAP and the verified OTP/waitlist integration green.
-4. Keep production E2E green, including security-header, health release
-   identity, and public account-deletion coverage.
-5. Keep idempotent retries at exactly one message and one recipient activity
-   event.
-6. Keep retention preserving unresolved safety evidence and unread activity
-   while purging only eligible old data.
-7. Keep Activity pagination free of skips/duplicates at equal timestamps.
-8. Keep all locked requirements in `ops/release-contract.json` machine-checked,
-   including deployable required workers and hosted/store release gates.
-9. Credential-free/source-controlled M9 work is complete only when CI is green
-   on the exact reviewed head.
-10. M9 exits only after hosted `mithaq-staging`, required worker scheduling and
-    first successful runs, real SMS delivery, EAS preview build, and physical
-    iPhone/Android acceptance pass using operator credentials before production
-    rollout.
+- Connect and verify hosted `mithaq-staging`.
+- Apply the full migration history and verify RLS/RPC behavior on staging.
+- Schedule and verify first successful deletion, introduction-expiry,
+  conversation-retention, and notification-retention worker runs.
+- Review production retention-policy values.
+- Test real Libya/diaspora OTP delivery once a provider is selected.
+- Produce a signed EAS preview and complete physical iPhone/Android acceptance.
 
-## External gates after independent M9 work
+### Exit
 
-These are release gates, not reasons to weaken source/database security:
+The preview and release environments are repeatable, security checks are green,
+and the exact reviewed build is accepted on physical devices.
 
-- hosted `mithaq-staging` and production Supabase projects/environment values
-- hosted schedules and first successful runs for deletion, expiry, and retention
-  workers
-- reviewed production conversation and notification retention-policy values
-- production SMS-provider credentials and Libya/diaspora delivery testing
-- EAS account/project credentials and real environment values
-- physical iPhone/Android signed-build acceptance
-- Apple Developer/App Store Connect/TestFlight signing, app records, and review
-- Google Play signing/console access and testing tracks
-- final hosted production privacy/deletion/support URLs for store records
-- external push delivery and device-token registration
+## M10 — Premium native member experience 🚧 active
 
-## Deferred product scope
+- Complete the native design system: final palette, typography, spacing,
+  controls, motion, haptics, loading states, and Mithaq brand lockup.
+- Keep the member bottom navigation pinned: Home, Introductions, Activity, and
+  Account.
+- Enforce one clear purpose and one dominant next action per screen.
+- Rebuild onboarding, OTP, questionnaire, consent, Home, Account, Activity,
+  profile, safety, and conversation presentation.
+- Maintain true Arabic RTL composition and English LTR parity without double
+  mirroring or Latin letter spacing on Arabic text.
+- Keep conversation and other focused deep tasks free from unrelated tab
+  navigation.
 
-Do not pull these into M9 unless the roadmap is explicitly changed:
+### Exit
 
-- profile photos and identity/liveness verification
-- payments
-- full admin analytics/moderation console
-- additional family-participation workflows
-- unrelated engagement or discovery mechanics
+The complete member journey feels coherent and native on a physical iPhone in
+both Arabic and English, with no web-dashboard presentation or unclear next
+step.
+
+## M11 — Private photos and guided profile
+
+- Create a private Supabase Storage photo bucket and member-owned photo records.
+- Support a required primary portrait and up to four secondary photos.
+- Add image selection, permission handling, cropping/compression, upload
+  progress, reordering, primary selection, replacement, and deletion.
+- Add review/moderation states; reveal only approved photos.
+- Issue controlled temporary access only through an eligible introduction; no
+  public member image URLs or public gallery.
+- Rebuild profile setup as a guided sequence: photo, basics, about, preferences,
+  disclosure/privacy, and review.
+- Show the member an accurate preview of what an introduced counterpart can see.
+
+### Exit
+
+Two staging members can create complete realistic profiles with approved,
+private photos that appear only in permitted introductions.
+
+## M12 — Matching product completion
+
+- Preserve hard eligibility, mutual hard preferences, safety, blocks, and
+  cooldowns as non-negotiable filters.
+- Add compatibility ranking for supported softer preferences.
+- Add activity/availability and fair-exposure controls without selling access
+  around another member's preferences.
+- Build evidence-based “Why Mithaq introduced you” explanations from actual
+  matching inputs; do not display invented percentages.
+- Complete current, waiting, mutual, declined, expired, and previous
+  introduction states.
+- Add safe staging fixtures/operator tooling to exercise a complete match
+  between multiple test accounts.
+
+### Exit
+
+A pair can be selected, privately introduced, independently decide, and reach a
+mutual handoff with explainable matching reasons.
+
+## M13 — Messaging and notifications
+
+- Polish conversation into a native private messenger with keyboard-safe
+  composer, bubbles, timestamps, pagination, retries, unread/read behavior,
+  closure, and safety actions.
+- Register Expo device tokens with least-privilege server boundaries.
+- Add privacy-safe push notifications for a new introduction, mutual acceptance,
+  and a new message.
+- Add deep links and notification preference controls.
+- Never place message text, phone numbers, or sensitive counterpart identifiers
+  in notification payloads.
+
+### Exit
+
+Two devices can receive an introduction, mutually accept, receive privacy-safe
+notifications, and converse reliably.
+
+## M14 — Verification and operating tools
+
+- Keep phone verification, profile review, photo review, and identity
+  verification as distinct states.
+- Implement the minimum internal operations surface for profile/photo review,
+  safety reports, blocks, suspension/reactivation, deletion status,
+  introduction state, and moderation audit.
+- Decide and integrate an identity/liveness provider only after legal, privacy,
+  cost, and Libya/diaspora coverage review.
+- Never claim identity verification before the verification process genuinely
+  succeeds.
+
+### Exit
+
+Mithaq can safely operate a private beta without manual database editing.
+
+## M15 — Mithaq+ entitlements and payments
+
+This milestone does not block the first private/public beta unless the business
+requires monetization at launch.
+
+- Keep the complete core journey functional for free: profile, eligibility,
+  curated introductions, private decisions, mutual conversation, and safety.
+- Define premium value around advanced preferences, deeper compatibility
+  explanations, greater active-introduction capacity, priority consideration,
+  and optional high-touch services—not unlimited swipes.
+- Build server-owned entitlements before UI paywalls.
+- Add Apple/Google subscriptions, receipt validation, restore purchase,
+  cancellation, expiry, and clear subscription disclosures.
+- Payment must never bypass compatibility, safety, blocking, consent, or another
+  member's preferences.
+
+### Exit
+
+Free and paid accounts behave correctly and securely across renewal, expiry,
+and restore scenarios.
+
+## M16 — Production launch and stores
+
+- Provision and verify production Supabase, worker schedules, backups,
+  observability, support, rate limits, and final retention values.
+- Select and test the final production authentication delivery strategy,
+  including Libya carrier and diaspora coverage.
+- Port the approved SDK 54 preview UX to the current SDK 57 production target.
+- Complete signed EAS builds, TestFlight/internal testing, closed beta fixes, and
+  final physical-device acceptance.
+- Complete App Store and Play Store records, screenshots in Arabic and English,
+  icon/splash assets, privacy declarations, data-safety forms, support and
+  deletion URLs, age rating, and subscription disclosures where applicable.
+
+### Exit
+
+Mithaq is published and monitored in production.
+
+## Delivery order from the current branch
+
+1. Finish M9 dependency/release stability while continuing independent M10 UI
+   slices.
+2. Finish M10 across the whole member journey.
+3. Build M11 private photos and guided profile.
+4. Complete M12 matching product behavior.
+5. Complete M13 messaging and push.
+6. Complete the minimum M14 operating tools and private beta.
+7. Complete M16 production/store release.
+8. Add M15 monetization before or after launch according to the business plan.
+
+## Scope guardrails
+
+- No public profile directory or unrelated engagement mechanics.
+- No service-role or private credentials in client code.
+- No public member photos.
+- No fabricated compatibility claims, verification claims, user counts, or
+  testimonials.
+- Arabic/English parity, RLS boundaries, private decisions, and safety gates are
+  release requirements rather than optional polish.
