@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { GuidedActionBar } from "@/components/guided-action-bar";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { questionnaireCopy } from "@/features/questionnaire-copy";
@@ -19,7 +20,6 @@ import {
   Field,
   Label,
   Progress,
-  SectionTitle,
   ToggleCard,
   questionnaireStyles as styles,
   textAlign,
@@ -28,6 +28,7 @@ import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
+const TOTAL_STEPS = 6;
 const ageBands = ["18–24", "25–29", "30–34", "35–39", "40–44", "45–49", "50–54", "55+"];
 type Copy = ReturnType<typeof questionnaireCopy>;
 type Update = <K extends keyof QuestionnaireDraft>(key: K, value: QuestionnaireDraft[K]) => void;
@@ -113,42 +114,76 @@ export default function QuestionnaireScreen() {
     return copy.validation[reason as keyof typeof copy.validation] ?? copy.error;
   }
 
+  function validateStep() {
+    if (step === 2) {
+      const countryCode = draft.currentCountryCode.trim().toUpperCase();
+      if (!/^[A-Z]{2}$/.test(countryCode)) return "country";
+      if (!draft.currentCity.trim() || draft.currentCity.trim().length > 100) return "city";
+      if (!draft.libyanSelfAttestation) return "libyan";
+    }
+
+    if (step === 3) {
+      if (
+        draft.preferredPartnerAgeMin < 18 ||
+        draft.preferredPartnerAgeMax > 100 ||
+        draft.preferredPartnerAgeMax < draft.preferredPartnerAgeMin
+      ) {
+        return "age";
+      }
+      if (draft.acceptedMaritalStatuses.length === 0) return "status";
+    }
+
+    if (step === 4) {
+      if (!draft.openToLibya && !draft.openToDiaspora) return "location";
+      const invalidCountry = countries
+        .split(",")
+        .map((country) => country.trim().toUpperCase())
+        .filter(Boolean)
+        .some((country) => !/^[A-Z]{2}$/.test(country));
+      if (invalidCountry) return "countries";
+    }
+
+    return null;
+  }
+
   function continueToNextStep() {
+    const reason = validateStep();
+    if (reason) {
+      setError(validationMessage(reason));
+      return;
+    }
+
+    setError(null);
+    setStep((value) => Math.min(TOTAL_STEPS, value + 1));
+  }
+
+  function goBack() {
+    if (saving) return;
     setError(null);
 
     if (step === 1) {
-      const countryCode = draft.currentCountryCode.trim().toUpperCase();
-      const reason = !/^[A-Z]{2}$/.test(countryCode)
-        ? "country"
-        : !draft.currentCity.trim() || draft.currentCity.trim().length > 100
-          ? "city"
-          : !draft.libyanSelfAttestation
-            ? "libyan"
-            : null;
-
-      if (reason) {
-        setError(validationMessage(reason));
-        return;
-      }
+      router.back();
+      return;
     }
 
-    if (step === 2) {
-      const reason = validateQuestionnaire(normalizedDraft());
-      if (reason) {
-        setError(validationMessage(reason));
-        return;
-      }
-    }
-
-    setStep((value) => Math.min(3, value + 1));
+    setStep((value) => Math.max(1, value - 1));
   }
 
   async function finish() {
+    if (saving) return;
+
+    const finalDraft = normalizedDraft();
+    const invalid = validateQuestionnaire(finalDraft);
+    if (invalid) {
+      setError(validationMessage(invalid));
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
     try {
-      const result = await saveQuestionnaire(normalizedDraft());
+      const result = await saveQuestionnaire(finalDraft);
 
       if (!result.ok) {
         if (result.reason === "unauthorized") {
@@ -171,36 +206,28 @@ export default function QuestionnaireScreen() {
     }
   }
 
+  const stageTitle = copy.stageTitles[step - 1] ?? copy.title;
+  const stageBody = copy.stageBodies[step - 1] ?? copy.body;
+
   return (
     <ScreenShell
-      eyebrow={`${copy.eyebrow} · ${step} / 3`}
-      title={copy.title}
-      body={copy.body}
+      eyebrow={copy.eyebrow}
+      title={stageTitle}
+      body={stageBody}
       rtl={rtl}
-      footer={
-        loading || loadError ? null : (
-          <View style={styles.footerButtons}>
-            {step > 1 ? (
-              <PrimaryButton
-                tone="quiet"
-                onPress={() => {
-                  setError(null);
-                  setStep((value) => value - 1);
-                }}
-              >
-                {copy.back}
-              </PrimaryButton>
-            ) : null}
-            <PrimaryButton
-              loading={saving}
-              onPress={() => {
-                if (step < 3) continueToNextStep();
-                else void finish();
-              }}
-            >
-              {step < 3 ? copy.next : copy.save}
-            </PrimaryButton>
-          </View>
+      bottomBar={
+        loading || loadError ? undefined : (
+          <GuidedActionBar
+            rtl={rtl}
+            backLabel={copy.back}
+            primaryLabel={step < TOTAL_STEPS ? copy.next : copy.save}
+            onBack={goBack}
+            onPrimary={() => {
+              if (step < TOTAL_STEPS) continueToNextStep();
+              else void finish();
+            }}
+            loading={saving}
+          />
         )
       }
     >
@@ -222,14 +249,24 @@ export default function QuestionnaireScreen() {
       ) : (
         <View style={styles.content}>
           <Progress step={step} rtl={rtl} labels={copy.steps} />
-          {step === 1 ? <StepOne copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
-          {step === 2 ? (
-            <StepTwo
+
+          {step === 1 ? <BasicsStep copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
+          {step === 2 ? <LocationStep copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
+          {step === 3 ? (
+            <MarriageStep
               copy={copy}
               rtl={rtl}
               draft={draft}
               update={update}
               toggleStatus={toggleStatus}
+            />
+          ) : null}
+          {step === 4 ? (
+            <ReachStep
+              copy={copy}
+              rtl={rtl}
+              draft={draft}
+              update={update}
               countries={countries}
               setCountries={(value) => {
                 setCountries(value);
@@ -237,7 +274,9 @@ export default function QuestionnaireScreen() {
               }}
             />
           ) : null}
-          {step === 3 ? <StepThree copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
+          {step === 5 ? <PrivacyStep copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
+          {step === 6 ? <FamilyStep copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
+
           {error ? (
             <Text accessibilityRole="alert" style={[styles.error, textAlign(rtl)]}>
               {error}
@@ -249,32 +288,27 @@ export default function QuestionnaireScreen() {
   );
 }
 
-function StepOne({
-  copy,
-  rtl,
-  draft,
-  update,
-}: {
-  copy: Copy;
-  rtl: boolean;
-  draft: QuestionnaireDraft;
-  update: Update;
-}) {
-  const statuses: MaritalStatus[] = ["never_married", "divorced", "widowed"];
+function BasicsStep({ copy, rtl, draft, update }: StepProps) {
   return (
     <View style={styles.section}>
-      <SectionTitle rtl={rtl} title={copy.aboutYou} body={copy.aboutYouBody} />
-      <ChoiceGrid>
+      <Label rtl={rtl}>{copy.aboutYou}</Label>
+      <ChoiceGrid rtl={rtl}>
         <Choice
           label={copy.woman}
           selected={draft.gender === "woman"}
           rtl={rtl}
           onPress={() => update("gender", "woman")}
         />
-        <Choice label={copy.man} selected={draft.gender === "man"} rtl={rtl} onPress={() => update("gender", "man")} />
+        <Choice
+          label={copy.man}
+          selected={draft.gender === "man"}
+          rtl={rtl}
+          onPress={() => update("gender", "man")}
+        />
       </ChoiceGrid>
+
       <Label rtl={rtl}>{copy.ageRange}</Label>
-      <View style={styles.chipWrap}>
+      <View style={[styles.chipWrap, { flexDirection: rtl ? "row-reverse" : "row" }]}>
         {ageBands.map((label, index) => (
           <Choice
             key={label}
@@ -286,8 +320,17 @@ function StepOne({
           />
         ))}
       </View>
+    </View>
+  );
+}
+
+function LocationStep({ copy, rtl, draft, update }: StepProps) {
+  const statuses: MaritalStatus[] = ["never_married", "divorced", "widowed"];
+
+  return (
+    <View style={styles.section}>
       <Label rtl={rtl}>{copy.residence}</Label>
-      <ChoiceGrid>
+      <ChoiceGrid rtl={rtl}>
         <Choice
           label={copy.libya}
           selected={draft.residencyType === "libya"}
@@ -301,6 +344,7 @@ function StepOne({
           onPress={() => update("residencyType", "diaspora")}
         />
       </ChoiceGrid>
+
       <Field
         label={copy.country}
         rtl={rtl}
@@ -308,13 +352,19 @@ function StepOne({
         onChange={(value) => update("currentCountryCode", value.slice(0, 2))}
         autoCapitalize="characters"
       />
-      <Field label={copy.city} rtl={rtl} value={draft.currentCity} onChange={(value) => update("currentCity", value)} />
+      <Field
+        label={copy.city}
+        rtl={rtl}
+        value={draft.currentCity}
+        onChange={(value) => update("currentCity", value)}
+      />
       <Field
         label={copy.region}
         rtl={rtl}
         value={draft.libyanOriginRegion}
         onChange={(value) => update("libyanOriginRegion", value)}
       />
+
       <Label rtl={rtl}>{copy.marital}</Label>
       <View style={styles.choiceStack}>
         {statuses.map((status) => (
@@ -327,6 +377,7 @@ function StepOne({
           />
         ))}
       </View>
+
       <ToggleCard
         label={copy.children}
         value={draft.hasChildren}
@@ -343,23 +394,13 @@ function StepOne({
   );
 }
 
-function StepTwo({
+function MarriageStep({
   copy,
   rtl,
   draft,
   update,
   toggleStatus,
-  countries,
-  setCountries,
-}: {
-  copy: Copy;
-  rtl: boolean;
-  draft: QuestionnaireDraft;
-  update: Update;
-  toggleStatus: (status: MaritalStatus) => void;
-  countries: string;
-  setCountries: (value: string) => void;
-}) {
+}: StepProps & { toggleStatus: (status: MaritalStatus) => void }) {
   const timelines: QuestionnaireDraft["marriageTimeline"][] = [
     "within_6_months",
     "6_to_12_months",
@@ -367,9 +408,9 @@ function StepTwo({
     "unsure",
   ];
   const statuses: MaritalStatus[] = ["never_married", "divorced", "widowed"];
+
   return (
     <View style={styles.section}>
-      <SectionTitle rtl={rtl} title={copy.preferences} body={copy.preferencesBody} />
       <Label rtl={rtl}>{copy.timeline}</Label>
       <View style={styles.choiceStack}>
         {timelines.map((value) => (
@@ -382,14 +423,17 @@ function StepTwo({
           />
         ))}
       </View>
-      <View style={styles.ageRow}>
+
+      <View style={[styles.ageRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
         <View style={styles.ageField}>
           <Field
             label={copy.minAge}
             rtl={rtl}
             keyboardType="number-pad"
             value={String(draft.preferredPartnerAgeMin)}
-            onChange={(value) => update("preferredPartnerAgeMin", Number(value.replace(/\D/g, "")) || 0)}
+            onChange={(value) =>
+              update("preferredPartnerAgeMin", Number(value.replace(/\D/g, "")) || 0)
+            }
           />
         </View>
         <View style={styles.ageField}>
@@ -398,10 +442,13 @@ function StepTwo({
             rtl={rtl}
             keyboardType="number-pad"
             value={String(draft.preferredPartnerAgeMax)}
-            onChange={(value) => update("preferredPartnerAgeMax", Number(value.replace(/\D/g, "")) || 0)}
+            onChange={(value) =>
+              update("preferredPartnerAgeMax", Number(value.replace(/\D/g, "")) || 0)
+            }
           />
         </View>
       </View>
+
       <Label rtl={rtl}>{copy.accepted}</Label>
       <View style={styles.choiceStack}>
         {statuses.map((status) => (
@@ -414,6 +461,7 @@ function StepTwo({
           />
         ))}
       </View>
+
       <TriChoice
         label={copy.partnerChildren}
         value={draft.acceptsPartnerWithChildren}
@@ -421,6 +469,20 @@ function StepTwo({
         rtl={rtl}
         onChange={(value) => update("acceptsPartnerWithChildren", value)}
       />
+    </View>
+  );
+}
+
+function ReachStep({
+  copy,
+  rtl,
+  draft,
+  update,
+  countries,
+  setCountries,
+}: StepProps & { countries: string; setCountries: (value: string) => void }) {
+  return (
+    <View style={styles.section}>
       <ToggleCard
         label={copy.openLibya}
         value={draft.openToLibya}
@@ -452,17 +514,7 @@ function StepTwo({
   );
 }
 
-function StepThree({
-  copy,
-  rtl,
-  draft,
-  update,
-}: {
-  copy: Copy;
-  rtl: boolean;
-  draft: QuestionnaireDraft;
-  update: Update;
-}) {
+function PrivacyStep({ copy, rtl, draft, update }: StepProps) {
   const photos: QuestionnaireDraft["photoPrivacyPreference"][] = [
     "none",
     "blurred",
@@ -470,21 +522,16 @@ function StepThree({
     "explicit_approval",
     "after_family_involvement",
   ];
-  const families: QuestionnaireDraft["familyInvolvementPreference"][] = [
-    "early",
-    "after_initial_interest",
-    "later",
-    "unsure",
-  ];
+
   return (
     <View style={styles.section}>
-      <SectionTitle rtl={rtl} title={copy.privacyTitle} body={copy.privacyBody} />
       <ToggleCard
         label={copy.identity}
         value={draft.willingIdentityVerification}
         rtl={rtl}
         onChange={(value) => update("willingIdentityVerification", value)}
       />
+
       <Label rtl={rtl}>{copy.photo}</Label>
       <View style={styles.choiceStack}>
         {photos.map((value) => (
@@ -497,6 +544,30 @@ function StepThree({
           />
         ))}
       </View>
+
+      <View style={styles.reassurance}>
+        <Text style={[styles.reassuranceTitle, textAlign(rtl)]}>{copy.reassuranceTitle}</Text>
+        <Text style={[styles.reassuranceBody, textAlign(rtl)]}>{copy.reassuranceBody}</Text>
+      </View>
+    </View>
+  );
+}
+
+function FamilyStep({ copy, rtl, draft, update }: StepProps) {
+  const families: QuestionnaireDraft["familyInvolvementPreference"][] = [
+    "early",
+    "after_initial_interest",
+    "later",
+    "unsure",
+  ];
+  const locationValue = draft.openToLibya
+    ? draft.openToDiaspora
+      ? copy.locationBoth
+      : copy.locationLibya
+    : copy.locationDiaspora;
+
+  return (
+    <View style={styles.section}>
       <Label rtl={rtl}>{copy.family}</Label>
       <View style={styles.choiceStack}>
         {families.map((value) => (
@@ -509,10 +580,52 @@ function StepThree({
           />
         ))}
       </View>
-      <View style={styles.reassurance}>
-        <Text style={[styles.reassuranceTitle, textAlign(rtl)]}>{copy.reassuranceTitle}</Text>
-        <Text style={[styles.reassuranceBody, textAlign(rtl)]}>{copy.reassuranceBody}</Text>
+
+      <View style={localStyles.reviewCard}>
+        <Text style={[localStyles.reviewTitle, textAlign(rtl)]}>{copy.reviewTitle}</Text>
+        <Text style={[localStyles.reviewBody, textAlign(rtl)]}>{copy.reviewBody}</Text>
+        <View style={localStyles.reviewRows}>
+          <ReviewRow rtl={rtl} label={copy.timeline} value={copy.timelineValues[draft.marriageTimeline]} />
+          <ReviewRow
+            rtl={rtl}
+            label={copy.reviewAge}
+            value={`${draft.preferredPartnerAgeMin}–${draft.preferredPartnerAgeMax}`}
+          />
+          <ReviewRow rtl={rtl} label={copy.reviewLocations} value={locationValue} />
+          <ReviewRow rtl={rtl} label={copy.reviewPhoto} value={copy.photoValues[draft.photoPrivacyPreference]} />
+          <ReviewRow
+            rtl={rtl}
+            label={copy.reviewFamily}
+            value={copy.familyValues[draft.familyInvolvementPreference]}
+            last
+          />
+        </View>
       </View>
+    </View>
+  );
+}
+
+function ReviewRow({
+  rtl,
+  label,
+  value,
+  last = false,
+}: {
+  rtl: boolean;
+  label: string;
+  value: string;
+  last?: boolean;
+}) {
+  return (
+    <View
+      style={[
+        localStyles.reviewRow,
+        !last ? localStyles.reviewRowDivider : null,
+        { flexDirection: rtl ? "row-reverse" : "row" },
+      ]}
+    >
+      <Text style={[localStyles.reviewLabel, textAlign(rtl)]}>{label}</Text>
+      <Text style={[localStyles.reviewValue, textAlign(rtl)]}>{value}</Text>
     </View>
   );
 }
@@ -531,10 +644,11 @@ function TriChoice({
   rtl: boolean;
 }) {
   const options: YesNoDepends[] = ["yes", "no", "depends"];
+
   return (
     <View>
       <Label rtl={rtl}>{label}</Label>
-      <ChoiceGrid>
+      <ChoiceGrid rtl={rtl}>
         {options.map((option) => (
           <Choice
             key={option}
@@ -550,9 +664,16 @@ function TriChoice({
   );
 }
 
+type StepProps = {
+  copy: Copy;
+  rtl: boolean;
+  draft: QuestionnaireDraft;
+  update: Update;
+};
+
 const localStyles = StyleSheet.create({
   loadingState: {
-    minHeight: 220,
+    minHeight: 240,
     alignItems: "center",
     justifyContent: "center",
     gap: 14,
@@ -565,7 +686,60 @@ const localStyles = StyleSheet.create({
     backgroundColor: colors.surfaceRaised,
     padding: 18,
   },
-  loadErrorTitle: { color: colors.foreground, fontSize: 17, lineHeight: 25, fontWeight: "800" },
+  loadErrorTitle: {
+    color: colors.foreground,
+    fontSize: 17,
+    lineHeight: 27,
+    fontWeight: "800",
+  },
   loadErrorBody: { color: colors.muted, fontSize: 13, lineHeight: 22, marginTop: 8 },
   retryAction: { marginTop: 16 },
+  reviewCard: {
+    width: "100%",
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    padding: 18,
+  },
+  reviewTitle: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 17,
+    lineHeight: 28,
+    fontWeight: "800",
+  },
+  reviewBody: {
+    width: "100%",
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 21,
+    marginTop: 5,
+  },
+  reviewRows: { marginTop: 14 },
+  reviewRow: {
+    width: "100%",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 11,
+  },
+  reviewRowDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  reviewLabel: {
+    flex: 1,
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 20,
+    fontWeight: "700",
+  },
+  reviewValue: {
+    flex: 1.3,
+    color: colors.foreground,
+    fontSize: 12,
+    lineHeight: 20,
+    fontWeight: "800",
+  },
 });
