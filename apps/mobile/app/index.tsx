@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { BrandLogo } from "@/components/brand-logo";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { mobileCopy, type MobileLocale } from "@/i18n";
@@ -15,6 +16,7 @@ export default function WelcomeScreen() {
   const copy = mobileCopy[locale];
   const rtl = locale === "ar";
   const textAlign = rtl ? "right" : "left";
+  const writingDirection = rtl ? "rtl" : "ltr";
 
   useEffect(() => {
     let active = true;
@@ -61,9 +63,7 @@ export default function WelcomeScreen() {
   if (booting) {
     return (
       <View style={styles.loadingState} accessibilityLiveRegion="polite">
-        <View style={styles.loadingMark}>
-          <Text style={styles.loadingMarkText}>م</Text>
-        </View>
+        <BrandLogo variant="mark" width={72} />
         <ActivityIndicator accessibilityLabel="Loading Mithaq securely" color={colors.primary} />
         <Text style={styles.loadingArabic}>جارٍ فتح ميثاق بأمان</Text>
         <Text style={styles.loadingEnglish}>Opening Mithaq securely</Text>
@@ -74,9 +74,7 @@ export default function WelcomeScreen() {
   if (bootError) {
     return (
       <View style={styles.recoveryState} accessibilityRole="alert">
-        <View style={styles.recoveryMark}>
-          <Text style={styles.recoveryMarkText}>م</Text>
-        </View>
+        <BrandLogo variant="mark" width={62} />
         <Text style={styles.recoveryEyebrow}>PRIVATE SESSION · جلسة خاصة</Text>
         <Text style={styles.recoveryArabic}>تعذر استعادة جلستك بأمان</Text>
         <Text style={styles.recoveryTitle}>We could not restore your session safely</Text>
@@ -97,6 +95,7 @@ export default function WelcomeScreen() {
 
   return (
     <ScreenShell
+      brandVariant="full"
       eyebrow={rtl ? "تعارف للزواج بخصوصية" : "Private introductions for marriage"}
       title={rtl ? "تعارف أقل.\nنية أوضح." : "Fewer introductions.\nClearer intent."}
       body={
@@ -117,15 +116,25 @@ export default function WelcomeScreen() {
       }
     >
       <View style={styles.statementBlock}>
-        <View style={styles.statementRule} />
-        <Text style={[styles.statement, { textAlign }]}>
+        <View
+          style={[
+            styles.statementRule,
+            { alignSelf: rtl ? "flex-end" : "flex-start" },
+          ]}
+        />
+        <Text style={[styles.statement, { textAlign, writingDirection }]}>
           {rtl
             ? "خصوصيتك ليست ميزة إضافية. هي طريقة عمل ميثاق."
             : "Privacy is not an extra feature. It is how Mithaq works."}
         </Text>
       </View>
 
-      <View style={styles.valuesRow}>
+      <View
+        style={[
+          styles.valuesRow,
+          { flexDirection: rtl ? "row-reverse" : "row" },
+        ]}
+      >
         <Text style={styles.value}>PRIVATE</Text>
         <View style={styles.valueDot} />
         <Text style={styles.value}>INTENTIONAL</Text>
@@ -147,21 +156,18 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    gap: 18,
     backgroundColor: colors.background,
     paddingHorizontal: 28,
   },
-  loadingMark: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 22,
+  loadingArabic: {
+    color: colors.primary,
+    fontSize: 15,
+    lineHeight: 23,
+    fontWeight: "800",
+    marginTop: 2,
   },
-  loadingMarkText: { color: colors.background, fontSize: 27, fontWeight: "900" },
-  loadingArabic: { color: colors.primary, fontSize: 15, lineHeight: 23, fontWeight: "800", marginTop: 16 },
-  loadingEnglish: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 2 },
+  loadingEnglish: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: -14 },
   recoveryState: {
     flex: 1,
     justifyContent: "center",
@@ -169,25 +175,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 40,
   },
-  recoveryMark: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 26,
+  recoveryEyebrow: {
+    color: colors.gold,
+    fontSize: 10,
+    lineHeight: 15,
+    letterSpacing: 1.4,
+    fontWeight: "800",
+    marginTop: 24,
   },
-  recoveryMarkText: { color: colors.background, fontSize: 24, fontWeight: "900" },
-  recoveryEyebrow: { color: colors.gold, fontSize: 10, lineHeight: 15, letterSpacing: 1.4, fontWeight: "800" },
-  recoveryArabic: { color: colors.primary, fontSize: 28, lineHeight: 39, fontWeight: "900", textAlign: "right", marginTop: 12 },
-  recoveryTitle: { color: colors.foreground, fontSize: 21, lineHeight: 29, fontWeight: "800", marginTop: 3 },
-  recoveryBodyArabic: { color: colors.muted, fontSize: 14, lineHeight: 24, textAlign: "right", marginTop: 16 },
+  recoveryArabic: {
+    color: colors.primary,
+    fontSize: 28,
+    lineHeight: 39,
+    fontWeight: "900",
+    textAlign: "right",
+    marginTop: 12,
+  },
+  recoveryTitle: {
+    color: colors.foreground,
+    fontSize: 21,
+    lineHeight: 29,
+    fontWeight: "800",
+    marginTop: 3,
+  },
+  recoveryBodyArabic: {
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 24,
+    textAlign: "right",
+    marginTop: 16,
+  },
   recoveryBody: { color: colors.muted, fontSize: 13, lineHeight: 22, marginTop: 7 },
   recoveryAction: { marginTop: 28 },
-  statementBlock: {
-    gap: 15,
-  },
+  statementBlock: { gap: 15 },
   statementRule: {
     width: 44,
     height: 2,
@@ -201,7 +221,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   valuesRow: {
-    flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
     gap: 9,
@@ -219,20 +238,12 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: colors.gold,
   },
-  primaryAction: {
-    marginTop: 44,
-  },
+  primaryAction: { marginTop: 44 },
   languageButton: {
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
   },
-  languageText: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  pressed: {
-    opacity: 0.55,
-  },
+  languageText: { color: colors.primary, fontSize: 13, fontWeight: "800" },
+  pressed: { opacity: 0.55 },
 });
