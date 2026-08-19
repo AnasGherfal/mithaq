@@ -2,9 +2,10 @@ import { Stack, type ErrorBoundaryProps } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { BrandLogo } from "@/components/brand-logo";
 import { PrimaryButton } from "@/components/primary-button";
 import { BiometricGate } from "@/security/biometric-gate";
-import { colors, radius } from "@/theme";
+import { colors } from "@/theme";
 
 export default function RootLayout() {
   return (
@@ -15,9 +16,15 @@ export default function RootLayout() {
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: colors.background },
-            animation: "fade_from_bottom",
+            animation: "fade",
+            gestureEnabled: true,
           }}
-        />
+        >
+          <Stack.Screen name="status" options={{ animation: "none" }} />
+          <Stack.Screen name="introductions" options={{ animation: "none" }} />
+          <Stack.Screen name="activity" options={{ animation: "none" }} />
+          <Stack.Screen name="account" options={{ animation: "none" }} />
+        </Stack>
       </BiometricGate>
     </SafeAreaProvider>
   );
@@ -28,9 +35,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
     <SafeAreaProvider>
       <StatusBar style="dark" />
       <View style={styles.errorScreen} accessibilityRole="alert">
-        <View style={styles.errorMark}>
-          <Text style={styles.errorMarkText}>م</Text>
-        </View>
+        <BrandLogo variant="mark" width={66} />
         <Text style={styles.errorEyebrow}>MITHAQ · ميثاق</Text>
         <Text style={styles.errorTitleArabic}>حدث خلل غير متوقع</Text>
         <Text style={styles.errorTitle}>Something went wrong</Text>
@@ -54,19 +59,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 40,
   },
-  errorMark: {
-    width: 58,
-    height: 58,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceRaised,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
+  errorEyebrow: {
+    color: colors.gold,
+    fontSize: 10,
+    lineHeight: 15,
+    letterSpacing: 1.6,
+    fontWeight: "800",
+    marginTop: 24,
   },
-  errorMarkText: { color: colors.primary, fontSize: 25, fontWeight: "900" },
-  errorEyebrow: { color: colors.gold, fontSize: 10, lineHeight: 15, letterSpacing: 1.6, fontWeight: "800" },
   errorTitleArabic: {
     color: colors.primary,
     fontSize: 28,
@@ -75,7 +75,13 @@ const styles = StyleSheet.create({
     textAlign: "right",
     marginTop: 12,
   },
-  errorTitle: { color: colors.foreground, fontSize: 22, lineHeight: 29, fontWeight: "800", marginTop: 2 },
+  errorTitle: {
+    color: colors.foreground,
+    fontSize: 22,
+    lineHeight: 29,
+    fontWeight: "800",
+    marginTop: 2,
+  },
   errorBody: { color: colors.muted, fontSize: 14, lineHeight: 23, marginTop: 14 },
   errorAction: { marginTop: 26 },
 });
