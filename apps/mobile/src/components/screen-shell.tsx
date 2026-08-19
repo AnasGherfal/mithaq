@@ -1,4 +1,5 @@
 import type { PropsWithChildren, ReactNode } from "react";
+import { usePathname } from "expo-router";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { MemberTabBar } from "@/components/member-tab-bar";
 import { colors, spacing } from "@/theme";
 
 type ScreenShellProps = PropsWithChildren<{
@@ -32,10 +34,24 @@ export function ScreenShell({
   children,
 }: ScreenShellProps) {
   const { width } = useWindowDimensions();
+  const pathname = usePathname();
   const compact = width < 370;
   const direction = rtl ? "rtl" : "ltr";
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
+  const locale = rtl ? "ar" : "en";
+
+  const activeTab =
+    pathname === "/status"
+      ? "home"
+      : pathname === "/introductions"
+        ? "introductions"
+        : pathname === "/activity"
+          ? "activity"
+          : pathname === "/security"
+            ? "account"
+            : null;
+  const resolvedBottomBar = bottomBar ?? (activeTab ? <MemberTabBar locale={locale} active={activeTab} /> : null);
 
   const content = (
     <>
@@ -53,7 +69,7 @@ export function ScreenShell({
         <View style={styles.statusDot} />
       </View>
 
-      <View style={[styles.hero, bottomBar ? styles.heroMember : null, { direction }]}>
+      <View style={[styles.hero, resolvedBottomBar ? styles.heroMember : null, { direction }]}>
         {eyebrow ? (
           <Text style={[styles.eyebrow, rtl ? styles.eyebrowArabic : null, { textAlign, writingDirection }]}>
             {eyebrow}
@@ -76,7 +92,7 @@ export function ScreenShell({
         ) : null}
       </View>
 
-      <View style={[styles.content, bottomBar ? styles.contentMember : null, { direction }]}>{children}</View>
+      <View style={[styles.content, resolvedBottomBar ? styles.contentMember : null, { direction }]}>{children}</View>
       {footer ? <View style={[styles.footer, { direction }]}>{footer}</View> : null}
     </>
   );
@@ -90,7 +106,7 @@ export function ScreenShell({
             contentContainerStyle={[
               styles.scrollContent,
               compact ? styles.scrollContentCompact : null,
-              bottomBar ? styles.scrollContentWithBar : null,
+              resolvedBottomBar ? styles.scrollContentWithBar : null,
               { direction },
             ]}
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
@@ -104,7 +120,7 @@ export function ScreenShell({
             style={[
               styles.fixedContent,
               compact ? styles.scrollContentCompact : null,
-              bottomBar ? styles.fixedContentWithBar : null,
+              resolvedBottomBar ? styles.fixedContentWithBar : null,
               { direction },
             ]}
           >
@@ -112,7 +128,7 @@ export function ScreenShell({
           </View>
         )}
       </KeyboardAvoidingView>
-      {bottomBar ? <View style={styles.bottomBar}>{bottomBar}</View> : null}
+      {resolvedBottomBar ? <View style={styles.bottomBar}>{resolvedBottomBar}</View> : null}
     </SafeAreaView>
   );
 }
