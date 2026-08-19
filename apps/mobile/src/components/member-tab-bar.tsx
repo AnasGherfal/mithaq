@@ -1,67 +1,37 @@
-import type { ComponentProps } from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppIcon } from "@/components/app-icon";
 import type { MobileLocale } from "@/i18n";
 import { colors, shadows } from "@/theme";
 
 type MemberTab = "home" | "introductions" | "activity" | "account";
 type Props = { locale: MobileLocale; active: MemberTab };
-type IconName = ComponentProps<typeof Ionicons>["name"];
 
 type TabDefinition = {
   key: MemberTab;
-  icon: IconName;
-  selectedIcon: IconName;
   ar: string;
   en: string;
   path: "/status" | "/introductions" | "/activity" | "/security";
 };
 
 const tabs: TabDefinition[] = [
-  {
-    key: "home",
-    icon: "home-outline",
-    selectedIcon: "home",
-    ar: "الرئيسية",
-    en: "Home",
-    path: "/status",
-  },
-  {
-    key: "introductions",
-    icon: "sparkles-outline",
-    selectedIcon: "sparkles",
-    ar: "التعارف",
-    en: "Introductions",
-    path: "/introductions",
-  },
-  {
-    key: "activity",
-    icon: "notifications-outline",
-    selectedIcon: "notifications",
-    ar: "النشاط",
-    en: "Activity",
-    path: "/activity",
-  },
-  {
-    key: "account",
-    icon: "person-circle-outline",
-    selectedIcon: "person-circle",
-    ar: "حسابي",
-    en: "Account",
-    path: "/security",
-  },
+  { key: "home", ar: "الرئيسية", en: "Home", path: "/status" },
+  { key: "introductions", ar: "التعارف", en: "Introductions", path: "/introductions" },
+  { key: "activity", ar: "النشاط", en: "Activity", path: "/activity" },
+  { key: "account", ar: "حسابي", en: "Account", path: "/security" },
 ];
 
 export function MemberTabBar({ locale, active }: Props) {
   const rtl = locale === "ar";
-  const orderedTabs = rtl ? [...tabs].reverse() : tabs;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
-      <View style={styles.bar} accessibilityRole="tablist">
-        {orderedTabs.map((tab) => {
+      <View
+        style={[styles.bar, { flexDirection: rtl ? "row-reverse" : "row" }]}
+        accessibilityRole="tablist"
+      >
+        {tabs.map((tab) => {
           const selected = tab.key === active;
           const label = rtl ? tab.ar : tab.en;
 
@@ -72,26 +42,15 @@ export function MemberTabBar({ locale, active }: Props) {
               accessibilityState={{ selected, disabled: selected }}
               accessibilityLabel={label}
               disabled={selected}
-              onPress={() =>
-                router.replace({ pathname: tab.path, params: { locale } })
-              }
+              onPress={() => router.replace({ pathname: tab.path, params: { locale } })}
               style={({ pressed }) => [
                 styles.tab,
                 selected ? styles.tabSelected : null,
                 pressed && !selected ? styles.pressed : null,
               ]}
             >
-              <View
-                style={[
-                  styles.iconWrap,
-                  selected ? styles.iconWrapSelected : null,
-                ]}
-              >
-                <Ionicons
-                  name={selected ? tab.selectedIcon : tab.icon}
-                  size={21}
-                  color={selected ? colors.primary : colors.mutedSoft}
-                />
+              <View style={[styles.iconWrap, selected ? styles.iconWrapSelected : null]}>
+                <AppIcon name={tab.key} active={selected} size={21} />
               </View>
               <Text
                 style={[
@@ -119,7 +78,6 @@ const styles = StyleSheet.create({
   },
   bar: {
     minHeight: 64,
-    flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 8,
     paddingTop: 7,
@@ -134,9 +92,7 @@ const styles = StyleSheet.create({
     gap: 3,
     borderRadius: 18,
   },
-  tabSelected: {
-    opacity: 1,
-  },
+  tabSelected: { opacity: 1 },
   iconWrap: {
     minWidth: 40,
     height: 29,
@@ -144,9 +100,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  iconWrapSelected: {
-    backgroundColor: colors.primarySoft,
-  },
+  iconWrapSelected: { backgroundColor: colors.primarySoft },
   label: {
     color: colors.muted,
     fontSize: 10,
@@ -162,12 +116,6 @@ const styles = StyleSheet.create({
     writingDirection: "rtl",
     letterSpacing: 0,
   },
-  labelSelected: {
-    color: colors.primary,
-    fontWeight: "800",
-  },
-  pressed: {
-    opacity: 0.52,
-    transform: [{ scale: 0.97 }],
-  },
+  labelSelected: { color: colors.primary, fontWeight: "800" },
+  pressed: { opacity: 0.52, transform: [{ scale: 0.97 }] },
 });
