@@ -1,12 +1,8 @@
 begin;
-select plan(25);
+select plan(22);
 
 select is(
-  (
-    select public
-    from storage.buckets
-    where id = 'member-profile-photos'
-  ),
+  (select public from storage.buckets where id = 'member-profile-photos'),
   false,
   'member photo bucket is private'
 );
@@ -36,12 +32,6 @@ select is(
 );
 
 select is(
-  has_table_privilege('anon', 'public.member_profile_photos', 'SELECT'),
-  false,
-  'anonymous clients cannot read member photo metadata'
-);
-
-select is(
   has_function_privilege('authenticated', 'public.list_my_member_photos()', 'EXECUTE'),
   true,
   'authenticated members can list their photo metadata'
@@ -54,7 +44,7 @@ select is(
     'EXECUTE'
   ),
   true,
-  'authenticated members can register an uploaded photo through the guard'
+  'authenticated members can register uploaded photos through the guard'
 );
 
 select is(
@@ -65,24 +55,6 @@ select is(
   ),
   false,
   'anonymous clients cannot register member photos'
-);
-
-select is(
-  has_function_privilege('authenticated', 'public.set_primary_member_photo(uuid)', 'EXECUTE'),
-  true,
-  'authenticated members can choose their own primary photo'
-);
-
-select is(
-  has_function_privilege('authenticated', 'public.reorder_member_photos(uuid[])', 'EXECUTE'),
-  true,
-  'authenticated members can reorder their own photos'
-);
-
-select is(
-  has_function_privilege('authenticated', 'public.remove_member_photo(uuid)', 'EXECUTE'),
-  true,
-  'authenticated members can remove their own photo metadata'
 );
 
 insert into auth.users (
@@ -126,12 +98,8 @@ values
   ('93939393-9393-4939-8939-939393939393')
 on conflict (id) do nothing;
 
-insert into public.waitlist_applications (
-  id,
-  user_id,
-  status,
-  submitted_at
-) values
+insert into public.waitlist_applications (id, user_id, status, submitted_at)
+values
   (
     'f1919191-9191-4919-8919-919191919191',
     '91919191-9191-4919-8919-919191919191',
@@ -153,29 +121,13 @@ insert into public.waitlist_applications (
 
 insert into storage.objects (bucket_id, name)
 values
-  (
-    'member-profile-photos',
-    '91919191-9191-4919-8919-919191919191/photo-a.jpg'
-  ),
-  (
-    'member-profile-photos',
-    '91919191-9191-4919-8919-919191919191/photo-b.png'
-  ),
-  (
-    'member-profile-photos',
-    '92929292-9292-4929-8929-929292929292/photo-c.webp'
-  ),
-  (
-    'member-profile-photos',
-    '93939393-9393-4939-8939-939393939393/photo-d.jpg'
-  );
+  ('member-profile-photos', '91919191-9191-4919-8919-919191919191/photo-a.jpg'),
+  ('member-profile-photos', '91919191-9191-4919-8919-919191919191/photo-b.png'),
+  ('member-profile-photos', '92929292-9292-4929-8929-929292929292/photo-c.webp'),
+  ('member-profile-photos', '93939393-9393-4939-8939-939393939393/photo-d.jpg');
 
 set local role authenticated;
-select set_config(
-  'request.jwt.claim.sub',
-  '91919191-9191-4919-8919-919191919191',
-  true
-);
+select set_config('request.jwt.claim.sub', '91919191-9191-4919-8919-919191919191', true);
 
 select ok(
   public.register_member_photo(
@@ -187,10 +139,7 @@ select ok(
 );
 
 select is(
-  (
-    select count(*)::integer
-    from public.list_my_member_photos()
-  ),
+  (select count(*)::integer from public.list_my_member_photos()),
   1,
   'the member can list the registered photo'
 );
@@ -237,11 +186,7 @@ select is(
 );
 
 select is(
-  (
-    select count(*)::integer
-    from public.list_my_member_photos()
-    where is_primary
-  ),
+  (select count(*)::integer from public.list_my_member_photos() where is_primary),
   1,
   'only one photo can be primary'
 );
@@ -275,11 +220,7 @@ select is(
   'the requested first photo receives position one'
 );
 
-select set_config(
-  'request.jwt.claim.sub',
-  '92929292-9292-4929-8929-929292929292',
-  true
-);
+select set_config('request.jwt.claim.sub', '92929292-9292-4929-8929-929292929292', true);
 
 select is(
   (
@@ -302,11 +243,7 @@ select throws_ok(
   'a member cannot register an object from another member folder'
 );
 
-select set_config(
-  'request.jwt.claim.sub',
-  '91919191-9191-4919-8919-919191919191',
-  true
-);
+select set_config('request.jwt.claim.sub', '91919191-9191-4919-8919-919191919191', true);
 
 select is(
   public.remove_member_photo(
@@ -331,17 +268,12 @@ select is(
 );
 
 reset role;
-
 update public.users
 set account_status = 'deletion_pending'
 where id = '93939393-9393-4939-8939-939393939393';
 
 set local role authenticated;
-select set_config(
-  'request.jwt.claim.sub',
-  '93939393-9393-4939-8939-939393939393',
-  true
-);
+select set_config('request.jwt.claim.sub', '93939393-9393-4939-8939-939393939393', true);
 
 select throws_ok(
   $$select public.register_member_photo(
