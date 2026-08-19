@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppIcon } from "@/components/app-icon";
+import { AppIcon, type AppIconName } from "@/components/app-icon";
 import { PrimaryButton } from "@/components/primary-button";
 import { colors, shadows } from "@/theme";
 
@@ -10,6 +10,7 @@ type GuidedActionBarProps = {
   primaryLabel: string;
   onBack: () => void;
   onPrimary: () => void;
+  secondaryIcon?: AppIconName;
   loading?: boolean;
   primaryDisabled?: boolean;
 };
@@ -20,6 +21,7 @@ export function GuidedActionBar({
   primaryLabel,
   onBack,
   onPrimary,
+  secondaryIcon = "back",
   loading = false,
   primaryDisabled = false,
 }: GuidedActionBarProps) {
@@ -40,7 +42,7 @@ export function GuidedActionBar({
             loading ? styles.disabled : null,
           ]}
         >
-          <AppIcon name="back" rtl={rtl} size={18} />
+          <AppIcon name={secondaryIcon} rtl={rtl} size={18} />
           <Text style={[styles.backLabel, { writingDirection }]}>{backLabel}</Text>
         </Pressable>
 
