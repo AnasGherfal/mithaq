@@ -6,18 +6,19 @@ import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { mobileCopy, type MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
-import { colors } from "@/theme";
+import { colors, radius } from "@/theme";
 
 const phonePattern = /^\+[1-9]\d{7,14}$/;
 const pendingPhoneKey = "mithaq.pending.phone";
 const pendingLocaleKey = "mithaq.pending.locale";
+const previewTestPhone = "+218910000001";
 
 export default function AuthScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
   const locale: MobileLocale = params.locale === "en" ? "en" : "ar";
   const copy = mobileCopy[locale];
   const rtl = locale === "ar";
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(__DEV__ ? previewTestPhone : "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,6 +27,7 @@ export default function AuthScreen() {
 
   async function sendCode() {
     if (loading) return;
+
     if (!valid) {
       setError(copy.invalidPhone);
       return;
@@ -84,9 +86,9 @@ export default function AuthScreen() {
 
   return (
     <ScreenShell
-      eyebrow={rtl ? "الدخول الخاص" : "Private access"}
+      eyebrow={copy.privateByDesign}
       title={copy.phoneTitle}
-      body={rtl ? "رقمك هو مفتاح حسابك. لن يظهر للأعضاء الآخرين." : "Your number is your account key. It is never shown to other members."}
+      body={copy.phoneBody}
       rtl={rtl}
       footer={
         <PrimaryButton tone="quiet" onPress={() => router.back()}>
@@ -94,41 +96,49 @@ export default function AuthScreen() {
         </PrimaryButton>
       }
     >
-      <View style={[styles.fieldGroup, { direction: rtl ? "rtl" : "ltr" }]}>
-        <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>
-          {copy.phoneLabel}
-        </Text>
-        <View style={styles.phoneField}>
-          <Text style={styles.plus}>+</Text>
-          <TextInput
-            accessibilityLabel={copy.phoneLabel}
-            autoComplete="tel"
-            keyboardType="phone-pad"
-            value={phone.startsWith("+") ? phone.slice(1) : phone}
-            onChangeText={(value) => {
-              setPhone(`+${value.replace(/^\+/, "")}`);
-              if (error) setError(null);
-            }}
-            onSubmitEditing={() => {
-              if (valid) void sendCode();
-            }}
-            returnKeyType="done"
-            placeholder="218 91 000 0000"
-            placeholderTextColor={colors.mutedSoft}
-            selectionColor={colors.primary}
-            textAlign="left"
-            style={styles.input}
-          />
-        </View>
-        <Text style={[styles.hint, { textAlign: rtl ? "right" : "left" }]}>
-          {rtl ? "استخدم رمز الدولة، مثل 218 لليبيا." : "Use your country code, for example 218 for Libya."}
-        </Text>
+      <View style={{ direction: rtl ? "rtl" : "ltr" }}>
+        <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>{copy.phoneLabel}</Text>
+        <TextInput
+          accessibilityLabel={copy.phoneLabel}
+          accessibilityHint={
+            rtl
+              ? "أدخل رقم الهاتف بالصيغة الدولية، مثل +218910000000"
+              : "Enter your phone number in international format, such as +218910000000"
+          }
+          autoComplete="tel"
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={(value) => {
+            setPhone(value);
+            if (error) setError(null);
+          }}
+          onSubmitEditing={() => {
+            if (valid) void sendCode();
+          }}
+          returnKeyType="done"
+          placeholder={copy.phonePlaceholder}
+          placeholderTextColor={colors.mutedSoft}
+          selectionColor={colors.primary}
+          textAlign="left"
+          style={styles.input}
+        />
+        {__DEV__ ? (
+          <Text style={[styles.previewHint, { textAlign: rtl ? "right" : "left" }]}>
+            {rtl
+              ? "معاينة محلية: استخدم الرقم المعبأ مسبقاً ثم الرمز 123456."
+              : "Local preview: use the prefilled number, then enter 123456."}
+          </Text>
+        ) : null}
       </View>
 
-      <View style={styles.trustRow}>
-        <View style={styles.trustDot} />
-        <Text style={[styles.trustText, { textAlign: rtl ? "right" : "left" }]}>
-          {rtl ? "خصوصية رقمك مفعّلة افتراضياً" : "Your number stays private by default"}
+      <View style={[styles.privacyNote, { direction: rtl ? "rtl" : "ltr" }]}>
+        <View style={styles.privacyIcon}>
+          <View style={styles.privacyIconCore} />
+        </View>
+        <Text style={[styles.privacyText, { textAlign: rtl ? "right" : "left" }]}>
+          {rtl
+            ? "يُستخدم رقمك للتحقق والدخول الآمن فقط، ويمكن أن يكون رقماً ليبياً أو دولياً."
+            : "Your number is used for verification and secure access only, and can be Libyan or international."}
         </Text>
       </View>
 
@@ -146,58 +156,60 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  fieldGroup: {
-    gap: 10,
-  },
   label: {
     color: colors.foreground,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "800",
-  },
-  phoneField: {
-    minHeight: 64,
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderStrong,
-  },
-  plus: {
-    color: colors.foreground,
-    fontSize: 24,
-    fontWeight: "700",
-    marginRight: 8,
+    marginBottom: 9,
   },
   input: {
-    flex: 1,
+    minHeight: 62,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceRaised,
     color: colors.foreground,
-    fontSize: 24,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-    paddingVertical: 14,
+    fontSize: 18,
+    paddingHorizontal: 16,
   },
-  hint: {
-    color: colors.muted,
+  previewHint: {
+    marginTop: 9,
+    color: colors.primary,
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 19,
+    fontWeight: "700",
   },
-  trustRow: {
+  privacyNote: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 9,
-    marginTop: 26,
-    marginBottom: 28,
+    gap: 10,
+    marginTop: 18,
+    marginBottom: 18,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
+    padding: 13,
   },
-  trustDot: {
-    width: 7,
-    height: 7,
+  privacyIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.goldSoft,
+  },
+  privacyIconCore: {
+    width: 8,
+    height: 8,
     borderRadius: 4,
     backgroundColor: colors.gold,
   },
-  trustText: {
+  privacyText: {
     flex: 1,
     color: colors.muted,
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 19,
     fontWeight: "600",
   },
   error: {
