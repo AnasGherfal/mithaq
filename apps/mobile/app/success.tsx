@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { AppIcon } from "@/components/app-icon";
-import { PrimaryButton } from "@/components/primary-button";
+import { GuidedActionBar } from "@/components/guided-action-bar";
 import { ScreenShell } from "@/components/screen-shell";
 import type { MobileLocale } from "@/i18n";
 import { colors, radius, shadows } from "@/theme";
@@ -25,7 +25,7 @@ export default function SuccessScreen() {
           next: "الخطوة التالية: ملفك الخاص",
           nextBody: "أضف الاسم والنبذة التي تساعد الطرف الآخر على فهم شخصيتك وقيمك.",
           profileButton: "إكمال الملف الخاص",
-          homeButton: "العودة إلى الرئيسية",
+          homeButton: "الرئيسية",
         }
       : {
           eyebrow: "Saved",
@@ -38,7 +38,7 @@ export default function SuccessScreen() {
           next: "Next: your private profile",
           nextBody: "Add the preferred name and introduction that help someone understand your character and values.",
           profileButton: "Complete private profile",
-          homeButton: "Return to Home",
+          homeButton: "Home",
         };
 
   return (
@@ -48,6 +48,16 @@ export default function SuccessScreen() {
       body={copy.body}
       rtl={rtl}
       scrollEnabled={false}
+      bottomBar={
+        <GuidedActionBar
+          rtl={rtl}
+          backLabel={copy.homeButton}
+          primaryLabel={copy.profileButton}
+          secondaryIcon="home"
+          onBack={() => router.replace({ pathname: "/status", params: { locale } })}
+          onPrimary={() => router.replace({ pathname: "/profile", params: { locale } })}
+        />
+      }
     >
       <View style={styles.page}>
         <View style={styles.confirmation}>
@@ -70,15 +80,6 @@ export default function SuccessScreen() {
         <View style={[styles.nextSection, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
           <Text style={[styles.nextTitle, { textAlign, writingDirection }]}>{copy.next}</Text>
           <Text style={[styles.nextBody, { textAlign, writingDirection }]}>{copy.nextBody}</Text>
-        </View>
-
-        <View style={styles.actions}>
-          <PrimaryButton onPress={() => router.replace({ pathname: "/profile", params: { locale } })}>
-            {copy.profileButton}
-          </PrimaryButton>
-          <PrimaryButton tone="quiet" onPress={() => router.replace({ pathname: "/status", params: { locale } })}>
-            {copy.homeButton}
-          </PrimaryButton>
         </View>
       </View>
     </ScreenShell>
@@ -156,5 +157,4 @@ const styles = StyleSheet.create({
   nextSection: { width: "100%", marginTop: 22 },
   nextTitle: { width: "100%", color: colors.foreground, fontSize: 17, lineHeight: 28, fontWeight: "800" },
   nextBody: { width: "100%", color: colors.muted, fontSize: 13, lineHeight: 22, marginTop: 5 },
-  actions: { width: "100%", gap: 10, marginTop: "auto", paddingTop: 20 },
 });
