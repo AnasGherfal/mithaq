@@ -31,6 +31,7 @@ export function ScreenShell({
   const compact = width < 370;
   const direction = rtl ? "rtl" : "ltr";
   const textAlign = rtl ? "right" : "left";
+  const writingDirection = rtl ? "rtl" : "ltr";
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -42,40 +43,72 @@ export function ScreenShell({
           contentContainerStyle={[
             styles.scrollContent,
             compact ? styles.scrollContentCompact : null,
+            { direction },
           ]}
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.navRow}>
-            <View style={styles.brandLockup}>
+          <View style={[styles.navRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+            <View style={[styles.brandLockup, { flexDirection: rtl ? "row-reverse" : "row" }]}>
               <View style={styles.brandGlyph}>
+                <View style={styles.logoRing} />
                 <Text style={styles.brandGlyphText}>م</Text>
               </View>
-              <Text style={styles.brandWordmark}>Mithaq</Text>
+              <View style={styles.wordmarkStack}>
+                <Text
+                  style={[
+                    styles.brandArabic,
+                    { textAlign, writingDirection, letterSpacing: 0 },
+                  ]}
+                >
+                  ميثاق
+                </Text>
+                <Text style={[styles.brandWordmark, { textAlign }]}>Mithaq</Text>
+              </View>
             </View>
             <View style={styles.statusDot} />
           </View>
 
           <View style={[styles.hero, { direction }]}>
             {eyebrow ? (
-              <Text style={[styles.eyebrow, { textAlign }]}>{eyebrow}</Text>
+              <Text
+                style={[
+                  styles.eyebrow,
+                  rtl ? styles.eyebrowArabic : null,
+                  { textAlign, writingDirection },
+                ]}
+              >
+                {eyebrow}
+              </Text>
             ) : null}
             <Text
               accessibilityRole="header"
               style={[
                 styles.title,
                 compact ? styles.titleCompact : null,
-                { textAlign },
+                rtl ? styles.titleArabic : null,
+                compact && rtl ? styles.titleArabicCompact : null,
+                { textAlign, writingDirection },
               ]}
             >
               {title}
             </Text>
-            {body ? <Text style={[styles.body, { textAlign }]}>{body}</Text> : null}
+            {body ? (
+              <Text
+                style={[
+                  styles.body,
+                  rtl ? styles.bodyArabic : null,
+                  { textAlign, writingDirection },
+                ]}
+              >
+                {body}
+              </Text>
+            ) : null}
           </View>
 
-          <View style={styles.content}>{children}</View>
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
+          <View style={[styles.content, { direction }]}>{children}</View>
+          {footer ? <View style={[styles.footer, { direction }]}>{footer}</View> : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -98,34 +131,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   navRow: {
-    minHeight: 52,
-    flexDirection: "row",
+    minHeight: 56,
     alignItems: "center",
     justifyContent: "space-between",
   },
   brandLockup: {
-    flexDirection: "row",
     alignItems: "center",
     gap: 10,
   },
   brandGlyph: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  logoRing: {
+    position: "absolute",
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.34)",
   },
   brandGlyphText: {
     color: colors.background,
-    fontSize: 17,
+    fontSize: 18,
+    lineHeight: 25,
     fontWeight: "900",
+    letterSpacing: 0,
+  },
+  wordmarkStack: {
+    justifyContent: "center",
+  },
+  brandArabic: {
+    color: colors.foreground,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "800",
   },
   brandWordmark: {
-    color: colors.foreground,
-    fontSize: 14,
-    fontWeight: "800",
-    letterSpacing: 0.2,
+    color: colors.muted,
+    fontSize: 10,
+    lineHeight: 13,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
   statusDot: {
     width: 7,
@@ -135,7 +187,7 @@ const styles = StyleSheet.create({
   },
   hero: {
     flexGrow: 0,
-    paddingTop: 52,
+    paddingTop: 44,
     maxWidth: 560,
   },
   eyebrow: {
@@ -146,6 +198,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     textTransform: "uppercase",
     marginBottom: 14,
+  },
+  eyebrowArabic: {
+    fontSize: 13,
+    lineHeight: 22,
+    letterSpacing: 0,
+    textTransform: "none",
   },
   title: {
     color: colors.foreground,
@@ -159,15 +217,31 @@ const styles = StyleSheet.create({
     lineHeight: 43,
     letterSpacing: -1,
   },
+  titleArabic: {
+    fontSize: 39,
+    lineHeight: 59,
+    letterSpacing: 0,
+    fontWeight: "800",
+  },
+  titleArabicCompact: {
+    fontSize: 34,
+    lineHeight: 53,
+    letterSpacing: 0,
+  },
   body: {
     color: colors.muted,
     fontSize: 16,
-    lineHeight: 26,
+    lineHeight: 27,
     marginTop: 16,
     maxWidth: 520,
   },
+  bodyArabic: {
+    fontSize: 16,
+    lineHeight: 30,
+    letterSpacing: 0,
+  },
   content: {
-    marginTop: 42,
+    marginTop: 36,
   },
   footer: {
     marginTop: "auto",
