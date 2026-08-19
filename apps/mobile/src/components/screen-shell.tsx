@@ -49,7 +49,7 @@ export function ScreenShell({
         ? "introductions"
         : pathname === "/activity"
           ? "activity"
-          : pathname === "/security"
+          : pathname === "/account"
             ? "account"
             : null;
 
@@ -60,13 +60,16 @@ export function ScreenShell({
 
   const content = (
     <View style={[styles.pageColumn, { alignItems: horizontalAlignment }]}>
-      <View
-        style={[
-          styles.navRow,
-          { alignItems: horizontalAlignment },
-        ]}
-      >
-        <View style={[styles.brandLockup, { flexDirection: rowDirection, alignSelf: rtl ? "flex-end" : "flex-start" }]}>
+      <View style={[styles.navRow, { alignItems: horizontalAlignment }]}>
+        <View
+          style={[
+            styles.brandLockup,
+            {
+              flexDirection: rowDirection,
+              alignSelf: rtl ? "flex-end" : "flex-start",
+            },
+          ]}
+        >
           <View style={styles.brandMark} accessibilityElementsHidden>
             <View style={[styles.linkRing, styles.linkRingStart]} />
             <View style={[styles.linkRing, styles.linkRingEnd]} />
@@ -140,7 +143,10 @@ export function ScreenShell({
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         {scrollEnabled ? (
           <ScrollView
             style={styles.flex}
@@ -176,32 +182,94 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: colors.background },
   pageColumn: { width: "100%", flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 24 },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 24,
+  },
   scrollContentWithBar: { paddingBottom: 16 },
-  fixedContent: { flex: 1, alignItems: "stretch", paddingHorizontal: 24, paddingTop: 6, paddingBottom: 8 },
+  fixedContent: {
+    flex: 1,
+    alignItems: "stretch",
+    paddingHorizontal: 24,
+    paddingTop: 6,
+    paddingBottom: 8,
+  },
   fixedContentWithBar: { paddingBottom: 8 },
   scrollContentCompact: { paddingHorizontal: 18 },
   navRow: { width: "100%", minHeight: 48, justifyContent: "center" },
   brandLockup: { alignItems: "center", gap: 11 },
-  brandMark: { width: 38, height: 38, borderRadius: 13, backgroundColor: colors.foreground, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  linkRing: { position: "absolute", width: 16, height: 22, borderRadius: 9, borderWidth: 1.4, borderColor: colors.white, transform: [{ rotate: "18deg" }] },
+  brandMark: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    backgroundColor: colors.foreground,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  linkRing: {
+    position: "absolute",
+    width: 16,
+    height: 22,
+    borderRadius: 9,
+    borderWidth: 1.4,
+    borderColor: colors.white,
+    transform: [{ rotate: "18deg" }],
+  },
   linkRingStart: { left: 8 },
   linkRingEnd: { right: 8, transform: [{ rotate: "-18deg" }] },
   linkJoint: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.gold },
   wordmarkStack: { justifyContent: "center" },
-  brandArabic: { color: colors.foreground, fontSize: 18, lineHeight: 28, fontWeight: "700", letterSpacing: 0 },
-  brandWordmark: { color: colors.muted, fontSize: 8, lineHeight: 11, fontWeight: "700", letterSpacing: 1.7 },
+  brandArabic: {
+    color: colors.foreground,
+    fontSize: 18,
+    lineHeight: 28,
+    fontWeight: "700",
+    letterSpacing: 0,
+  },
+  brandWordmark: {
+    color: colors.muted,
+    fontSize: 8,
+    lineHeight: 11,
+    fontWeight: "700",
+    letterSpacing: 1.7,
+  },
   hero: { flexGrow: 0, paddingTop: 38, width: "100%", maxWidth: 560 },
   heroMember: { paddingTop: 12 },
-  eyebrow: { width: "100%", color: colors.primary, fontSize: 12, lineHeight: 18, fontWeight: "800", letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 12 },
+  eyebrow: {
+    width: "100%",
+    color: colors.primary,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    textTransform: "uppercase",
+    marginBottom: 12,
+  },
   eyebrowArabic: { fontSize: 14, lineHeight: 24, letterSpacing: 0, textTransform: "none" },
-  title: { width: "100%", color: colors.foreground, fontSize: 42, lineHeight: 50, fontWeight: "800", letterSpacing: -1.5 },
+  title: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 42,
+    lineHeight: 50,
+    fontWeight: "800",
+    letterSpacing: -1.5,
+  },
   titleCompact: { fontSize: 36, lineHeight: 43, letterSpacing: -1 },
   titleArabic: { fontSize: 39, lineHeight: 60, letterSpacing: 0, fontWeight: "700" },
   titleArabicCompact: { fontSize: 34, lineHeight: 54, letterSpacing: 0 },
   titleMember: { fontSize: 28, lineHeight: 35, letterSpacing: -0.35 },
   titleMemberArabic: { fontSize: 30, lineHeight: 46, letterSpacing: 0, fontWeight: "700" },
-  body: { width: "100%", color: colors.muted, fontSize: 16, lineHeight: 27, marginTop: 14, maxWidth: 520 },
+  body: {
+    width: "100%",
+    color: colors.muted,
+    fontSize: 16,
+    lineHeight: 27,
+    marginTop: 14,
+    maxWidth: 520,
+  },
   bodyArabic: { fontSize: 17, lineHeight: 32, letterSpacing: 0 },
   bodyMember: { fontSize: 14, lineHeight: 23, marginTop: 8 },
   content: { marginTop: 32, width: "100%", alignSelf: "stretch" },
