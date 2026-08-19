@@ -11,7 +11,7 @@ import {
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
-import { type MobileLocale } from "@/i18n";
+import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius, shadows } from "@/theme";
 
@@ -39,7 +39,7 @@ export default function StatusScreen() {
   const { height } = useWindowDimensions();
   const locale: MobileLocale = params.locale === "en" ? "en" : "ar";
   const rtl = locale === "ar";
-  const compactHeight = height < 760;
+  const compact = height < 760;
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
   const [loading, setLoading] = useState(true);
@@ -95,7 +95,8 @@ export default function StatusScreen() {
       questionnaireComplete: Boolean(application?.questionnaire_completed_at),
       submitted: application?.status === "submitted",
       profileComplete: Boolean(profileResult.data?.profile_completed_at),
-      deletionPending: userResult.data?.account_status === "deletion_pending",
+      deletionPending:
+        userResult.data?.account_status === "deletion_pending",
     });
     setLoading(false);
   }, [locale]);
@@ -110,51 +111,7 @@ export default function StatusScreen() {
     Number(registration.submitted) +
     Number(registration.profileComplete);
   const readiness = Math.round((completedSteps / 4) * 100);
-
-  const nextStep: NextStep = registration.deletionPending
-    ? {
-        title: rtl ? "راجع طلب حذف حسابك" : "Review your deletion request",
-        body: rtl
-          ? "مشاركتك متوقفة حالياً، ويمكنك متابعة الطلب من مركز الخصوصية."
-          : "Your participation is paused while the deletion request is processed.",
-        action: rtl ? "مركز الخصوصية" : "Privacy Center",
-        pathname: "/privacy",
-      }
-    : !registration.questionnaireComplete
-      ? {
-          title: rtl ? "أخبرنا ما الذي يناسبك" : "Tell us what fits you",
-          body: rtl
-            ? "ابدأ بتفضيلاتك وحدودك الأساسية لنتمكن من اختيار تعارف مناسب لك."
-            : "Start with your preferences and boundaries so Mithaq can identify suitable introductions.",
-          action: rtl ? "ابدأ الاستبيان" : "Start questionnaire",
-          pathname: "/questionnaire",
-        }
-      : !registration.submitted
-        ? {
-            title: rtl ? "راجع موافقتك" : "Review your consent",
-            body: rtl
-              ? "راجع استخدام بياناتك، ثم أكّد مشاركتك."
-              : "Review how your data is used, then confirm participation.",
-            action: rtl ? "متابعة" : "Continue",
-            pathname: "/consent",
-          }
-        : !registration.profileComplete
-          ? {
-              title: rtl ? "أكمل ملفك الخاص" : "Complete your private profile",
-              body: rtl
-                ? "أضف التفاصيل التي نكشفها فقط عند وجود تعارف مناسب."
-                : "Add the details Mithaq reveals only when there is a suitable introduction.",
-              action: rtl ? "إكمال الملف" : "Complete profile",
-              pathname: "/profile",
-            }
-          : {
-              title: rtl ? "أنت جاهز للتعارف" : "You’re ready for introductions",
-              body: rtl
-                ? "لا تحتاج إلى التصفح أو السحب. يظهر لك تعارف خاص عندما نجد توافقاً مناسباً."
-                : "No browsing or swiping. A private introduction appears when Mithaq finds a suitable fit.",
-              action: rtl ? "عرض التعارفات" : "View introductions",
-              pathname: "/introductions",
-            };
+  const nextStep = resolveNextStep(registration, rtl);
 
   return (
     <ScreenShell
@@ -180,13 +137,7 @@ export default function StatusScreen() {
           onAction={() => void load()}
         />
       ) : (
-        <View
-          style={[
-            styles.page,
-            compactHeight ? styles.pageCompact : null,
-            { direction: rtl ? "rtl" : "ltr" },
-          ]}
-        >
+        <View style={[styles.page, { direction: rtl ? "rtl" : "ltr" }]}>
           <View style={styles.progressBlock}>
             <View
               style={[
@@ -219,12 +170,17 @@ export default function StatusScreen() {
           <View
             style={[
               styles.nextCard,
-              compactHeight ? styles.nextCardCompact : null,
+              compact ? styles.nextCardCompact : null,
               rtl ? styles.nextCardRtl : styles.nextCardLtr,
               { alignItems: rtl ? "flex-end" : "flex-start" },
             ]}
           >
-            <View style={styles.kickerPill}>
+            <View
+              style={[
+                styles.kickerPill,
+                { alignSelf: rtl ? "flex-end" : "flex-start" },
+              ]}
+            >
               <Text
                 style={[
                   styles.kicker,
@@ -238,7 +194,7 @@ export default function StatusScreen() {
             <Text
               style={[
                 styles.nextTitle,
-                compactHeight ? styles.nextTitleCompact : null,
+                compact ? styles.nextTitleCompact : null,
                 rtl ? styles.nextTitleArabic : null,
                 { textAlign, writingDirection },
               ]}
@@ -317,6 +273,60 @@ export default function StatusScreen() {
   );
 }
 
+function resolveNextStep(
+  registration: RegistrationState,
+  rtl: boolean,
+): NextStep {
+  if (registration.deletionPending) {
+    return {
+      title: rtl ? "راجع طلب حذف حسابك" : "Review your deletion request",
+      body: rtl
+        ? "مشاركتك متوقفة حالياً، ويمكنك متابعة الطلب من مركز الخصوصية."
+        : "Your participation is paused while the deletion request is processed.",
+      action: rtl ? "مركز الخصوصية" : "Privacy Center",
+      pathname: "/privacy",
+    };
+  }
+  if (!registration.questionnaireComplete) {
+    return {
+      title: rtl ? "أخبرنا ما الذي يناسبك" : "Tell us what fits you",
+      body: rtl
+        ? "ابدأ بتفضيلاتك وحدودك الأساسية لنتمكن من اختيار تعارف مناسب لك."
+        : "Start with your preferences and boundaries so Mithaq can identify suitable introductions.",
+      action: rtl ? "ابدأ الاستبيان" : "Start questionnaire",
+      pathname: "/questionnaire",
+    };
+  }
+  if (!registration.submitted) {
+    return {
+      title: rtl ? "راجع موافقتك" : "Review your consent",
+      body: rtl
+        ? "راجع استخدام بياناتك، ثم أكّد مشاركتك."
+        : "Review how your data is used, then confirm participation.",
+      action: rtl ? "متابعة" : "Continue",
+      pathname: "/consent",
+    };
+  }
+  if (!registration.profileComplete) {
+    return {
+      title: rtl ? "أكمل ملفك الخاص" : "Complete your private profile",
+      body: rtl
+        ? "أضف التفاصيل التي نكشفها فقط عند وجود تعارف مناسب."
+        : "Add the details Mithaq reveals only when there is a suitable introduction.",
+      action: rtl ? "إكمال الملف" : "Complete profile",
+      pathname: "/profile",
+    };
+  }
+  return {
+    title: rtl ? "أنت جاهز للتعارف" : "You’re ready for introductions",
+    body: rtl
+      ? "لا تحتاج إلى التصفح أو السحب. يظهر لك تعارف خاص عندما نجد توافقاً مناسباً."
+      : "No browsing or swiping. A private introduction appears when Mithaq finds a suitable fit.",
+    action: rtl ? "عرض التعارفات" : "View introductions",
+    pathname: "/introductions",
+  };
+}
+
 function FlowStep({
   icon,
   label,
@@ -346,12 +356,7 @@ function FlowStep({
 
 const styles = StyleSheet.create({
   loadingState: { flex: 1, alignItems: "center", justifyContent: "center" },
-  page: {
-    flex: 1,
-    width: "100%",
-    alignItems: "stretch",
-  },
-  pageCompact: {},
+  page: { flex: 1, width: "100%", alignItems: "stretch" },
   progressBlock: { width: "100%" },
   progressRow: {
     width: "100%",
@@ -401,7 +406,6 @@ const styles = StyleSheet.create({
   nextCardRtl: { borderRightWidth: 4, borderRightColor: colors.primary },
   nextCardLtr: { borderLeftWidth: 4, borderLeftColor: colors.primary },
   kickerPill: {
-    alignSelf: "flex-start",
     borderRadius: radius.pill,
     backgroundColor: colors.goldSoft,
     paddingHorizontal: 10,
@@ -453,11 +457,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0,
   },
-  flow: {
-    width: "100%",
-    alignItems: "flex-start",
-    marginTop: 12,
-  },
+  flow: { width: "100%", alignItems: "flex-start", marginTop: 12 },
   flowStep: { width: 82, alignItems: "center" },
   flowIcon: {
     width: 34,
