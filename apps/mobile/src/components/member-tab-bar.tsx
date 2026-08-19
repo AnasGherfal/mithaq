@@ -12,14 +12,14 @@ type TabDefinition = {
   key: MemberTab;
   ar: string;
   en: string;
-  path: "/status" | "/introductions" | "/activity" | "/security";
+  path: "/status" | "/introductions" | "/activity" | "/account";
 };
 
 const tabs: TabDefinition[] = [
   { key: "home", ar: "الرئيسية", en: "Home", path: "/status" },
   { key: "introductions", ar: "التعارف", en: "Introductions", path: "/introductions" },
   { key: "activity", ar: "النشاط", en: "Activity", path: "/activity" },
-  { key: "account", ar: "حسابي", en: "Account", path: "/security" },
+  { key: "account", ar: "حسابي", en: "Account", path: "/account" },
 ];
 
 export function MemberTabBar({ locale, active }: Props) {
