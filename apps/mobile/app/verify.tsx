@@ -11,6 +11,8 @@ import { colors, radius } from "@/theme";
 const pendingPhoneKey = "mithaq.pending.phone";
 const pendingLocaleKey = "mithaq.pending.locale";
 const resendCooldownSeconds = 60;
+const previewTestPhones = new Set(["+218910000001", "+218910000002"]);
+const previewTestCode = "123456";
 
 export default function VerifyScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
@@ -39,6 +41,7 @@ export default function VerifyScreen() {
         }
 
         setPhone(value);
+        if (__DEV__ && previewTestPhones.has(value)) setCode(previewTestCode);
       } catch {
         if (active) router.replace({ pathname: "/auth", params: { locale } });
       }
@@ -130,9 +133,9 @@ export default function VerifyScreen() {
         return;
       }
 
-      setCode("");
+      setCode(__DEV__ && previewTestPhones.has(phone) ? previewTestCode : "");
       setResendIn(resendCooldownSeconds);
-      setNotice(rtl ? "تم إرسال رمز جديد إلى رقمك." : "A new code has been sent to your phone.");
+      setNotice(rtl ? "تم تجهيز رمز الاختبار من جديد." : "The preview test code is ready again.");
     } catch {
       setError(
         rtl
@@ -171,7 +174,13 @@ export default function VerifyScreen() {
         </View>
         <View style={styles.deliveryCopy}>
           <Text style={[styles.deliveryTitle, { textAlign: rtl ? "right" : "left" }]}>
-            {rtl ? "تم إرسال رمز خاص بك" : "Your private code is on its way"}
+            {__DEV__ && phone && previewTestPhones.has(phone)
+              ? rtl
+                ? "رمز المعاينة جاهز"
+                : "Preview code ready"
+              : rtl
+                ? "تم إرسال رمز خاص بك"
+                : "Your private code is on its way"}
           </Text>
           <Text style={[styles.deliveryBody, { textAlign: rtl ? "right" : "left" }]}>
             {phone ?? (rtl ? "رقم هاتفك" : "Your phone number")}
@@ -200,9 +209,11 @@ export default function VerifyScreen() {
           selectionColor={colors.primary}
           style={styles.codeInput}
         />
-        <Text style={[styles.hint, { textAlign: rtl ? "right" : "left" }]}>
-          {rtl ? "الرمز مكوّن من 6 أرقام ويُستخدم مرة واحدة فقط." : "The 6-digit code can only be used once."}
-        </Text>
+        {__DEV__ && phone && previewTestPhones.has(phone) ? (
+          <Text style={[styles.previewHint, { textAlign: rtl ? "right" : "left" }]}>
+            {rtl ? "هذا رمز محلي ثابت للمعاينة فقط؛ لا تُرسل رسالة SMS." : "This is a local fixed preview code; no SMS is sent."}
+          </Text>
+        ) : null}
       </View>
 
       {error ? (
@@ -229,12 +240,6 @@ export default function VerifyScreen() {
           {resendLabel}
         </PrimaryButton>
       </View>
-
-      <Text style={[styles.resendHint, { textAlign: rtl ? "right" : "left" }]}>
-        {rtl
-          ? "نحد من إعادة الإرسال لحماية رقمك ومنع إساءة استخدام الرسائل."
-          : "Resends are throttled to protect your number and prevent SMS abuse."}
-      </Text>
     </ScreenShell>
   );
 }
@@ -277,9 +282,8 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     paddingHorizontal: 16,
   },
-  hint: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 9 },
+  previewHint: { color: colors.primary, fontSize: 12, lineHeight: 19, marginTop: 9, fontWeight: "700" },
   error: { color: colors.danger, fontSize: 13, fontWeight: "700", lineHeight: 20, marginBottom: 14 },
   notice: { color: colors.primary, fontSize: 13, fontWeight: "700", lineHeight: 20, marginBottom: 14 },
   actions: { gap: 10 },
-  resendHint: { color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 10 },
 });
