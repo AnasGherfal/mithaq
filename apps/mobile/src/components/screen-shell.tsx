@@ -10,8 +10,11 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { BrandLogo } from "@/components/brand-logo";
 import { MemberTabBar } from "@/components/member-tab-bar";
 import { colors, spacing } from "@/theme";
+
+type BrandVariant = "compact" | "full" | "none";
 
 type ScreenShellProps = PropsWithChildren<{
   eyebrow?: string;
@@ -21,6 +24,7 @@ type ScreenShellProps = PropsWithChildren<{
   bottomBar?: ReactNode;
   rtl?: boolean;
   scrollEnabled?: boolean;
+  brandVariant?: BrandVariant;
 }>;
 
 export function ScreenShell({
@@ -31,6 +35,7 @@ export function ScreenShell({
   bottomBar,
   rtl = false,
   scrollEnabled = true,
+  brandVariant = "compact",
   children,
 }: ScreenShellProps) {
   const { width } = useWindowDimensions();
@@ -38,7 +43,6 @@ export function ScreenShell({
   const compact = width < 370;
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
-  const rowDirection = rtl ? "row-reverse" : "row";
   const horizontalAlignment = rtl ? "flex-end" : "flex-start";
   const locale = rtl ? "ar" : "en";
 
@@ -60,32 +64,41 @@ export function ScreenShell({
 
   const content = (
     <View style={[styles.pageColumn, { alignItems: horizontalAlignment }]}>
-      <View style={[styles.navRow, { alignItems: horizontalAlignment }]}>
+      {brandVariant !== "none" ? (
         <View
           style={[
-            styles.brandLockup,
+            styles.navRow,
+            brandVariant === "full" ? styles.navRowFull : null,
             {
-              flexDirection: rowDirection,
-              alignSelf: rtl ? "flex-end" : "flex-start",
+              alignItems:
+                brandVariant === "full" ? "center" : horizontalAlignment,
             },
           ]}
         >
-          <View style={styles.brandMark} accessibilityElementsHidden>
-            <View style={[styles.linkRing, styles.linkRingStart]} />
-            <View style={[styles.linkRing, styles.linkRingEnd]} />
-            <View style={styles.linkJoint} />
-          </View>
-          <View style={[styles.wordmarkStack, { alignItems: horizontalAlignment }]}>
-            <Text style={[styles.brandArabic, { textAlign, writingDirection }]}>ميثاق</Text>
-            <Text style={[styles.brandWordmark, { textAlign }]}>MITHAQ</Text>
+          <View
+            style={{
+              alignSelf:
+                brandVariant === "full"
+                  ? "center"
+                  : rtl
+                    ? "flex-end"
+                    : "flex-start",
+            }}
+          >
+            <BrandLogo
+              rtl={rtl}
+              variant={brandVariant}
+              width={brandVariant === "full" ? Math.min(width - 60, 270) : undefined}
+            />
           </View>
         </View>
-      </View>
+      ) : null}
 
       <View
         style={[
           styles.hero,
           memberMode ? styles.heroMember : null,
+          brandVariant === "full" ? styles.heroAfterFullBrand : null,
           { alignItems: horizontalAlignment, alignSelf: "stretch" },
         ]}
       >
@@ -137,7 +150,9 @@ export function ScreenShell({
       >
         {children}
       </View>
-      {footer ? <View style={[styles.footer, { alignSelf: "stretch" }]}>{footer}</View> : null}
+      {footer ? (
+        <View style={[styles.footer, { alignSelf: "stretch" }]}>{footer}</View>
+      ) : null}
     </View>
   );
 
@@ -173,7 +188,9 @@ export function ScreenShell({
           </View>
         )}
       </KeyboardAvoidingView>
-      {resolvedBottomBar ? <View style={styles.bottomBar}>{resolvedBottomBar}</View> : null}
+      {resolvedBottomBar ? (
+        <View style={styles.bottomBar}>{resolvedBottomBar}</View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -198,46 +215,11 @@ const styles = StyleSheet.create({
   },
   fixedContentWithBar: { paddingBottom: 8 },
   scrollContentCompact: { paddingHorizontal: 18 },
-  navRow: { width: "100%", minHeight: 48, justifyContent: "center" },
-  brandLockup: { alignItems: "center", gap: 11 },
-  brandMark: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    backgroundColor: colors.foreground,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  linkRing: {
-    position: "absolute",
-    width: 16,
-    height: 22,
-    borderRadius: 9,
-    borderWidth: 1.4,
-    borderColor: colors.white,
-    transform: [{ rotate: "18deg" }],
-  },
-  linkRingStart: { left: 8 },
-  linkRingEnd: { right: 8, transform: [{ rotate: "-18deg" }] },
-  linkJoint: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.gold },
-  wordmarkStack: { justifyContent: "center" },
-  brandArabic: {
-    color: colors.foreground,
-    fontSize: 18,
-    lineHeight: 28,
-    fontWeight: "700",
-    letterSpacing: 0,
-  },
-  brandWordmark: {
-    color: colors.muted,
-    fontSize: 8,
-    lineHeight: 11,
-    fontWeight: "700",
-    letterSpacing: 1.7,
-  },
+  navRow: { width: "100%", minHeight: 50, justifyContent: "center" },
+  navRowFull: { minHeight: 152, paddingTop: 8 },
   hero: { flexGrow: 0, paddingTop: 38, width: "100%", maxWidth: 560 },
   heroMember: { paddingTop: 12 },
+  heroAfterFullBrand: { paddingTop: 22 },
   eyebrow: {
     width: "100%",
     color: colors.primary,
@@ -248,7 +230,12 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 12,
   },
-  eyebrowArabic: { fontSize: 14, lineHeight: 24, letterSpacing: 0, textTransform: "none" },
+  eyebrowArabic: {
+    fontSize: 14,
+    lineHeight: 24,
+    letterSpacing: 0,
+    textTransform: "none",
+  },
   title: {
     width: "100%",
     color: colors.foreground,
@@ -258,10 +245,20 @@ const styles = StyleSheet.create({
     letterSpacing: -1.5,
   },
   titleCompact: { fontSize: 36, lineHeight: 43, letterSpacing: -1 },
-  titleArabic: { fontSize: 39, lineHeight: 60, letterSpacing: 0, fontWeight: "700" },
+  titleArabic: {
+    fontSize: 39,
+    lineHeight: 60,
+    letterSpacing: 0,
+    fontWeight: "700",
+  },
   titleArabicCompact: { fontSize: 34, lineHeight: 54, letterSpacing: 0 },
   titleMember: { fontSize: 28, lineHeight: 35, letterSpacing: -0.35 },
-  titleMemberArabic: { fontSize: 30, lineHeight: 46, letterSpacing: 0, fontWeight: "700" },
+  titleMemberArabic: {
+    fontSize: 30,
+    lineHeight: 46,
+    letterSpacing: 0,
+    fontWeight: "700",
+  },
   body: {
     width: "100%",
     color: colors.muted,
