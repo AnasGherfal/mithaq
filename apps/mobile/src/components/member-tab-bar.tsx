@@ -1,22 +1,57 @@
+import type { ComponentProps } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { MobileLocale } from "@/i18n";
-import { colors } from "@/theme";
+import { colors, shadows } from "@/theme";
 
 type MemberTab = "home" | "introductions" | "activity" | "account";
 type Props = { locale: MobileLocale; active: MemberTab };
+type IconName = ComponentProps<typeof Ionicons>["name"];
 
-const tabs: Array<{
+type TabDefinition = {
   key: MemberTab;
-  glyph: string;
+  icon: IconName;
+  selectedIcon: IconName;
   ar: string;
   en: string;
   path: "/status" | "/introductions" | "/activity" | "/security";
-}> = [
-  { key: "home", glyph: "⌂", ar: "الرئيسية", en: "Home", path: "/status" },
-  { key: "introductions", glyph: "◇", ar: "التعارف", en: "Introductions", path: "/introductions" },
-  { key: "activity", glyph: "◉", ar: "النشاط", en: "Activity", path: "/activity" },
-  { key: "account", glyph: "○", ar: "حسابي", en: "Account", path: "/security" },
+};
+
+const tabs: TabDefinition[] = [
+  {
+    key: "home",
+    icon: "home-outline",
+    selectedIcon: "home",
+    ar: "الرئيسية",
+    en: "Home",
+    path: "/status",
+  },
+  {
+    key: "introductions",
+    icon: "sparkles-outline",
+    selectedIcon: "sparkles",
+    ar: "التعارف",
+    en: "Introductions",
+    path: "/introductions",
+  },
+  {
+    key: "activity",
+    icon: "notifications-outline",
+    selectedIcon: "notifications",
+    ar: "النشاط",
+    en: "Activity",
+    path: "/activity",
+  },
+  {
+    key: "account",
+    icon: "person-circle-outline",
+    selectedIcon: "person-circle",
+    ar: "حسابي",
+    en: "Account",
+    path: "/security",
+  },
 ];
 
 export function MemberTabBar({ locale, active }: Props) {
@@ -24,57 +59,115 @@ export function MemberTabBar({ locale, active }: Props) {
   const orderedTabs = rtl ? [...tabs].reverse() : tabs;
 
   return (
-    <View style={styles.bar} accessibilityRole="tablist">
-      {orderedTabs.map((tab) => {
-        const selected = tab.key === active;
-        return (
-          <Pressable
-            key={tab.key}
-            accessibilityRole="tab"
-            accessibilityState={{ selected }}
-            accessibilityLabel={rtl ? tab.ar : tab.en}
-            onPress={() => router.replace({ pathname: tab.path, params: { locale } })}
-            style={({ pressed }) => [styles.tab, pressed ? styles.pressed : null]}
-          >
-            <View style={[styles.iconWrap, selected ? styles.iconWrapActive : null]}>
-              <Text style={[styles.glyph, selected ? styles.glyphActive : null]}>{tab.glyph}</Text>
-            </View>
-            <Text style={[styles.label, selected ? styles.labelActive : null]}>{rtl ? tab.ar : tab.en}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
+    <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
+      <View style={styles.bar} accessibilityRole="tablist">
+        {orderedTabs.map((tab) => {
+          const selected = tab.key === active;
+          const label = rtl ? tab.ar : tab.en;
+
+          return (
+            <Pressable
+              key={tab.key}
+              accessibilityRole="tab"
+              accessibilityState={{ selected, disabled: selected }}
+              accessibilityLabel={label}
+              disabled={selected}
+              onPress={() =>
+                router.replace({ pathname: tab.path, params: { locale } })
+              }
+              style={({ pressed }) => [
+                styles.tab,
+                selected ? styles.tabSelected : null,
+                pressed && !selected ? styles.pressed : null,
+              ]}
+            >
+              <View
+                style={[
+                  styles.iconWrap,
+                  selected ? styles.iconWrapSelected : null,
+                ]}
+              >
+                <Ionicons
+                  name={selected ? tab.selectedIcon : tab.icon}
+                  size={21}
+                  color={selected ? colors.primary : colors.mutedSoft}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.label,
+                  rtl ? styles.labelArabic : null,
+                  selected ? styles.labelSelected : null,
+                ]}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.surfaceRaised,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    ...shadows.navigation,
+  },
   bar: {
-    minHeight: 72,
+    minHeight: 64,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 8,
-    paddingTop: 6,
-    paddingBottom: 10,
+    paddingTop: 7,
+    paddingBottom: 5,
     backgroundColor: colors.surfaceRaised,
   },
   tab: {
     flex: 1,
-    minHeight: 56,
+    minHeight: 54,
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
+    borderRadius: 18,
+  },
+  tabSelected: {
+    opacity: 1,
   },
   iconWrap: {
-    minWidth: 34,
-    height: 28,
-    borderRadius: 14,
+    minWidth: 40,
+    height: 29,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
   },
-  iconWrapActive: { backgroundColor: colors.primaryWash },
-  glyph: { color: colors.mutedSoft, fontSize: 19, lineHeight: 22 },
-  glyphActive: { color: colors.primary },
-  label: { color: colors.muted, fontSize: 10, lineHeight: 14, fontWeight: "600", letterSpacing: 0 },
-  labelActive: { color: colors.primary, fontWeight: "800" },
-  pressed: { opacity: 0.55 },
+  iconWrapSelected: {
+    backgroundColor: colors.primarySoft,
+  },
+  label: {
+    color: colors.muted,
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: "600",
+    letterSpacing: 0,
+    textAlign: "center",
+  },
+  labelArabic: {
+    fontSize: 11,
+    lineHeight: 17,
+    fontWeight: "600",
+    writingDirection: "rtl",
+    letterSpacing: 0,
+  },
+  labelSelected: {
+    color: colors.primary,
+    fontWeight: "800",
+  },
+  pressed: {
+    opacity: 0.52,
+    transform: [{ scale: 0.97 }],
+  },
 });
