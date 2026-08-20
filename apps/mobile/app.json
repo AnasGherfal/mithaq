@@ -17,7 +17,7 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "../../public/icons/icon-maskable-1024.png",
-        "backgroundColor": "#F7F3E9"
+        "backgroundColor": "#FFF8F4"
       }
     },
     "plugins": [
@@ -37,12 +37,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F7F3E9",
+          "backgroundColor": "#FFF8F4",
           "image": "../../public/icons/icon-1024.png",
           "imageWidth": 160,
           "resizeMode": "contain",
           "dark": {
-            "backgroundColor": "#F7F3E9",
+            "backgroundColor": "#FFF8F4",
             "image": "../../public/icons/icon-1024.png"
           }
         }
