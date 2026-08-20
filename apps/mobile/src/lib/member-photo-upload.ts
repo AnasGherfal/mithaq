@@ -26,12 +26,25 @@ export class MemberPhotoUploadError extends Error {
   }
 }
 
-type UploadInput = {
+type SourceInput = {
   uri: string;
   width: number;
   height: number;
-  makePrimary: boolean;
   onStage?: (stage: MemberPhotoUploadStage) => void;
+};
+
+type UploadInput = SourceInput & {
+  makePrimary: boolean;
+};
+
+type ReplaceInput = SourceInput & {
+  photoId: string;
+};
+
+type PreparedPhoto = {
+  bytes: ArrayBuffer;
+  width: number;
+  height: number;
 };
 
 export async function prepareAndUploadMemberPhoto({
@@ -41,18 +54,90 @@ export async function prepareAndUploadMemberPhoto({
   makePrimary,
   onStage,
 }: UploadInput) {
+  const userId = await requireUserId();
+  const prepared = await preparePhoto({ uri, width, height, onStage });
+  const storagePath = await uploadPreparedPhoto(userId, prepared, onStage);
+
+  onStage?.("registering");
+  const { data: photoId, error: registrationError } = await supabase.rpc(
+    "register_member_photo",
+    {
+      p_storage_path: storagePath,
+      p_position: null,
+      p_make_primary: makePrimary,
+    },
+  );
+
+  if (registrationError || typeof photoId !== "string") {
+    await cleanupFailedRegistration(storagePath);
+  }
+
+  return {
+    photoId,
+    storagePath,
+    width: prepared.width,
+    height: prepared.height,
+  };
+}
+
+export async function prepareAndReplaceMemberPhoto({
+  uri,
+  width,
+  height,
+  photoId,
+  onStage,
+}: ReplaceInput) {
+  const userId = await requireUserId();
+  const prepared = await preparePhoto({ uri, width, height, onStage });
+  const storagePath = await uploadPreparedPhoto(userId, prepared, onStage);
+
+  onStage?.("registering");
+  const { data: previousStoragePath, error: replacementError } = await supabase.rpc(
+    "replace_member_photo",
+    {
+      p_photo_id: photoId,
+      p_storage_path: storagePath,
+    },
+  );
+
+  if (replacementError || typeof previousStoragePath !== "string") {
+    await cleanupFailedRegistration(storagePath);
+  }
+
+  const { error: cleanupError } = await supabase.storage
+    .from(memberPhotoBucket)
+    .remove([previousStoragePath]);
+
+  return {
+    photoId,
+    storagePath,
+    previousStoragePath,
+    previousCleanupFailed: Boolean(cleanupError),
+    width: prepared.width,
+    height: prepared.height,
+  };
+}
+
+async function requireUserId() {
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   if (sessionError || !sessionData.session) {
     throw new MemberPhotoUploadError("unauthorized");
   }
+  return sessionData.session.user.id;
+}
 
+async function preparePhoto({
+  uri,
+  width,
+  height,
+  onStage,
+}: SourceInput): Promise<PreparedPhoto> {
   const crop = centeredPortraitCrop(width, height);
   if (crop.width < MIN_CROP_WIDTH || crop.height < MIN_CROP_HEIGHT) {
     throw new MemberPhotoUploadError("image_too_small");
   }
 
   onStage?.("preparing");
-
   const outputWidth = Math.min(MAX_OUTPUT_WIDTH, Math.floor(crop.width));
   let prepared: Awaited<ReturnType<typeof ImageManipulator.manipulateAsync>>;
 
@@ -89,13 +174,24 @@ export async function prepareAndUploadMemberPhoto({
     throw new MemberPhotoUploadError("file_too_large");
   }
 
-  const userId = sessionData.session.user.id;
-  const storagePath = `${userId}/${createUploadName()}.jpg`;
+  return {
+    bytes,
+    width: prepared.width,
+    height: prepared.height,
+  };
+}
 
+async function uploadPreparedPhoto(
+  userId: string,
+  prepared: PreparedPhoto,
+  onStage?: (stage: MemberPhotoUploadStage) => void,
+) {
+  const storagePath = `${userId}/${createUploadName()}.jpg`;
   onStage?.("uploading");
+
   const { error: uploadError } = await supabase.storage
     .from(memberPhotoBucket)
-    .upload(storagePath, bytes, {
+    .upload(storagePath, prepared.bytes, {
       cacheControl: "3600",
       contentType: "image/jpeg",
       upsert: false,
@@ -105,32 +201,17 @@ export async function prepareAndUploadMemberPhoto({
     throw new MemberPhotoUploadError("upload_failed");
   }
 
-  onStage?.("registering");
-  const { data: photoId, error: registrationError } = await supabase.rpc(
-    "register_member_photo",
-    {
-      p_storage_path: storagePath,
-      p_position: null,
-      p_make_primary: makePrimary,
-    },
+  return storagePath;
+}
+
+async function cleanupFailedRegistration(storagePath: string): Promise<never> {
+  const { error: cleanupError } = await supabase.storage
+    .from(memberPhotoBucket)
+    .remove([storagePath]);
+
+  throw new MemberPhotoUploadError(
+    cleanupError ? "registration_failed_cleanup_pending" : "registration_failed",
   );
-
-  if (registrationError || typeof photoId !== "string") {
-    const { error: cleanupError } = await supabase.storage
-      .from(memberPhotoBucket)
-      .remove([storagePath]);
-
-    throw new MemberPhotoUploadError(
-      cleanupError ? "registration_failed_cleanup_pending" : "registration_failed",
-    );
-  }
-
-  return {
-    photoId,
-    storagePath,
-    width: prepared.width,
-    height: prepared.height,
-  };
 }
 
 function centeredPortraitCrop(width: number, height: number) {
