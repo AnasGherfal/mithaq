@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { AppIcon } from "@/components/app-icon";
 import { GuidedActionBar } from "@/components/guided-action-bar";
 import { ScreenShell } from "@/components/screen-shell";
@@ -76,6 +83,13 @@ export default function FriendshipHomeScreen() {
   const complete = Boolean(profile?.profileCompletedAt);
   const displayName = profile?.displayName.trim();
 
+  function openProfile() {
+    router.push({
+      pathname: "/friendship-profile",
+      params: featurePending ? { locale, preview: "1" } : { locale },
+    });
+  }
+
   return (
     <ScreenShell
       eyebrow={copy.eyebrow}
@@ -86,15 +100,18 @@ export default function FriendshipHomeScreen() {
       bottomBar={
         <GuidedActionBar
           rtl={rtl}
-          backLabel={copy.switchSpace}
-          primaryLabel={complete ? copy.editProfile : copy.createProfile}
-          secondaryIcon="back"
-          onBack={() => router.replace({ pathname: "/spaces", params: { locale } })}
+          backLabel={complete ? copy.requests : copy.switchSpace}
+          primaryLabel={complete ? copy.discoverFriends : copy.createProfile}
+          secondaryIcon={complete ? "activity" : "back"}
+          onBack={() =>
+            complete
+              ? router.push({ pathname: "/friendship-requests", params: { locale } })
+              : router.replace({ pathname: "/spaces", params: { locale } })
+          }
           onPrimary={() =>
-            router.push({
-              pathname: "/friendship-profile",
-              params: featurePending ? { locale, preview: "1" } : { locale },
-            })
+            complete
+              ? router.push({ pathname: "/friendship-discover", params: { locale } })
+              : openProfile()
           }
         />
       }
@@ -188,6 +205,21 @@ export default function FriendshipHomeScreen() {
                 </View>
               ))}
             </View>
+            {complete ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={openProfile}
+                style={({ pressed }) => [
+                  styles.editProfile,
+                  { alignSelf: rtl ? "flex-end" : "flex-start" },
+                  pressed ? styles.pressed : null,
+                ]}
+              >
+                <Text style={[styles.editProfileText, { writingDirection }]}>
+                  {copy.editProfile}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
 
           <View style={styles.flowSection}>
@@ -271,12 +303,14 @@ function friendshipCopy(locale: MobileLocale) {
       switchSpace: "تبديل المساحة",
       createProfile: "إنشاء ملف الصداقة",
       editProfile: "تعديل ملف الصداقة",
+      discoverFriends: "اكتشاف الأصدقاء",
+      requests: "الطلبات",
       welcome: (name: string) => `مرحباً ${name}`,
       heroKicker: "دائرتك الجديدة تبدأ من اهتمامات مشتركة",
       heroTitle: "كوّن صداقات بدون غموض",
       heroBody: "ملف منفصل يساعدك على اكتشاف أشخاص حول المدينة والأنشطة وما تستمتع به.",
       readyTitle: "ملف الصداقة جاهز",
-      readyBody: "اهتماماتك ومدينتك جاهزتان لبناء اكتشاف منفصل للأصدقاء.",
+      readyBody: "اهتماماتك ومدينتك جاهزتان لاكتشاف أشخاص جدد في مساحة الأصدقاء.",
       profileReady: "جاهز لاكتشاف الأصدقاء",
       profileNeeded: "أكمل ملف الصداقة أولاً",
       promptEyebrow: "سؤال يساعد الناس على فهمك",
@@ -285,9 +319,9 @@ function friendshipCopy(locale: MobileLocale) {
       discover: "اكتشاف",
       request: "طلب خاص",
       chat: "محادثة",
-      flowBody: "اكتشاف محدود، ثم طلب صداقة خاص، ثم محادثة منفصلة بعد القبول المتبادل.",
+      flowBody: "اكتشاف محدود، ثم طلب صداقة خاص، ثم محادثة منفصلة بعد القبول.",
       separateBody: "نبذة الزواج وصوره وتفضيلاته لا تُنسخ هنا، ومحادثات المساحتين لا تختلط.",
-      previewNote: "معاينة قابلة للتجربة؛ الحفظ الفعلي يبدأ بعد تطبيق ترحيل المساحات على الاستضافة.",
+      previewNote: "معاينة قابلة للتجربة؛ الحفظ والاكتشاف الحقيقيان يبدأان بعد تطبيق ترحيلات Friends على الاستضافة.",
     };
   }
 
@@ -302,12 +336,14 @@ function friendshipCopy(locale: MobileLocale) {
     switchSpace: "Switch space",
     createProfile: "Create friendship profile",
     editProfile: "Edit friendship profile",
+    discoverFriends: "Discover friends",
+    requests: "Requests",
     welcome: (name: string) => `Welcome, ${name}`,
     heroKicker: "Your next circle starts with shared interests",
     heroTitle: "Make friends without ambiguity",
     heroBody: "A separate profile helps you discover people through city, activities, and what you enjoy.",
     readyTitle: "Your friendship profile is ready",
-    readyBody: "Your interests and city are ready for a separate Friends discovery experience.",
+    readyBody: "Your interests and city are ready to discover new people inside Friends.",
     profileReady: "Ready for friend discovery",
     profileNeeded: "Complete your friendship profile first",
     promptEyebrow: "A PROMPT THAT HELPS PEOPLE KNOW YOU",
@@ -316,9 +352,9 @@ function friendshipCopy(locale: MobileLocale) {
     discover: "Discover",
     request: "Private request",
     chat: "Conversation",
-    flowBody: "Finite discovery, a private friend request, then a separate conversation after mutual acceptance.",
+    flowBody: "Finite discovery, a private friend request, then a separate conversation after acceptance.",
     separateBody: "Marriage biography, photos, and preferences are not copied here, and conversations never mix.",
-    previewNote: "Interactive preview; persistence begins after the spaces migration is deployed to hosted staging.",
+    previewNote: "Interactive preview; real persistence and discovery begin after the Friends migrations are deployed to hosted staging.",
   };
 }
 
@@ -437,6 +473,8 @@ const styles = StyleSheet.create({
   promptChips: { width: "100%", flexWrap: "wrap", gap: 6, marginTop: 8 },
   promptChip: { borderRadius: radius.pill, backgroundColor: colors.goldSoft, paddingHorizontal: 9, paddingVertical: 6 },
   promptChipText: { color: colors.foreground, fontSize: 9, lineHeight: 13, fontWeight: "700" },
+  editProfile: { minHeight: 34, justifyContent: "center", marginTop: 8 },
+  editProfileText: { color: colors.primary, fontSize: 10, lineHeight: 16, fontWeight: "800" },
   flowSection: { width: "100%" },
   flow: { width: "100%", alignItems: "flex-start" },
   flowStep: { width: 76, alignItems: "center" },
@@ -450,4 +488,5 @@ const styles = StyleSheet.create({
   separateIcon: { width: 31, height: 31, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised },
   separateBody: { flex: 1, color: colors.muted, fontSize: 10, lineHeight: 17 },
   previewNote: { width: "100%", color: colors.gold, fontSize: 9, lineHeight: 15, fontWeight: "700" },
+  pressed: { opacity: 0.55 },
 });
