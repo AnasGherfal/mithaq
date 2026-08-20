@@ -12,7 +12,7 @@ rmSync(resolve(mobileRoot, "package-lock.json"), { force: true });
 rmSync(resolve(mobileRoot, ".expo"), { recursive: true, force: true });
 
 console.log("Installing the pinned Expo SDK 54 preview stack...");
-run(["install", "--legacy-peer-deps"]);
+run(["install", "--legacy-peer-deps", "--no-package-lock"]);
 
 console.log("Running mobile TypeScript and formatting checks...");
 run(["run", "check"]);
