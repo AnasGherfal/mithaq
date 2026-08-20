@@ -18,6 +18,7 @@ type AccountSnapshot = {
 };
 
 type AccountPath =
+  | "/spaces"
   | "/profile"
   | "/photos"
   | "/questionnaire"
@@ -46,7 +47,10 @@ export default function AccountScreen() {
         ready: "الملف جاهز للتعارف",
         incomplete: "الملف يحتاج إلى إكمال",
         deletion: "طلب حذف الحساب قيد المعالجة",
-        membership: "العضوية",
+        spacesTitle: "مساحات ميثاق",
+        spaces: "الزواج والأصدقاء",
+        spacesBody: "استخدم مساحة واحدة أو الاثنين، مع ملف ونشاط ومحادثات منفصلة لكل مساحة.",
+        membership: "عضوية الزواج",
         profile: "ملفي الخاص",
         profileBody: "معلوماتك التي يظهر منها فقط ما تسمح به داخل التعارف.",
         photos: "صوري الخاصة",
@@ -77,7 +81,10 @@ export default function AccountScreen() {
         ready: "Profile ready for introductions",
         incomplete: "Profile setup is not complete",
         deletion: "Account deletion is being processed",
-        membership: "Membership",
+        spacesTitle: "Mithaq spaces",
+        spaces: "Marriage & Friends",
+        spacesBody: "Use one or both, with a separate profile, activity, and conversations for each space.",
+        membership: "Marriage membership",
         profile: "Private profile",
         profileBody: "The details Mithaq selectively reveals inside an eligible introduction.",
         photos: "Private photos",
@@ -253,6 +260,17 @@ export default function AccountScreen() {
               {message}
             </Text>
           ) : null}
+
+          <SettingsGroup title={copy.spacesTitle} rtl={rtl}>
+            <SettingsRow
+              rtl={rtl}
+              icon="introductions"
+              title={copy.spaces}
+              body={copy.spacesBody}
+              onPress={() => open("/spaces")}
+              last
+            />
+          </SettingsGroup>
 
           <SettingsGroup title={copy.membership} rtl={rtl}>
             <SettingsRow
