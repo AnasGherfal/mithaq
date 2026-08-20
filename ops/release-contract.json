@@ -64,6 +64,11 @@
       "function": "notification-retention-worker",
       "maxIntervalMinutes": 1440,
       "requiredBeforeRelease": true
+    },
+    "member_photo_cleanup": {
+      "function": "member-photo-cleanup-worker",
+      "maxIntervalMinutes": 60,
+      "requiredBeforeRelease": true
     }
   },
   "releaseRequirements": {
