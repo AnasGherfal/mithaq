@@ -29,6 +29,7 @@ export function ProfilePortrait({
         <View style={styles.fallback}>
           <View style={styles.orbitLarge} />
           <View style={styles.orbitSmall} />
+          <View style={styles.warmHalo} />
           <View style={styles.monogram}>
             <Text style={styles.monogramText}>{initials || "م"}</Text>
           </View>
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   frame: {
     width: "100%",
     borderRadius: radius.xl,
-    backgroundColor: colors.primaryStrong,
+    backgroundColor: colors.brandNavy,
     overflow: "hidden",
   },
   fallback: {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 30,
-    backgroundColor: colors.primaryStrong,
+    backgroundColor: colors.brandNavy,
   },
   orbitLarge: {
     position: "absolute",
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     height: 250,
     borderRadius: 125,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)",
+    borderColor: "rgba(4,144,155,0.34)",
   },
   orbitSmall: {
     position: "absolute",
@@ -88,7 +89,14 @@ const styles = StyleSheet.create({
     height: 168,
     borderRadius: 84,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
+    borderColor: "rgba(208,156,81,0.32)",
+  },
+  warmHalo: {
+    position: "absolute",
+    width: 126,
+    height: 126,
+    borderRadius: 63,
+    backgroundColor: "rgba(169,86,97,0.16)",
   },
   monogram: {
     width: 82,
@@ -98,7 +106,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.34)",
-    backgroundColor: "rgba(255,255,255,0.10)",
+    backgroundColor: "rgba(255,255,255,0.11)",
   },
   monogramText: {
     color: colors.white,
@@ -117,7 +125,7 @@ const styles = StyleSheet.create({
   },
   fallbackBody: {
     maxWidth: 260,
-    color: "rgba(255,255,255,0.64)",
+    color: "rgba(255,255,255,0.68)",
     fontSize: 11,
     lineHeight: 19,
     marginTop: 4,
@@ -129,12 +137,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     borderRadius: radius.pill,
-    backgroundColor: "rgba(17,26,23,0.72)",
+    backgroundColor: "rgba(23,36,59,0.76)",
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
   privacyBadgeLtr: { left: 14 },
   privacyBadgeRtl: { right: 14 },
+  privacyLabel: {
+    color: colors.white,
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: "800",
+    letterSpacing: 0,
+  },
   lockIcon: { width: 12, height: 12, position: "relative" },
   lockShackle: {
     position: "absolute",
@@ -156,12 +171,5 @@ const styles = StyleSheet.create({
     height: 7,
     borderRadius: 2,
     backgroundColor: colors.white,
-  },
-  privacyLabel: {
-    color: colors.white,
-    fontSize: 10,
-    lineHeight: 14,
-    fontWeight: "800",
-    letterSpacing: 0,
   },
 });
