@@ -62,9 +62,10 @@ export function ScreenShell({
     bottomBar ??
     (activeTab ? <MemberTabBar locale={locale} active={activeTab} /> : null);
   const memberMode = Boolean(resolvedBottomBar);
+  const friendshipRoute = pathname.startsWith("/friendship");
   const showSpaceSwitcher =
-    brandVariant === "compact" && (memberMode || pathname === "/friendship");
-  const fallbackSpace = pathname === "/friendship" ? "friendship" : "marriage";
+    brandVariant === "compact" && (memberMode || friendshipRoute);
+  const fallbackSpace = friendshipRoute ? "friendship" : "marriage";
 
   const content = (
     <View style={[styles.pageColumn, { alignItems: horizontalAlignment }]}>
