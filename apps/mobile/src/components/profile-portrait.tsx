@@ -1,4 +1,6 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
+import { getIntroductionPhotoUrl } from "@/lib/introduction-photos";
 import { colors, radius } from "@/theme";
 
 type ProfilePortraitProps = {
@@ -9,6 +11,14 @@ type ProfilePortraitProps = {
   rtl?: boolean;
 };
 
+type IntroductionPhotoReference = {
+  introductionId: string;
+  photoId: string;
+};
+
+const introductionPhotoPattern =
+  /^mithaq-introduction-photo:\/\/([0-9a-f-]{36})\/([0-9a-f-]{36})$/i;
+
 export function ProfilePortrait({
   uri,
   initials,
@@ -16,13 +26,55 @@ export function ProfilePortrait({
   height = 260,
   rtl = false,
 }: ProfilePortraitProps) {
+  const [resolvedUri, setResolvedUri] = useState<string | null>(null);
+  const [resolving, setResolving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const reference = parseIntroductionPhotoReference(uri);
+
+    if (!uri) {
+      setResolvedUri(null);
+      setResolving(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    if (!reference) {
+      setResolvedUri(uri);
+      setResolving(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    setResolvedUri(null);
+    setResolving(true);
+
+    void getIntroductionPhotoUrl(reference.introductionId, reference.photoId)
+      .then((result) => {
+        if (active) setResolvedUri(result.signedUrl);
+      })
+      .catch(() => {
+        if (active) setResolvedUri(null);
+      })
+      .finally(() => {
+        if (active) setResolving(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [uri]);
+
   return (
     <View style={[styles.frame, { height }]}>
-      {uri ? (
+      {resolvedUri ? (
         <Image
           accessibilityLabel={privacyLabel}
           resizeMode="cover"
-          source={{ uri }}
+          source={{ uri: resolvedUri }}
           style={StyleSheet.absoluteFillObject}
         />
       ) : (
@@ -31,10 +83,20 @@ export function ProfilePortrait({
           <View style={styles.orbitSmall} />
           <View style={styles.warmHalo} />
           <View style={styles.monogram}>
-            <Text style={styles.monogramText}>{initials || "م"}</Text>
+            {resolving ? (
+              <ActivityIndicator color={colors.white} size="small" />
+            ) : (
+              <Text style={styles.monogramText}>{initials || "م"}</Text>
+            )}
           </View>
           <Text style={[styles.fallbackTitle, { writingDirection: rtl ? "rtl" : "ltr" }]}> 
-            {rtl ? "صورة خاصة" : "Private portrait"}
+            {resolving
+              ? rtl
+                ? "جارٍ فتح الصورة الخاصة"
+                : "Opening private portrait"
+              : rtl
+                ? "صورة خاصة"
+                : "Private portrait"}
           </Text>
           <Text style={[styles.fallbackBody, { writingDirection: rtl ? "rtl" : "ltr" }]}> 
             {rtl
@@ -59,6 +121,19 @@ export function ProfilePortrait({
       </View>
     </View>
   );
+}
+
+function parseIntroductionPhotoReference(
+  uri?: string | null,
+): IntroductionPhotoReference | null {
+  if (!uri) return null;
+  const match = introductionPhotoPattern.exec(uri);
+  if (!match?.[1] || !match[2]) return null;
+
+  return {
+    introductionId: match[1],
+    photoId: match[2],
+  };
 }
 
 const styles = StyleSheet.create({
