@@ -1,5 +1,5 @@
 begin;
-select plan(20);
+select plan(19);
 
 select is(
   has_table_privilege('authenticated', 'private.friendship_requests', 'SELECT'),
