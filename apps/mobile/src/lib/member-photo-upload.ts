@@ -54,7 +54,7 @@ export async function prepareAndUploadMemberPhoto({
   onStage?.("preparing");
 
   const outputWidth = Math.min(MAX_OUTPUT_WIDTH, Math.floor(crop.width));
-  let prepared: ImageManipulator.ImageResult;
+  let prepared: Awaited<ReturnType<typeof ImageManipulator.manipulateAsync>>;
 
   try {
     prepared = await ImageManipulator.manipulateAsync(
@@ -164,18 +164,8 @@ function createUploadName() {
 }
 
 function decodeBase64(value: string): ArrayBuffer {
-  const normalized = value.replace(/\s/g, "");
-
-  if (typeof globalThis.atob === "function") {
-    const binary = globalThis.atob(normalized);
-    const bytes = new Uint8Array(binary.length);
-    for (let index = 0; index < binary.length; index += 1) {
-      bytes[index] = binary.charCodeAt(index);
-    }
-    return bytes.buffer;
-  }
-
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const normalized = value.replace(/\s/g, "");
   const output: number[] = [];
   let buffer = 0;
   let bits = 0;
