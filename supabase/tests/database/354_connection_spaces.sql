@@ -1,5 +1,5 @@
 begin;
-select plan(23);
+select plan(24);
 
 select is(
   has_table_privilege('authenticated', 'public.member_connection_spaces', 'SELECT'),
