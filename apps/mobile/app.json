@@ -23,6 +23,14 @@
     "plugins": [
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Mithaq to access the photo you choose for your private profile.",
+          "cameraPermission": "Allow Mithaq to take a private profile photo.",
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow Mithaq to use Face ID to protect your private account."
