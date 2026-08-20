@@ -9,6 +9,10 @@ export type MemberPhotoReviewState =
   | "rejected";
 
 export type MemberPhotoExtension = "jpg" | "png" | "webp";
+export type MemberPhotoCleanupReason =
+  | "delete"
+  | "replace"
+  | "registration_failure";
 
 export type PreparedMemberPhotoUpload = {
   bytes: ArrayBuffer;
@@ -117,8 +121,9 @@ export async function uploadPreparedMemberPhoto(
       .remove([storagePath]);
 
     if (cleanupError) {
+      await queueMyMemberPhotoCleanup(storagePath, "registration_failure");
       throw new Error(
-        "member photo registration failed and secure cleanup must be retried",
+        "member photo registration failed and secure cleanup was queued",
       );
     }
 
@@ -158,10 +163,29 @@ export async function removeMemberPhoto(photoId: string) {
     .from(memberPhotoBucket)
     .remove([storagePath]);
 
+  let storageCleanupQueued = false;
+  if (storageError) {
+    storageCleanupQueued = await queueMyMemberPhotoCleanup(storagePath, "delete");
+  }
+
   return {
     storagePath,
     storageCleanupFailed: Boolean(storageError),
+    storageCleanupQueued,
   };
+}
+
+export async function queueMyMemberPhotoCleanup(
+  storagePath: string,
+  reason: MemberPhotoCleanupReason,
+) {
+  const { data, error } = await supabase.rpc("queue_my_member_photo_cleanup", {
+    p_storage_path: storagePath,
+    p_reason: reason,
+  });
+
+  if (error) return false;
+  return data === true;
 }
 
 function createObjectId() {
