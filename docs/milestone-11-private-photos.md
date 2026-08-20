@@ -24,6 +24,11 @@ controlled-introduction model.
 - Visible preparation, upload, and registration progress states.
 - Private member-folder upload followed by guarded metadata registration.
 - Orphan cleanup when Storage succeeds but metadata registration fails.
+- Durable private cleanup queue when immediate Storage deletion fails after a
+  delete, replacement, or failed registration.
+- Service-role cleanup worker with retry/backoff and stale-claim recovery.
+- Cleanup jobs are member-path constrained and inaccessible to authenticated
+  clients except through the narrow self-queue RPC.
 - One-command preview dependency bootstrap that removes the stale SDK 57 graph,
   installs the pinned SDK 54 stack, and runs mobile checks.
 - Guarded introduction photo references that expose opaque photo IDs rather
@@ -52,15 +57,18 @@ controlled-introduction model.
    fail closed rather than silently revealing a full image.
 10. If Storage upload succeeds but metadata registration fails, the client
     removes the orphan object before reporting failure where possible.
-11. Selected images are re-encoded before upload rather than preserving the
+11. If immediate cleanup fails, a constrained server-owned retry job is queued
+    rather than silently abandoning the private object.
+12. Selected images are re-encoded before upload rather than preserving the
     original library object and its unsupported format.
 
 ## Remaining implementation
 
 - Generate and review the new committed SDK 54 lockfile after running the
   preview bootstrap on a networked development machine.
-- Replace-photo flow and durable retry for the narrow orphan-cleanup failure
-  case.
+- Wire the replace-photo action into the native photo manager and surface the
+  reset-to-pending review state clearly.
+- Deploy and schedule the photo cleanup worker on hosted staging.
 - Moderation operating surface for photo review.
 - Blurred derivative generation.
 - Explicit member approval and family-involvement disclosure workflows.
@@ -71,6 +79,6 @@ controlled-introduction model.
 ## Exit acceptance
 
 M11 exits when two staging members can upload, review, order, replace, and
-remove private photos, and only approved photos permitted by the selected
-privacy workflow appear through a controlled introduction on physical iPhone
-and Android devices.
+remove private photos, cleanup retries complete reliably, and only approved
+photos permitted by the selected privacy workflow appear through a controlled
+introduction on physical iPhone and Android devices.
