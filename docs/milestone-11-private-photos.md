@@ -16,6 +16,16 @@ controlled-introduction model.
   review-state presentation, ordering, deletion confirmation, and private
   self-preview URLs.
 - Account entry point for private photos.
+- SDK 54-compatible `expo-image-picker` and `expo-image-manipulator` integration.
+- System photo selection without requesting broad access to the full library.
+- Automatic centered 4:5 portrait crop, maximum 1280 px output width, JPEG
+  recompression, minimum-resolution validation, and an 8 MB post-processing
+  limit.
+- Visible preparation, upload, and registration progress states.
+- Private member-folder upload followed by guarded metadata registration.
+- Orphan cleanup when Storage succeeds but metadata registration fails.
+- One-command preview dependency bootstrap that removes the stale SDK 57 graph,
+  installs the pinned SDK 54 stack, and runs mobile checks.
 - Guarded introduction photo references that expose opaque photo IDs rather
   than storage paths.
 - Five-minute signed introduction URLs issued by the
@@ -40,15 +50,17 @@ controlled-introduction model.
    response headers.
 9. Missing explicit-approval, blurred-photo, and family-involvement workflows
    fail closed rather than silently revealing a full image.
-10. If storage upload succeeds but metadata registration fails, the client
-    upload pipeline removes the orphan object before reporting failure.
+10. If Storage upload succeeds but metadata registration fails, the client
+    removes the orphan object before reporting failure where possible.
+11. Selected images are re-encoded before upload rather than preserving the
+    original library object and its unsupported format.
 
 ## Remaining implementation
 
-- Reproducible SDK 54 dependency lock for the Expo Go preview branch.
-- `expo-image-picker` and image-manipulation integration.
-- iPhone permission, crop, compression, and progress UX.
-- Replace-photo flow and retryable orphan-cleanup operations.
+- Generate and review the new committed SDK 54 lockfile after running the
+  preview bootstrap on a networked development machine.
+- Replace-photo flow and durable retry for the narrow orphan-cleanup failure
+  case.
 - Moderation operating surface for photo review.
 - Blurred derivative generation.
 - Explicit member approval and family-involvement disclosure workflows.
