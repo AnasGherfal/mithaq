@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { AppIcon } from "@/components/app-icon";
 import { GuidedActionBar } from "@/components/guided-action-bar";
 import { ScreenShell } from "@/components/screen-shell";
@@ -17,9 +17,11 @@ import { colors, radius, shadows } from "@/theme";
 
 export default function FriendshipHomeScreen() {
   const params = useLocalSearchParams<{ locale?: string; preview?: string }>();
+  const { height } = useWindowDimensions();
   const locale: MobileLocale = params.locale === "en" ? "en" : "ar";
   const rtl = locale === "ar";
   const preview = params.preview === "1";
+  const compact = height < 760;
   const copy = useMemo(() => friendshipCopy(locale), [locale]);
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
@@ -80,6 +82,7 @@ export default function FriendshipHomeScreen() {
       title={copy.title}
       body={copy.body}
       rtl={rtl}
+      scrollEnabled={false}
       bottomBar={
         <GuidedActionBar
           rtl={rtl}
@@ -114,12 +117,13 @@ export default function FriendshipHomeScreen() {
           <View
             style={[
               styles.hero,
+              compact ? styles.heroCompact : null,
               { alignItems: rtl ? "flex-end" : "flex-start" },
             ]}
           >
             <View style={styles.heroGlowOne} />
             <View style={styles.heroGlowTwo} />
-            <View style={styles.peopleIcon}>
+            <View style={[styles.peopleIcon, compact ? styles.peopleIconCompact : null]}>
               <View style={[styles.person, styles.personOne]}>
                 <View style={styles.head} />
                 <View style={styles.bodyShape} />
@@ -136,7 +140,13 @@ export default function FriendshipHomeScreen() {
             <Text style={[styles.heroKicker, { textAlign, writingDirection }]}>
               {displayName ? copy.welcome(displayName) : copy.heroKicker}
             </Text>
-            <Text style={[styles.heroTitle, { textAlign, writingDirection }]}>
+            <Text
+              style={[
+                styles.heroTitle,
+                compact ? styles.heroTitleCompact : null,
+                { textAlign, writingDirection },
+              ]}
+            >
               {complete ? copy.readyTitle : copy.heroTitle}
             </Text>
             <Text style={[styles.heroBody, { textAlign, writingDirection }]}>
@@ -146,7 +156,10 @@ export default function FriendshipHomeScreen() {
               style={[
                 styles.statusPill,
                 complete ? styles.statusPillReady : null,
-                { flexDirection: rtl ? "row-reverse" : "row" },
+                {
+                  flexDirection: rtl ? "row-reverse" : "row",
+                  alignSelf: rtl ? "flex-end" : "flex-start",
+                },
               ]}
             >
               <View style={[styles.statusDot, complete ? styles.statusDotReady : null]} />
@@ -177,31 +190,22 @@ export default function FriendshipHomeScreen() {
             </View>
           </View>
 
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { textAlign, writingDirection }]}>
-              {copy.howTitle}
+          <View style={styles.flowSection}>
+            <View
+              style={[
+                styles.flow,
+                { flexDirection: rtl ? "row-reverse" : "row" },
+              ]}
+            >
+              <FlowStep label={copy.discover} tone="teal" rtl={rtl} />
+              <View style={styles.flowLine} />
+              <FlowStep label={copy.request} tone="rose" rtl={rtl} />
+              <View style={styles.flowLine} />
+              <FlowStep label={copy.chat} tone="gold" rtl={rtl} />
+            </View>
+            <Text style={[styles.flowBody, { textAlign, writingDirection }]}>
+              {copy.flowBody}
             </Text>
-            <FriendshipStep
-              rtl={rtl}
-              number="1"
-              title={copy.stepOneTitle}
-              body={copy.stepOneBody}
-              tone="teal"
-            />
-            <FriendshipStep
-              rtl={rtl}
-              number="2"
-              title={copy.stepTwoTitle}
-              body={copy.stepTwoBody}
-              tone="rose"
-            />
-            <FriendshipStep
-              rtl={rtl}
-              number="3"
-              title={copy.stepThreeTitle}
-              body={copy.stepThreeBody}
-              tone="gold"
-            />
           </View>
 
           <View
@@ -211,16 +215,11 @@ export default function FriendshipHomeScreen() {
             ]}
           >
             <View style={styles.separateIcon}>
-              <AppIcon name="privacy" active size={18} />
+              <AppIcon name="privacy" active size={17} />
             </View>
-            <View style={styles.flex}>
-              <Text style={[styles.separateTitle, { textAlign, writingDirection }]}>
-                {copy.separateTitle}
-              </Text>
-              <Text style={[styles.separateBody, { textAlign, writingDirection }]}>
-                {copy.separateBody}
-              </Text>
-            </View>
+            <Text style={[styles.separateBody, { textAlign, writingDirection }]}>
+              {copy.separateBody}
+            </Text>
           </View>
 
           {featurePending ? (
@@ -234,42 +233,27 @@ export default function FriendshipHomeScreen() {
   );
 }
 
-function FriendshipStep({
-  rtl,
-  number,
-  title,
-  body,
+function FlowStep({
+  label,
   tone,
+  rtl,
 }: {
-  rtl: boolean;
-  number: string;
-  title: string;
-  body: string;
+  label: string;
   tone: "teal" | "rose" | "gold";
+  rtl: boolean;
 }) {
-  const textAlign = rtl ? "right" : "left";
-  const writingDirection = rtl ? "rtl" : "ltr";
-
   return (
-    <View
-      style={[
-        styles.step,
-        { flexDirection: rtl ? "row-reverse" : "row" },
-      ]}
-    >
+    <View style={styles.flowStep}>
       <View
         style={[
-          styles.stepNumber,
-          tone === "rose" ? styles.stepNumberRose : null,
-          tone === "gold" ? styles.stepNumberGold : null,
+          styles.flowDot,
+          tone === "rose" ? styles.flowDotRose : null,
+          tone === "gold" ? styles.flowDotGold : null,
         ]}
-      >
-        <Text style={styles.stepNumberText}>{number}</Text>
-      </View>
-      <View style={styles.flex}>
-        <Text style={[styles.stepTitle, { textAlign, writingDirection }]}>{title}</Text>
-        <Text style={[styles.stepBody, { textAlign, writingDirection }]}>{body}</Text>
-      </View>
+      />
+      <Text style={[styles.flowLabel, { writingDirection: rtl ? "rtl" : "ltr" }]}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -279,7 +263,7 @@ function friendshipCopy(locale: MobileLocale) {
     return {
       eyebrow: "مساحة الأصدقاء",
       title: "تعرّف على ناس يشبهون اهتماماتك",
-      body: "صداقة ومجتمع بنية واضحة. لا ملفات زواج، لا إعجابات رومانسية، ولا خلط بين المساحتين.",
+      body: "صداقة ومجتمع بنية واضحة، منفصلان تماماً عن الزواج.",
       loading: "جارٍ فتح مساحة الأصدقاء",
       loadErrorTitle: "تعذر فتح مساحة الأصدقاء",
       loadErrorBody: "لم نغيّر ملفك. تحقق من الاتصال ثم حاول مرة أخرى.",
@@ -290,31 +274,27 @@ function friendshipCopy(locale: MobileLocale) {
       welcome: (name: string) => `مرحباً ${name}`,
       heroKicker: "دائرتك الجديدة تبدأ من اهتمامات مشتركة",
       heroTitle: "كوّن صداقات بدون غموض",
-      heroBody: "أنشئ ملفاً خاصاً بالصداقة، ثم اكتشف عدداً محدوداً من الأشخاص حول الأنشطة والمدينة وما تستمتع به.",
+      heroBody: "ملف منفصل يساعدك على اكتشاف أشخاص حول المدينة والأنشطة وما تستمتع به.",
       readyTitle: "ملف الصداقة جاهز",
-      readyBody: "سنستخدم اهتماماتك ومدينتك ونشاطك لبناء اكتشاف منفصل وآمن للأصدقاء.",
+      readyBody: "اهتماماتك ومدينتك جاهزتان لبناء اكتشاف منفصل للأصدقاء.",
       profileReady: "جاهز لاكتشاف الأصدقاء",
       profileNeeded: "أكمل ملف الصداقة أولاً",
       promptEyebrow: "سؤال يساعد الناس على فهمك",
-      promptTitle: "ما الشيء الذي تستمتع بفعله مع أصدقاء جدد؟",
-      promptChips: ["قهوة وحديث", "مشي ونشاط", "فعالية أو تجربة جديدة"],
-      howTitle: "كيف ستعمل مساحة الأصدقاء؟",
-      stepOneTitle: "اكتشاف محدود وهادف",
-      stepOneBody: "عدد صغير من الأشخاص بناءً على الاهتمامات والمدينة، وليس تصفحاً بلا نهاية.",
-      stepTwoTitle: "طلب صداقة خاص",
-      stepTwoBody: "لا تظهر الإشارة للطرف الآخر إلا عندما يسمح منطق الاتصال المتبادل بذلك.",
-      stepThreeTitle: "محادثة منفصلة",
-      stepThreeBody: "محادثات الأصدقاء لا تظهر داخل الزواج، والعكس صحيح.",
-      separateTitle: "منفصلة فعلاً عن الزواج",
-      separateBody: "نبذة الزواج وصوره وتفضيلاته لا تُنسخ هنا. ستختار لاحقاً أي معلومة ترغب في مشاركتها من جديد.",
-      previewNote: "هذه معاينة قابلة للتجربة. الحفظ والاكتشاف الفعليان يبدآن بعد تطبيق ترحيل المساحات على الاستضافة.",
+      promptTitle: "ماذا تستمتع بفعله مع أصدقاء جدد؟",
+      promptChips: ["قهوة", "مشي", "تجربة جديدة"],
+      discover: "اكتشاف",
+      request: "طلب خاص",
+      chat: "محادثة",
+      flowBody: "اكتشاف محدود، ثم طلب صداقة خاص، ثم محادثة منفصلة بعد القبول المتبادل.",
+      separateBody: "نبذة الزواج وصوره وتفضيلاته لا تُنسخ هنا، ومحادثات المساحتين لا تختلط.",
+      previewNote: "معاينة قابلة للتجربة؛ الحفظ الفعلي يبدأ بعد تطبيق ترحيل المساحات على الاستضافة.",
     };
   }
 
   return {
     eyebrow: "FRIENDS SPACE",
     title: "Meet people through what you enjoy",
-    body: "Friendship and community with clear intent—no marriage profiles, romantic likes, or mixed conversations.",
+    body: "Friendship and community with clear intent, completely separate from Marriage.",
     loading: "Opening Friends space",
     loadErrorTitle: "We couldn’t open Friends",
     loadErrorBody: "Your profile was not changed. Check your connection and try again.",
@@ -325,163 +305,149 @@ function friendshipCopy(locale: MobileLocale) {
     welcome: (name: string) => `Welcome, ${name}`,
     heroKicker: "Your next circle starts with shared interests",
     heroTitle: "Make friends without ambiguity",
-    heroBody: "Create a friendship-only profile, then discover a finite set of people through activities, city, and what you enjoy.",
+    heroBody: "A separate profile helps you discover people through city, activities, and what you enjoy.",
     readyTitle: "Your friendship profile is ready",
-    readyBody: "Mithaq can use your interests, city, and activity to build a separate, safe Friends discovery experience.",
+    readyBody: "Your interests and city are ready for a separate Friends discovery experience.",
     profileReady: "Ready for friend discovery",
     profileNeeded: "Complete your friendship profile first",
     promptEyebrow: "A PROMPT THAT HELPS PEOPLE KNOW YOU",
     promptTitle: "What would you enjoy doing with new friends?",
-    promptChips: ["Coffee & conversation", "Walks & activities", "A new event or experience"],
-    howTitle: "How Friends will work",
-    stepOneTitle: "Finite, intentional discovery",
-    stepOneBody: "A small set of people based on interests and city—not endless browsing.",
-    stepTwoTitle: "Private friend requests",
-    stepTwoBody: "A signal is not exposed unless the mutual connection rules allow it.",
-    stepThreeTitle: "Separate conversations",
-    stepThreeBody: "Friends chats never appear inside Marriage, and marriage chats never appear here.",
-    separateTitle: "Actually separate from Marriage",
-    separateBody: "Your marriage bio, photos, and preferences are not copied here. You will explicitly choose any information you reuse later.",
-    previewNote: "This is an interactive preview. Persistence and live discovery begin after the spaces migration is deployed to hosted staging.",
+    promptChips: ["Coffee", "A walk", "A new experience"],
+    discover: "Discover",
+    request: "Private request",
+    chat: "Conversation",
+    flowBody: "Finite discovery, a private friend request, then a separate conversation after mutual acceptance.",
+    separateBody: "Marriage biography, photos, and preferences are not copied here, and conversations never mix.",
+    previewNote: "Interactive preview; persistence begins after the spaces migration is deployed to hosted staging.",
   };
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  loadingState: { minHeight: 320, alignItems: "center", justifyContent: "center" },
-  page: { width: "100%", gap: 18 },
+  loadingState: { flex: 1, alignItems: "center", justifyContent: "center" },
+  page: { flex: 1, width: "100%", gap: 12 },
   hero: {
     width: "100%",
-    minHeight: 330,
+    minHeight: 248,
     justifyContent: "flex-end",
     borderRadius: radius.xl,
     backgroundColor: colors.accentWash,
     borderWidth: 1,
     borderColor: colors.accentSoft,
-    padding: 21,
+    padding: 18,
     overflow: "hidden",
     ...shadows.card,
   },
+  heroCompact: { minHeight: 216, padding: 15 },
   heroGlowOne: {
     position: "absolute",
     top: -74,
     right: -48,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
+    width: 210,
+    height: 210,
+    borderRadius: 105,
     backgroundColor: "rgba(4,144,155,0.12)",
   },
   heroGlowTwo: {
     position: "absolute",
-    top: 38,
+    top: 18,
     left: -62,
-    width: 190,
-    height: 190,
-    borderRadius: 95,
+    width: 174,
+    height: 174,
+    borderRadius: 87,
     backgroundColor: "rgba(208,156,81,0.14)",
   },
   peopleIcon: {
     position: "absolute",
-    top: 44,
+    top: 25,
     alignSelf: "center",
-    width: 176,
-    height: 122,
+    width: 160,
+    height: 92,
   },
+  peopleIconCompact: { top: 12, transform: [{ scale: 0.83 }] },
   person: { position: "absolute", alignItems: "center" },
-  personOne: { left: 10, top: 24, transform: [{ scale: 0.82 }] },
-  personTwo: { left: 63, top: 0, transform: [{ scale: 1.05 }] },
-  personThree: { right: 8, top: 28, transform: [{ scale: 0.78 }] },
+  personOne: { left: 10, top: 20, transform: [{ scale: 0.75 }] },
+  personTwo: { left: 56, top: 0 },
+  personThree: { right: 8, top: 23, transform: [{ scale: 0.72 }] },
   head: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: colors.surfaceRaised,
     borderWidth: 2,
     borderColor: colors.accentSoft,
   },
   bodyShape: {
-    width: 68,
-    height: 48,
-    borderTopLeftRadius: 34,
-    borderTopRightRadius: 34,
-    borderBottomLeftRadius: 17,
-    borderBottomRightRadius: 17,
+    width: 60,
+    height: 40,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
     backgroundColor: colors.surfaceRaised,
     borderWidth: 2,
     borderColor: colors.accentSoft,
-    marginTop: 5,
+    marginTop: 4,
   },
   heroKicker: {
     width: "100%",
     color: colors.accent,
-    fontSize: 11,
-    lineHeight: 18,
+    fontSize: 10,
+    lineHeight: 16,
     fontWeight: "800",
   },
   heroTitle: {
     width: "100%",
     color: colors.foreground,
-    fontSize: 27,
-    lineHeight: 41,
+    fontSize: 24,
+    lineHeight: 37,
     fontWeight: "800",
-    marginTop: 5,
+    marginTop: 3,
   },
+  heroTitleCompact: { fontSize: 21, lineHeight: 32 },
   heroBody: {
     width: "100%",
     color: colors.muted,
-    fontSize: 13,
-    lineHeight: 22,
-    marginTop: 5,
+    fontSize: 11,
+    lineHeight: 19,
+    marginTop: 3,
   },
   statusPill: {
-    alignSelf: "flex-start",
     alignItems: "center",
-    gap: 7,
+    gap: 6,
     borderRadius: radius.pill,
     backgroundColor: colors.surfaceRaised,
-    paddingHorizontal: 11,
-    paddingVertical: 8,
-    marginTop: 14,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    marginTop: 9,
   },
   statusPillReady: { backgroundColor: colors.primarySoft },
-  statusDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.accent },
+  statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
   statusDotReady: { backgroundColor: colors.primary },
-  statusText: { color: colors.foreground, fontSize: 10, lineHeight: 15, fontWeight: "800" },
+  statusText: { color: colors.foreground, fontSize: 9, lineHeight: 13, fontWeight: "800" },
   promptCard: {
     width: "100%",
-    borderRadius: radius.xl,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 18,
-    ...shadows.card,
-  },
-  promptEyebrow: { width: "100%", color: colors.gold, fontSize: 10, lineHeight: 16, fontWeight: "800" },
-  promptTitle: { width: "100%", color: colors.foreground, fontSize: 18, lineHeight: 29, fontWeight: "800", marginTop: 5 },
-  promptChips: { width: "100%", flexWrap: "wrap", gap: 8, marginTop: 14 },
-  promptChip: { borderRadius: radius.pill, backgroundColor: colors.goldSoft, paddingHorizontal: 11, paddingVertical: 8 },
-  promptChipText: { color: colors.foreground, fontSize: 10, lineHeight: 15, fontWeight: "700" },
-  section: { width: "100%", gap: 10 },
-  sectionTitle: { width: "100%", color: colors.foreground, fontSize: 18, lineHeight: 29, fontWeight: "800", marginBottom: 2 },
-  step: {
-    width: "100%",
-    alignItems: "flex-start",
-    gap: 12,
     borderRadius: radius.lg,
     backgroundColor: colors.surfaceRaised,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 15,
+    padding: 13,
   },
-  stepNumber: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.primarySoft },
-  stepNumberRose: { backgroundColor: colors.accentSoft },
-  stepNumberGold: { backgroundColor: colors.goldSoft },
-  stepNumberText: { color: colors.foreground, fontSize: 11, fontWeight: "900" },
-  stepTitle: { width: "100%", color: colors.foreground, fontSize: 14, lineHeight: 22, fontWeight: "800" },
-  stepBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 19, marginTop: 2 },
-  separateCard: { width: "100%", alignItems: "flex-start", gap: 12, borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 16 },
-  separateIcon: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised },
-  separateTitle: { width: "100%", color: colors.foreground, fontSize: 14, lineHeight: 22, fontWeight: "800" },
-  separateBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 19, marginTop: 3 },
-  previewNote: { width: "100%", color: colors.gold, fontSize: 11, lineHeight: 19, fontWeight: "700" },
+  promptEyebrow: { width: "100%", color: colors.gold, fontSize: 9, lineHeight: 14, fontWeight: "800" },
+  promptTitle: { width: "100%", color: colors.foreground, fontSize: 14, lineHeight: 22, fontWeight: "800", marginTop: 2 },
+  promptChips: { width: "100%", flexWrap: "wrap", gap: 6, marginTop: 8 },
+  promptChip: { borderRadius: radius.pill, backgroundColor: colors.goldSoft, paddingHorizontal: 9, paddingVertical: 6 },
+  promptChipText: { color: colors.foreground, fontSize: 9, lineHeight: 13, fontWeight: "700" },
+  flowSection: { width: "100%" },
+  flow: { width: "100%", alignItems: "flex-start" },
+  flowStep: { width: 76, alignItems: "center" },
+  flowDot: { width: 29, height: 29, borderRadius: 15, backgroundColor: colors.primarySoft, borderWidth: 1, borderColor: colors.primary },
+  flowDotRose: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  flowDotGold: { backgroundColor: colors.goldSoft, borderColor: colors.gold },
+  flowLine: { flex: 1, height: 1, backgroundColor: colors.borderStrong, marginTop: 15 },
+  flowLabel: { color: colors.muted, fontSize: 9, lineHeight: 14, fontWeight: "700", textAlign: "center", marginTop: 4 },
+  flowBody: { width: "100%", color: colors.muted, fontSize: 10, lineHeight: 17, marginTop: 5 },
+  separateCard: { width: "100%", alignItems: "center", gap: 9, borderRadius: radius.md, backgroundColor: colors.primaryWash, paddingHorizontal: 12, paddingVertical: 10 },
+  separateIcon: { width: 31, height: 31, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised },
+  separateBody: { flex: 1, color: colors.muted, fontSize: 10, lineHeight: 17 },
+  previewNote: { width: "100%", color: colors.gold, fontSize: 9, lineHeight: 15, fontWeight: "700" },
 });
