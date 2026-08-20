@@ -13,7 +13,9 @@ export type AppIconName =
   | "shield"
   | "privacy"
   | "language"
-  | "logout";
+  | "logout"
+  | "photo"
+  | "trash";
 
 type Props = {
   name: AppIconName;
@@ -117,6 +119,27 @@ export function AppIcon({ name, active = false, size = 22, rtl = false }: Props)
         <View style={[styles.lockShackle, { borderColor: color, transform: [{ scale }] }]} />
         <View style={[styles.lockBody, { borderColor: color, transform: [{ scale }] }]} />
         <View style={[styles.lockKeyhole, { backgroundColor: color }]} />
+      </View>
+    );
+  }
+
+  if (name === "photo") {
+    return (
+      <View style={[styles.canvas, { width: size, height: size }]}>
+        <View style={[styles.photoFrame, { borderColor: color, transform: [{ scale }] }]} />
+        <View style={[styles.photoSun, { borderColor: color, transform: [{ scale }] }]} />
+        <View style={[styles.photoMountainStart, { borderColor: color }]} />
+        <View style={[styles.photoMountainEnd, { borderColor: color }]} />
+      </View>
+    );
+  }
+
+  if (name === "trash") {
+    return (
+      <View style={[styles.canvas, { width: size, height: size }]}>
+        <View style={[styles.trashLid, { backgroundColor: color }]} />
+        <View style={[styles.trashHandle, { borderColor: color }]} />
+        <View style={[styles.trashBody, { borderColor: color, transform: [{ scale }] }]} />
       </View>
     );
   }
@@ -296,6 +319,62 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   lockKeyhole: { position: "absolute", bottom: 7, width: 3, height: 4, borderRadius: 2 },
+  photoFrame: {
+    width: 19,
+    height: 16,
+    borderWidth: 1.7,
+    borderRadius: 4,
+  },
+  photoSun: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    width: 4,
+    height: 4,
+    borderWidth: 1.3,
+    borderRadius: 2,
+  },
+  photoMountainStart: {
+    position: "absolute",
+    left: 5,
+    bottom: 5,
+    width: 8,
+    height: 8,
+    borderLeftWidth: 1.5,
+    borderTopWidth: 1.5,
+    transform: [{ rotate: "45deg" }],
+  },
+  photoMountainEnd: {
+    position: "absolute",
+    right: 4,
+    bottom: 5,
+    width: 6,
+    height: 6,
+    borderLeftWidth: 1.5,
+    borderTopWidth: 1.5,
+    transform: [{ rotate: "45deg" }],
+  },
+  trashLid: { position: "absolute", top: 5, width: 15, height: 1.7, borderRadius: 1 },
+  trashHandle: {
+    position: "absolute",
+    top: 2,
+    width: 7,
+    height: 5,
+    borderWidth: 1.5,
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+  },
+  trashBody: {
+    position: "absolute",
+    bottom: 3,
+    width: 13,
+    height: 13,
+    borderWidth: 1.7,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+  },
   globe: { width: 18, height: 18, borderWidth: 1.7, borderRadius: 9 },
   globeVertical: {
     position: "absolute",
