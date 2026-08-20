@@ -17,7 +17,13 @@ type AccountSnapshot = {
   deletionPending: boolean;
 };
 
-type AccountPath = "/profile" | "/questionnaire" | "/privacy" | "/safety" | "/security";
+type AccountPath =
+  | "/profile"
+  | "/photos"
+  | "/questionnaire"
+  | "/privacy"
+  | "/safety"
+  | "/security";
 
 export default function AccountScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
@@ -43,6 +49,8 @@ export default function AccountScreen() {
         membership: "العضوية",
         profile: "ملفي الخاص",
         profileBody: "معلوماتك التي يظهر منها فقط ما تسمح به داخل التعارف.",
+        photos: "صوري الخاصة",
+        photosBody: "الصورة الأساسية والصور الإضافية وحالة مراجعة كل صورة.",
         preferences: "التفضيلات",
         preferencesBody: "حدودك الأساسية وما تبحث عنه في شريك الحياة.",
         trust: "الخصوصية والثقة",
@@ -72,6 +80,8 @@ export default function AccountScreen() {
         membership: "Membership",
         profile: "Private profile",
         profileBody: "The details Mithaq selectively reveals inside an eligible introduction.",
+        photos: "Private photos",
+        photosBody: "Your primary portrait, supporting photos, and each review state.",
         preferences: "Preferences",
         preferencesBody: "Your important boundaries and what you seek in a life partner.",
         trust: "Privacy & trust",
@@ -116,7 +126,11 @@ export default function AccountScreen() {
         .select("display_name, profile_completed_at")
         .eq("user_id", session.user.id)
         .maybeSingle(),
-      supabase.from("users").select("account_status").eq("id", session.user.id).maybeSingle(),
+      supabase
+        .from("users")
+        .select("account_status")
+        .eq("id", session.user.id)
+        .maybeSingle(),
     ]);
 
     if (profileResult.error || userResult.error) {
@@ -206,9 +220,18 @@ export default function AccountScreen() {
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{initial}</Text>
             </View>
-            <View style={[styles.identityCopy, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
-              <Text style={[styles.name, { textAlign, writingDirection }]}>{displayName}</Text>
-              <Text style={[styles.phone, { textAlign, writingDirection }]}>{maskPhone(account.phone)}</Text>
+            <View
+              style={[
+                styles.identityCopy,
+                { alignItems: rtl ? "flex-end" : "flex-start" },
+              ]}
+            >
+              <Text style={[styles.name, { textAlign, writingDirection }]}>
+                {displayName}
+              </Text>
+              <Text style={[styles.phone, { textAlign, writingDirection }]}>
+                {maskPhone(account.phone)}
+              </Text>
               <View
                 style={[
                   styles.statusPill,
@@ -223,7 +246,10 @@ export default function AccountScreen() {
           </View>
 
           {message ? (
-            <Text accessibilityRole="alert" style={[styles.message, { textAlign, writingDirection }]}>
+            <Text
+              accessibilityRole="alert"
+              style={[styles.message, { textAlign, writingDirection }]}
+            >
               {message}
             </Text>
           ) : null}
@@ -235,6 +261,13 @@ export default function AccountScreen() {
               title={copy.profile}
               body={copy.profileBody}
               onPress={() => open("/profile")}
+            />
+            <SettingsRow
+              rtl={rtl}
+              icon="photo"
+              title={copy.photos}
+              body={copy.photosBody}
+              onPress={() => open("/photos")}
             />
             <SettingsRow
               rtl={rtl}
@@ -315,7 +348,10 @@ function SettingsGroup({
       <Text
         style={[
           styles.groupTitle,
-          { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" },
+          {
+            textAlign: rtl ? "right" : "left",
+            writingDirection: rtl ? "rtl" : "ltr",
+          },
         ]}
       >
         {title}
@@ -433,7 +469,13 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0,
   },
-  phone: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 1 },
+  phone: {
+    width: "100%",
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 19,
+    marginTop: 1,
+  },
   statusPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -447,7 +489,13 @@ const styles = StyleSheet.create({
   statusPillWarning: { backgroundColor: colors.goldSoft },
   statusDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.gold },
   statusText: { color: colors.primary, fontSize: 10, lineHeight: 15, fontWeight: "800" },
-  message: { width: "100%", color: colors.danger, fontSize: 13, lineHeight: 21, fontWeight: "700" },
+  message: {
+    width: "100%",
+    color: colors.danger,
+    fontSize: 13,
+    lineHeight: 21,
+    fontWeight: "700",
+  },
   groupWrap: { width: "100%" },
   groupTitle: {
     width: "100%",
@@ -475,8 +523,18 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 4,
   },
-  row: { width: "100%", minHeight: 76, alignItems: "center", gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
-  rowDivider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  row: {
+    width: "100%",
+    minHeight: 76,
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  rowDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
   rowPressed: { backgroundColor: colors.surfaceMuted },
   rowLoading: { opacity: 0.62 },
   rowIcon: {
@@ -487,9 +545,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.primaryWash,
   },
-  rowIconDanger: { backgroundColor: "rgba(180,35,63,0.08)" },
+  rowIconDanger: { backgroundColor: "rgba(182,70,88,0.08)" },
   rowCopy: { flex: 1, minWidth: 0 },
-  rowTitle: { width: "100%", color: colors.foreground, fontSize: 14, lineHeight: 22, fontWeight: "800" },
+  rowTitle: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: "800",
+  },
   rowTitleDanger: { color: colors.danger },
-  rowBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 2 },
+  rowBody: {
+    width: "100%",
+    color: colors.muted,
+    fontSize: 11,
+    lineHeight: 18,
+    marginTop: 2,
+  },
 });
