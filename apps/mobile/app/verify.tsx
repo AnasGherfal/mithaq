@@ -98,8 +98,11 @@ export default function VerifyScreen() {
           .eq("id", verifyData.user.id);
       }
 
-      await Promise.all([SecureStore.deleteItemAsync(pendingPhoneKey), SecureStore.deleteItemAsync(pendingLocaleKey)]);
-      router.replace({ pathname: "/status", params: { locale } });
+      await Promise.all([
+        SecureStore.deleteItemAsync(pendingPhoneKey),
+        SecureStore.deleteItemAsync(pendingLocaleKey),
+      ]);
+      router.replace({ pathname: "/spaces", params: { locale } });
     } catch {
       setError(copy.genericError);
     } finally {
@@ -192,7 +195,11 @@ export default function VerifyScreen() {
         <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>{copy.codeLabel}</Text>
         <TextInput
           accessibilityLabel={copy.codeLabel}
-          accessibilityHint={rtl ? "أدخل رمز التحقق المكوّن من ستة أرقام" : "Enter the six-digit verification code"}
+          accessibilityHint={
+            rtl
+              ? "أدخل رمز التحقق المكوّن من ستة أرقام"
+              : "Enter the six-digit verification code"
+          }
           autoComplete="one-time-code"
           keyboardType="number-pad"
           value={code}
@@ -211,24 +218,36 @@ export default function VerifyScreen() {
         />
         {__DEV__ && phone && previewTestPhones.has(phone) ? (
           <Text style={[styles.previewHint, { textAlign: rtl ? "right" : "left" }]}>
-            {rtl ? "هذا رمز محلي ثابت للمعاينة فقط؛ لا تُرسل رسالة SMS." : "This is a local fixed preview code; no SMS is sent."}
+            {rtl
+              ? "هذا رمز محلي ثابت للمعاينة فقط؛ لا تُرسل رسالة SMS."
+              : "This is a local fixed preview code; no SMS is sent."}
           </Text>
         ) : null}
       </View>
 
       {error ? (
-        <Text accessibilityRole="alert" style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>
+        <Text
+          accessibilityRole="alert"
+          style={[styles.error, { textAlign: rtl ? "right" : "left" }]}
+        >
           {error}
         </Text>
       ) : null}
       {notice ? (
-        <Text accessibilityLiveRegion="polite" style={[styles.notice, { textAlign: rtl ? "right" : "left" }]}>
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[styles.notice, { textAlign: rtl ? "right" : "left" }]}
+        >
           {notice}
         </Text>
       ) : null}
 
       <View style={styles.actions}>
-        <PrimaryButton disabled={!phone || code.length !== 6} loading={loading} onPress={() => void verifyCode()}>
+        <PrimaryButton
+          disabled={!phone || code.length !== 6}
+          loading={loading}
+          onPress={() => void verifyCode()}
+        >
           {loading ? copy.verifying : copy.verify}
         </PrimaryButton>
         <PrimaryButton
@@ -282,8 +301,26 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     paddingHorizontal: 16,
   },
-  previewHint: { color: colors.primary, fontSize: 12, lineHeight: 19, marginTop: 9, fontWeight: "700" },
-  error: { color: colors.danger, fontSize: 13, fontWeight: "700", lineHeight: 20, marginBottom: 14 },
-  notice: { color: colors.primary, fontSize: 13, fontWeight: "700", lineHeight: 20, marginBottom: 14 },
+  previewHint: {
+    color: colors.primary,
+    fontSize: 12,
+    lineHeight: 19,
+    marginTop: 9,
+    fontWeight: "700",
+  },
+  error: {
+    color: colors.danger,
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 20,
+    marginBottom: 14,
+  },
+  notice: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 20,
+    marginBottom: 14,
+  },
   actions: { gap: 10 },
 });
