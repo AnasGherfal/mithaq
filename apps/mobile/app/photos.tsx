@@ -36,6 +36,7 @@ import { colors, radius, shadows } from "@/theme";
 
 type ScreenMessage = { tone: "neutral" | "success" | "error"; text: string } | null;
 type UploadStage = "choosing" | MemberPhotoUploadStage | null;
+type LocalPreview = { uri: string; width: number; height: number } | null;
 
 export default function PhotosScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
@@ -51,6 +52,7 @@ export default function PhotosScreen() {
   const [loadError, setLoadError] = useState(false);
   const [featurePending, setFeaturePending] = useState(false);
   const [photos, setPhotos] = useState<MemberPhoto[]>([]);
+  const [localPreview, setLocalPreview] = useState<LocalPreview>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [action, setAction] = useState<string | null>(null);
   const [uploadStage, setUploadStage] = useState<UploadStage>(null);
@@ -60,6 +62,7 @@ export default function PhotosScreen() {
   const refreshPhotos = useCallback(async (preferredId?: string | null) => {
     const rows = await listMyMemberPhotos();
     setPhotos(rows);
+    setLocalPreview(null);
     setSelectedId((current) => {
       const requested = preferredId ?? current;
       if (requested && rows.some((photo) => photo.photoId === requested)) return requested;
@@ -138,7 +141,7 @@ export default function PhotosScreen() {
   }
 
   async function addPhoto() {
-    if (busy || featurePending || photos.length >= 5) return;
+    if (busy || photos.length >= 5) return;
     setConfirmingDeleteId(null);
     setMessage(null);
     setUploadStage("choosing");
@@ -146,6 +149,12 @@ export default function PhotosScreen() {
     try {
       const asset = await choosePhotoAsset();
       if (!asset) return;
+
+      if (featurePending) {
+        setLocalPreview({ uri: asset.uri, width: asset.width, height: asset.height });
+        setMessage({ tone: "neutral", text: copy.previewSelected });
+        return;
+      }
 
       const uploaded = await prepareAndUploadMemberPhoto({
         uri: asset.uri,
@@ -266,7 +275,7 @@ export default function PhotosScreen() {
           rtl={rtl}
           backLabel={copy.account}
           primaryLabel={photos.length >= 5 ? copy.full : copy.add}
-          primaryDisabled={photos.length >= 5 || busy || featurePending}
+          primaryDisabled={photos.length >= 5 || busy}
           loading={uploadStage !== null}
           secondaryIcon="account"
           onBack={() => router.replace({ pathname: "/account", params: { locale } })}
@@ -308,12 +317,21 @@ export default function PhotosScreen() {
             <View style={styles.previewNotice}>
               <Text style={[styles.previewNoticeTitle, { textAlign, writingDirection }]}>{copy.previewTitle}</Text>
               <Text style={[styles.previewNoticeBody, { textAlign, writingDirection }]}>{copy.previewBody}</Text>
+              <Pressable
+                accessibilityRole="button"
+                disabled={busy}
+                onPress={() => void load()}
+                style={({ pressed }) => [styles.previewRetry, pressed ? styles.pressed : null]}
+              >
+                <Text style={styles.previewRetryText}>{copy.checkAgain}</Text>
+              </Pressable>
             </View>
           ) : null}
 
           <SectionHeading title={copy.primaryPortrait} body={copy.primaryBody} rtl={rtl} />
           <PhotoTile
             photo={primary}
+            previewUri={!primary ? localPreview?.uri ?? null : null}
             selected={Boolean(primary && selected?.photoId === primary.photoId)}
             primary
             height={primaryHeight}
@@ -328,6 +346,17 @@ export default function PhotosScreen() {
               }
             }}
           />
+
+          {localPreview && featurePending ? (
+            <View style={styles.localPreviewNote}>
+              <Text style={[styles.localPreviewTitle, { textAlign, writingDirection }]}>
+                {copy.localPreviewTitle}
+              </Text>
+              <Text style={[styles.localPreviewBody, { textAlign, writingDirection }]}>
+                {copy.localPreviewBody}
+              </Text>
+            </View>
+          ) : null}
 
           <SectionHeading title={copy.additional} body={copy.additionalBody} rtl={rtl} />
           <View style={[styles.grid, { flexDirection: rtl ? "row-reverse" : "row" }]}>
@@ -364,11 +393,7 @@ export default function PhotosScreen() {
                 <ReviewBadge state={selected.reviewState} copy={copy} />
               </View>
 
-              <PrimaryButton
-                tone="quiet"
-                disabled={busy}
-                onPress={() => void replacePhoto(selected)}
-              >
+              <PrimaryButton tone="quiet" disabled={busy} onPress={() => void replacePhoto(selected)}>
                 {copy.replace}
               </PrimaryButton>
 
@@ -475,10 +500,11 @@ function SectionHeading({ title, body, rtl }: { title: string; body: string; rtl
   );
 }
 
-function PhotoTile({ photo, selected, primary = false, height, rtl, copy, onPress }: { photo: MemberPhoto | null; selected: boolean; primary?: boolean; height?: number; rtl: boolean; copy: ReturnType<typeof photoCopy>; onPress: () => void }) {
+function PhotoTile({ photo, previewUri, selected, primary = false, height, rtl, copy, onPress }: { photo: MemberPhoto | null; previewUri?: string | null; selected: boolean; primary?: boolean; height?: number; rtl: boolean; copy: ReturnType<typeof photoCopy>; onPress: () => void }) {
+  const imageUri = photo?.signedUrl ?? previewUri ?? null;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={photo ? copy.photoAccessibility : copy.emptyAccessibility} onPress={onPress} style={({ pressed }) => [primary ? styles.primaryTile : styles.secondaryTile, height ? { height } : null, selected ? styles.tileSelected : null, pressed ? styles.tilePressed : null]}>
-      {photo?.signedUrl ? <Image resizeMode="cover" source={{ uri: photo.signedUrl }} style={StyleSheet.absoluteFillObject} /> : (
+      {imageUri ? <Image resizeMode="cover" source={{ uri: imageUri }} style={StyleSheet.absoluteFillObject} /> : (
         <View style={styles.emptyPhoto}>
           <View style={styles.emptyPhotoIcon}><AppIcon name="photo" active size={primary ? 30 : 24} /></View>
           {!photo ? <Text style={styles.plus}>+</Text> : null}
@@ -487,6 +513,7 @@ function PhotoTile({ photo, selected, primary = false, height, rtl, copy, onPres
       )}
       {photo ? <View style={[styles.tileBadgeRow, rtl ? styles.tileBadgeRowRtl : styles.tileBadgeRowLtr]}><ReviewBadge state={photo.reviewState} compact copy={copy} /></View> : null}
       {photo?.isPrimary ? <View style={[styles.primaryBadge, rtl ? styles.primaryBadgeRtl : styles.primaryBadgeLtr]}><Text style={styles.primaryBadgeText}>{copy.primaryBadge}</Text></View> : null}
+      {previewUri && !photo ? <View style={[styles.previewBadge, rtl ? styles.primaryBadgeRtl : styles.primaryBadgeLtr]}><Text style={styles.previewBadgeText}>{copy.previewOnly}</Text></View> : null}
     </Pressable>
   );
 }
@@ -523,8 +550,13 @@ function photoCopy(locale: MobileLocale) {
     retry: ar ? "إعادة المحاولة" : "Try again",
     privateTitle: ar ? "خاصة افتراضياً" : "Private by default",
     privateBody: ar ? "نستخدم وصولاً مؤقتاً للمعاينة، وكل صورة جديدة تبدأ بانتظار المراجعة." : "Self-previews use temporary access, and every new photo starts in pending review.",
-    previewTitle: ar ? "يجب تفعيل تخزين الصور على بيئة المعاينة" : "Photo storage must be enabled in preview",
-    previewBody: ar ? "طبّق ترحيلات M11 على مشروع Supabase المرحلي قبل رفع صور حقيقية." : "Apply the M11 migrations to hosted staging before accepting real uploads.",
+    previewTitle: ar ? "الاختيار يعمل الآن — الرفع ينتظر بيئة الاختبار" : "Photo choosing works now — upload is waiting on staging",
+    previewBody: ar ? "يمكنك اختيار صورة من الآيفون ورؤيتها داخل ميثاق الآن. لن نرفعها أو ندّعي حفظها حتى تكون ترحيلات الصور مفعّلة على Supabase المرحلي." : "You can choose a photo from your iPhone and preview it in Mithaq now. We will not upload or pretend to save it until the photo migrations are active on hosted staging.",
+    checkAgain: ar ? "فحص بيئة الاختبار من جديد" : "Check staging again",
+    previewSelected: ar ? "تم اختيار الصورة على جهازك. هذه معاينة محلية فقط ولم تُرفع بعد." : "Photo selected on your device. This is a local preview only and has not been uploaded yet.",
+    localPreviewTitle: ar ? "معاينة على جهازك" : "On-device preview",
+    localPreviewBody: ar ? "الصورة لم تغادر جهازك. بعد تفعيل تخزين M11 ستتحول نفس الخطوة إلى قص وضغط ورفع خاص ثم مراجعة." : "This image has not left your device. Once M11 Storage is enabled, the same action will crop, compress, privately upload, and submit it for review.",
+    previewOnly: ar ? "معاينة فقط" : "Preview only",
     primaryPortrait: ar ? "الصورة الشخصية الأساسية" : "Primary portrait",
     primaryBody: ar ? "يتم قص الصورة تلقائياً إلى إطار 4:5 مع الحفاظ على المنتصف، ثم ضغطها قبل الرفع." : "Mithaq center-crops to a 4:5 portrait and compresses it before private upload.",
     additional: ar ? "صور إضافية" : "Additional photos",
@@ -606,6 +638,11 @@ const styles = StyleSheet.create({
   previewNotice: { width: "100%", borderRadius: radius.md, borderWidth: 1, borderColor: colors.goldSoft, backgroundColor: "#FFF9EC", padding: 15 },
   previewNoticeTitle: { width: "100%", color: colors.gold, fontSize: 13, lineHeight: 21, fontWeight: "800" },
   previewNoticeBody: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 20, marginTop: 4 },
+  previewRetry: { alignSelf: "stretch", minHeight: 42, alignItems: "center", justifyContent: "center", borderRadius: radius.md, backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.border, marginTop: 12 },
+  previewRetryText: { color: colors.primary, fontSize: 11, fontWeight: "800" },
+  localPreviewNote: { width: "100%", borderRadius: radius.md, backgroundColor: colors.accentWash, padding: 14 },
+  localPreviewTitle: { width: "100%", color: colors.accent, fontSize: 13, lineHeight: 20, fontWeight: "800" },
+  localPreviewBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 3 },
   sectionHeader: { width: "100%", marginTop: 4 },
   sectionTitle: { width: "100%", color: colors.foreground, fontSize: 17, lineHeight: 27, fontWeight: "800" },
   sectionBody: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 20, marginTop: 3 },
@@ -622,6 +659,8 @@ const styles = StyleSheet.create({
   tileBadgeRowLtr: { left: 10 },
   tileBadgeRowRtl: { right: 10 },
   primaryBadge: { position: "absolute", bottom: 12, borderRadius: radius.pill, backgroundColor: "rgba(23,36,59,0.78)", paddingHorizontal: 10, paddingVertical: 7 },
+  previewBadge: { position: "absolute", bottom: 12, borderRadius: radius.pill, backgroundColor: "rgba(169,86,97,0.88)", paddingHorizontal: 10, paddingVertical: 7 },
+  previewBadgeText: { color: colors.white, fontSize: 10, lineHeight: 14, fontWeight: "800" },
   primaryBadgeLtr: { left: 12 },
   primaryBadgeRtl: { right: 12 },
   primaryBadgeText: { color: colors.white, fontSize: 10, lineHeight: 14, fontWeight: "800" },
