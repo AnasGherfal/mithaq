@@ -8,6 +8,16 @@ export type MemberPhotoReviewState =
   | "needs_changes"
   | "rejected";
 
+export type MemberPhotoExtension = "jpg" | "png" | "webp";
+
+export type PreparedMemberPhotoUpload = {
+  bytes: ArrayBuffer;
+  extension: MemberPhotoExtension;
+  contentType: "image/jpeg" | "image/png" | "image/webp";
+  position?: number | null;
+  makePrimary?: boolean;
+};
+
 export type MemberPhoto = {
   photoId: string;
   storagePath: string;
@@ -65,6 +75,62 @@ export async function listMyMemberPhotos(): Promise<MemberPhoto[]> {
   );
 }
 
+export async function uploadPreparedMemberPhoto(
+  input: PreparedMemberPhotoUpload,
+) {
+  if (input.bytes.byteLength === 0) {
+    throw new Error("member photo file is empty");
+  }
+
+  const { data: sessionData, error: sessionError } =
+    await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+
+  const userId = sessionData.session?.user.id;
+  if (!userId) throw new Error("authentication required");
+
+  const objectId = createObjectId();
+  const storagePath = `${userId}/${objectId}.${input.extension}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(memberPhotoBucket)
+    .upload(storagePath, input.bytes, {
+      cacheControl: "3600",
+      contentType: input.contentType,
+      upsert: false,
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data: registrationData, error: registrationError } = await supabase.rpc(
+    "register_member_photo",
+    {
+      p_storage_path: storagePath,
+      p_position: input.position ?? null,
+      p_make_primary: input.makePrimary ?? false,
+    },
+  );
+
+  if (registrationError || typeof registrationData !== "string") {
+    const { error: cleanupError } = await supabase.storage
+      .from(memberPhotoBucket)
+      .remove([storagePath]);
+
+    if (cleanupError) {
+      throw new Error("member photo registration failed and secure cleanup must be retried", {
+        cause: registrationError ?? cleanupError,
+      });
+    }
+
+    throw registrationError ?? new Error("member photo registration failed");
+  }
+
+  return {
+    photoId: registrationData,
+    storagePath,
+  };
+}
+
 export async function setPrimaryMemberPhoto(photoId: string) {
   const { error } = await supabase.rpc("set_primary_member_photo", {
     p_photo_id: photoId,
@@ -96,6 +162,16 @@ export async function removeMemberPhoto(photoId: string) {
     storagePath,
     storageCleanupFailed: Boolean(storageError),
   };
+}
+
+function createObjectId() {
+  const randomUUID = globalThis.crypto?.randomUUID;
+  if (typeof randomUUID === "function") {
+    return randomUUID.call(globalThis.crypto);
+  }
+
+  const randomPart = Math.random().toString(36).slice(2, 12);
+  return `${Date.now().toString(36)}-${randomPart}`;
 }
 
 function normalizeError(error: unknown) {
