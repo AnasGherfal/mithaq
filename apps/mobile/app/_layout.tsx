@@ -24,6 +24,7 @@ export default function RootLayout() {
           <Stack.Screen name="introductions" options={{ animation: "none" }} />
           <Stack.Screen name="activity" options={{ animation: "none" }} />
           <Stack.Screen name="account" options={{ animation: "none" }} />
+          <Stack.Screen name="photos" options={{ animation: "fade" }} />
         </Stack>
       </BiometricGate>
     </SafeAreaProvider>
