@@ -1,5 +1,9 @@
 import * as ImageManipulator from "expo-image-manipulator";
-import { memberPhotoBucket } from "@/lib/member-photos";
+import {
+  memberPhotoBucket,
+  queueMyMemberPhotoCleanup,
+  type MemberPhotoCleanupReason,
+} from "@/lib/member-photos";
 import { supabase } from "@/lib/supabase";
 
 const TARGET_ASPECT = 4 / 5;
@@ -69,7 +73,7 @@ export async function prepareAndUploadMemberPhoto({
   );
 
   if (registrationError || typeof photoId !== "string") {
-    await cleanupFailedRegistration(storagePath);
+    await cleanupFailedRegistration(storagePath, "registration_failure");
   }
 
   return {
@@ -101,18 +105,23 @@ export async function prepareAndReplaceMemberPhoto({
   );
 
   if (replacementError || typeof previousStoragePath !== "string") {
-    await cleanupFailedRegistration(storagePath);
+    await cleanupFailedRegistration(storagePath, "registration_failure");
   }
 
   const { error: cleanupError } = await supabase.storage
     .from(memberPhotoBucket)
     .remove([previousStoragePath]);
 
+  const previousCleanupQueued = cleanupError
+    ? await queueMyMemberPhotoCleanup(previousStoragePath, "replace")
+    : false;
+
   return {
     photoId,
     storagePath,
     previousStoragePath,
     previousCleanupFailed: Boolean(cleanupError),
+    previousCleanupQueued,
     width: prepared.width,
     height: prepared.height,
   };
@@ -204,10 +213,17 @@ async function uploadPreparedPhoto(
   return storagePath;
 }
 
-async function cleanupFailedRegistration(storagePath: string): Promise<never> {
+async function cleanupFailedRegistration(
+  storagePath: string,
+  reason: MemberPhotoCleanupReason,
+): Promise<never> {
   const { error: cleanupError } = await supabase.storage
     .from(memberPhotoBucket)
     .remove([storagePath]);
+
+  if (cleanupError) {
+    await queueMyMemberPhotoCleanup(storagePath, reason);
+  }
 
   throw new MemberPhotoUploadError(
     cleanupError ? "registration_failed_cleanup_pending" : "registration_failed",
