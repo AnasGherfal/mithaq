@@ -117,9 +117,9 @@ export async function uploadPreparedMemberPhoto(
       .remove([storagePath]);
 
     if (cleanupError) {
-      throw new Error("member photo registration failed and secure cleanup must be retried", {
-        cause: registrationError ?? cleanupError,
-      });
+      throw new Error(
+        "member photo registration failed and secure cleanup must be retried",
+      );
     }
 
     throw registrationError ?? new Error("member photo registration failed");
@@ -165,13 +165,10 @@ export async function removeMemberPhoto(photoId: string) {
 }
 
 function createObjectId() {
-  const randomUUID = globalThis.crypto?.randomUUID;
-  if (typeof randomUUID === "function") {
-    return randomUUID.call(globalThis.crypto);
-  }
-
-  const randomPart = Math.random().toString(36).slice(2, 12);
-  return `${Date.now().toString(36)}-${randomPart}`;
+  const timestamp = Date.now().toString(36);
+  const randomStart = Math.random().toString(36).slice(2, 12);
+  const randomEnd = Math.random().toString(36).slice(2, 12);
+  return `${timestamp}-${randomStart}${randomEnd}`;
 }
 
 function normalizeError(error: unknown) {
