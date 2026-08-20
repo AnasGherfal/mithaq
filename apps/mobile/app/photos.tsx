@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import {
   ActivityIndicator,
   Image,
@@ -16,6 +17,11 @@ import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
 import type { MobileLocale } from "@/i18n";
 import {
+  MemberPhotoUploadError,
+  prepareAndUploadMemberPhoto,
+  type MemberPhotoUploadStage,
+} from "@/lib/member-photo-upload";
+import {
   isPhotoFeatureUnavailable,
   listMyMemberPhotos,
   removeMemberPhoto,
@@ -27,12 +33,8 @@ import {
 import { supabase } from "@/lib/supabase";
 import { colors, radius, shadows } from "@/theme";
 
-type MessageTone = "neutral" | "success" | "error";
-
-type ScreenMessage = {
-  tone: MessageTone;
-  text: string;
-} | null;
+type ScreenMessage = { tone: "neutral" | "success" | "error"; text: string } | null;
+type UploadStage = "choosing" | MemberPhotoUploadStage | null;
 
 export default function PhotosScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
@@ -42,7 +44,7 @@ export default function PhotosScreen() {
   const copy = useMemo(() => photoCopy(locale), [locale]);
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
-  const primaryHeight = Math.min(318, Math.max(250, width - 72));
+  const primaryHeight = Math.min(320, Math.max(250, width - 72));
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -50,8 +52,20 @@ export default function PhotosScreen() {
   const [photos, setPhotos] = useState<MemberPhoto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [action, setAction] = useState<string | null>(null);
+  const [uploadStage, setUploadStage] = useState<UploadStage>(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [message, setMessage] = useState<ScreenMessage>(null);
+
+  const refreshPhotos = useCallback(async (preferredId?: string | null) => {
+    const rows = await listMyMemberPhotos();
+    setPhotos(rows);
+    setSelectedId((current) => {
+      const requested = preferredId ?? current;
+      if (requested && rows.some((photo) => photo.photoId === requested)) return requested;
+      return rows.find((photo) => photo.isPrimary)?.photoId ?? rows[0]?.photoId ?? null;
+    });
+    return rows;
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -62,31 +76,23 @@ export default function PhotosScreen() {
     try {
       const { data, error } = await supabase.auth.getSession();
       if (error) throw error;
-
       if (!data.session) {
         router.replace({ pathname: "/auth", params: { locale } });
         return;
       }
 
-      const rows = await listMyMemberPhotos();
-      setPhotos(rows);
-      setSelectedId((current) => {
-        if (current && rows.some((photo) => photo.photoId === current)) return current;
-        return rows.find((photo) => photo.isPrimary)?.photoId ?? rows[0]?.photoId ?? null;
-      });
-      setLoading(false);
+      await refreshPhotos();
     } catch (error) {
       if (__DEV__ && isPhotoFeatureUnavailable(error)) {
-        setPhotos([]);
         setFeaturePending(true);
-        setLoading(false);
-        return;
+        setPhotos([]);
+      } else {
+        setLoadError(true);
       }
-
-      setLoadError(true);
+    } finally {
       setLoading(false);
     }
-  }, [locale]);
+  }, [locale, refreshPhotos]);
 
   useEffect(() => {
     void load();
@@ -99,28 +105,66 @@ export default function PhotosScreen() {
   const primary = ordered.find((photo) => photo.isPrimary) ?? ordered[0] ?? null;
   const secondary = ordered.filter((photo) => photo.photoId !== primary?.photoId);
   const selected = ordered.find((photo) => photo.photoId === selectedId) ?? primary;
-  const secondarySlots: Array<MemberPhoto | null> = Array.from(
-    { length: 4 },
-    (_, index) => secondary[index] ?? null,
-  );
-  const busy = action !== null;
+  const secondarySlots = Array.from({ length: 4 }, (_, index) => secondary[index] ?? null);
+  const busy = action !== null || uploadStage !== null;
 
-  function requestAdd() {
+  async function addPhoto() {
+    if (busy || featurePending || photos.length >= 5) return;
     setConfirmingDeleteId(null);
-    setMessage({ tone: "neutral", text: copy.uploadPending });
+    setMessage(null);
+    setUploadStage("choosing");
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: false,
+        allowsMultipleSelection: false,
+        quality: 1,
+        selectionLimit: 1,
+        preferredAssetRepresentationMode:
+          ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+      });
+
+      if (result.canceled) {
+        setUploadStage(null);
+        return;
+      }
+
+      const asset = result.assets[0];
+      if (!asset) throw new MemberPhotoUploadError("prepare_failed");
+
+      const uploaded = await prepareAndUploadMemberPhoto({
+        uri: asset.uri,
+        width: asset.width,
+        height: asset.height,
+        makePrimary: photos.length === 0,
+        onStage: setUploadStage,
+      });
+
+      await refreshPhotos(uploaded.photoId);
+      setMessage({ tone: "success", text: copy.uploaded });
+    } catch (error) {
+      if (error instanceof MemberPhotoUploadError) {
+        if (error.code === "unauthorized") {
+          router.replace({ pathname: "/auth", params: { locale } });
+          return;
+        }
+        setMessage({ tone: "error", text: copy.uploadErrors[error.code] });
+      } else {
+        setMessage({ tone: "error", text: copy.pickerError });
+      }
+    } finally {
+      setUploadStage(null);
+    }
   }
 
   async function makePrimary(photo: MemberPhoto) {
     if (busy || photo.isPrimary || featurePending) return;
     setAction(`primary:${photo.photoId}`);
     setMessage(null);
-
     try {
       await setPrimaryMemberPhoto(photo.photoId);
-      setPhotos((current) =>
-        current.map((item) => ({ ...item, isPrimary: item.photoId === photo.photoId })),
-      );
-      setSelectedId(photo.photoId);
+      await refreshPhotos(photo.photoId);
       setMessage({ tone: "success", text: copy.primarySaved });
     } catch {
       setMessage({ tone: "error", text: copy.actionError });
@@ -142,15 +186,9 @@ export default function PhotosScreen() {
 
     setAction(`order:${selected.photoId}`);
     setMessage(null);
-
     try {
       await reorderMemberPhotos(nextOrder.map((photo) => photo.photoId));
-      setPhotos(
-        nextOrder.map((photo, index) => ({
-          ...photo,
-          position: index + 1,
-        })),
-      );
+      await refreshPhotos(selected.photoId);
       setMessage({ tone: "success", text: copy.orderSaved });
     } catch {
       setMessage({ tone: "error", text: copy.actionError });
@@ -163,20 +201,9 @@ export default function PhotosScreen() {
     if (busy || featurePending) return;
     setAction(`delete:${photo.photoId}`);
     setMessage(null);
-
     try {
       const result = await removeMemberPhoto(photo.photoId);
-      const next = ordered.filter((item) => item.photoId !== photo.photoId);
-      const promotedId = photo.isPrimary ? next[0]?.photoId : null;
-
-      setPhotos(
-        next.map((item, index) => ({
-          ...item,
-          position: index + 1,
-          isPrimary: promotedId ? item.photoId === promotedId : item.isPrimary,
-        })),
-      );
-      setSelectedId(promotedId ?? next[0]?.photoId ?? null);
+      await refreshPhotos();
       setConfirmingDeleteId(null);
       setMessage({
         tone: result.storageCleanupFailed ? "neutral" : "success",
@@ -199,10 +226,11 @@ export default function PhotosScreen() {
           rtl={rtl}
           backLabel={copy.account}
           primaryLabel={photos.length >= 5 ? copy.full : copy.add}
-          primaryDisabled={photos.length >= 5 || busy}
+          primaryDisabled={photos.length >= 5 || busy || featurePending}
+          loading={uploadStage !== null}
           secondaryIcon="account"
           onBack={() => router.replace({ pathname: "/account", params: { locale } })}
-          onPrimary={requestAdd}
+          onPrimary={() => void addPhoto()}
         />
       }
     >
@@ -221,48 +249,31 @@ export default function PhotosScreen() {
         />
       ) : (
         <View style={styles.page}>
-          <View
-            style={[
-              styles.summary,
-              { flexDirection: rtl ? "row-reverse" : "row" },
-            ]}
-          >
+          <View style={[styles.summary, { flexDirection: rtl ? "row-reverse" : "row" }]}>
             <View style={styles.summaryIcon}>
               <AppIcon name="privacy" active size={19} />
             </View>
             <View style={[styles.summaryCopy, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
-              <Text style={[styles.summaryTitle, { textAlign, writingDirection }]}>
-                {copy.privateTitle}
-              </Text>
-              <Text style={[styles.summaryBody, { textAlign, writingDirection }]}>
-                {copy.privateBody}
-              </Text>
+              <Text style={[styles.summaryTitle, { textAlign, writingDirection }]}>{copy.privateTitle}</Text>
+              <Text style={[styles.summaryBody, { textAlign, writingDirection }]}>{copy.privateBody}</Text>
             </View>
             <View style={styles.countPill}>
               <Text style={styles.countText}>{photos.length}/5</Text>
             </View>
           </View>
 
+          {uploadStage ? (
+            <UploadProgress stage={uploadStage} rtl={rtl} copy={copy} />
+          ) : null}
+
           {featurePending ? (
             <View style={styles.previewNotice}>
-              <Text style={[styles.previewNoticeTitle, { textAlign, writingDirection }]}>
-                {copy.previewTitle}
-              </Text>
-              <Text style={[styles.previewNoticeBody, { textAlign, writingDirection }]}>
-                {copy.previewBody}
-              </Text>
+              <Text style={[styles.previewNoticeTitle, { textAlign, writingDirection }]}>{copy.previewTitle}</Text>
+              <Text style={[styles.previewNoticeBody, { textAlign, writingDirection }]}>{copy.previewBody}</Text>
             </View>
           ) : null}
 
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { textAlign, writingDirection }]}>
-              {copy.primaryPortrait}
-            </Text>
-            <Text style={[styles.sectionBody, { textAlign, writingDirection }]}>
-              {copy.primaryBody}
-            </Text>
-          </View>
-
+          <SectionHeading title={copy.primaryPortrait} body={copy.primaryBody} rtl={rtl} />
           <PhotoTile
             photo={primary}
             selected={Boolean(primary && selected?.photoId === primary.photoId)}
@@ -275,26 +286,13 @@ export default function PhotosScreen() {
                 setSelectedId(primary.photoId);
                 setConfirmingDeleteId(null);
               } else {
-                requestAdd();
+                void addPhoto();
               }
             }}
           />
 
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { textAlign, writingDirection }]}>
-              {copy.additional}
-            </Text>
-            <Text style={[styles.sectionBody, { textAlign, writingDirection }]}>
-              {copy.additionalBody}
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.grid,
-              { flexDirection: rtl ? "row-reverse" : "row" },
-            ]}
-          >
+          <SectionHeading title={copy.additional} body={copy.additionalBody} rtl={rtl} />
+          <View style={[styles.grid, { flexDirection: rtl ? "row-reverse" : "row" }]}>
             {secondarySlots.map((photo, index) => (
               <PhotoTile
                 key={photo?.photoId ?? `empty-${index}`}
@@ -307,7 +305,7 @@ export default function PhotosScreen() {
                     setSelectedId(photo.photoId);
                     setConfirmingDeleteId(null);
                   } else {
-                    requestAdd();
+                    void addPhoto();
                   }
                 }}
               />
@@ -316,12 +314,7 @@ export default function PhotosScreen() {
 
           {selected ? (
             <View style={styles.controls}>
-              <View
-                style={[
-                  styles.controlsHeader,
-                  { flexDirection: rtl ? "row-reverse" : "row" },
-                ]}
-              >
+              <View style={[styles.controlsHeader, { flexDirection: rtl ? "row-reverse" : "row" }]}>
                 <View style={[styles.controlsCopy, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
                   <Text style={[styles.controlsTitle, { textAlign, writingDirection }]}>
                     {selected.isPrimary ? copy.primarySelected : copy.photoSelected}
@@ -344,56 +337,34 @@ export default function PhotosScreen() {
                 </PrimaryButton>
               ) : null}
 
-              <View
-                style={[
-                  styles.orderRow,
-                  { flexDirection: rtl ? "row-reverse" : "row" },
-                ]}
-              >
+              <View style={[styles.orderRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
                 <OrderButton
                   label={copy.earlier}
-                  disabled={
-                    busy || ordered.findIndex((item) => item.photoId === selected.photoId) <= 0
-                  }
-                  rtl={rtl}
-                  direction="earlier"
+                  disabled={busy || ordered.findIndex((item) => item.photoId === selected.photoId) <= 0}
+                  symbol={rtl ? "→" : "←"}
                   onPress={() => void moveSelected(-1)}
                 />
                 <OrderButton
                   label={copy.later}
                   disabled={
                     busy ||
-                    ordered.findIndex((item) => item.photoId === selected.photoId) >=
-                      ordered.length - 1
+                    ordered.findIndex((item) => item.photoId === selected.photoId) >= ordered.length - 1
                   }
-                  rtl={rtl}
-                  direction="later"
+                  symbol={rtl ? "←" : "→"}
                   onPress={() => void moveSelected(1)}
                 />
               </View>
 
               {confirmingDeleteId === selected.photoId ? (
                 <View style={styles.deleteConfirm}>
-                  <Text style={[styles.deleteTitle, { textAlign, writingDirection }]}>
-                    {copy.deleteTitle}
-                  </Text>
-                  <Text style={[styles.deleteBody, { textAlign, writingDirection }]}>
-                    {copy.deleteBody}
-                  </Text>
-                  <View
-                    style={[
-                      styles.deleteActions,
-                      { flexDirection: rtl ? "row-reverse" : "row" },
-                    ]}
-                  >
+                  <Text style={[styles.deleteTitle, { textAlign, writingDirection }]}>{copy.deleteTitle}</Text>
+                  <Text style={[styles.deleteBody, { textAlign, writingDirection }]}>{copy.deleteBody}</Text>
+                  <View style={[styles.deleteActions, { flexDirection: rtl ? "row-reverse" : "row" }]}>
                     <Pressable
                       accessibilityRole="button"
                       disabled={busy}
                       onPress={() => setConfirmingDeleteId(null)}
-                      style={({ pressed }) => [
-                        styles.cancelDelete,
-                        pressed ? styles.pressed : null,
-                      ]}
+                      style={({ pressed }) => [styles.cancelDelete, pressed ? styles.pressed : null]}
                     >
                       <Text style={styles.cancelDeleteText}>{copy.cancel}</Text>
                     </Pressable>
@@ -401,10 +372,7 @@ export default function PhotosScreen() {
                       accessibilityRole="button"
                       disabled={busy}
                       onPress={() => void deleteSelected(selected)}
-                      style={({ pressed }) => [
-                        styles.confirmDelete,
-                        pressed ? styles.pressed : null,
-                      ]}
+                      style={({ pressed }) => [styles.confirmDelete, pressed ? styles.pressed : null]}
                     >
                       {action === `delete:${selected.photoId}` ? (
                         <ActivityIndicator color={colors.white} size="small" />
@@ -433,12 +401,8 @@ export default function PhotosScreen() {
             </View>
           ) : (
             <View style={styles.guidance}>
-              <Text style={[styles.guidanceTitle, { textAlign, writingDirection }]}>
-                {copy.guidanceTitle}
-              </Text>
-              <Text style={[styles.guidanceBody, { textAlign, writingDirection }]}>
-                {copy.guidanceBody}
-              </Text>
+              <Text style={[styles.guidanceTitle, { textAlign, writingDirection }]}>{copy.guidanceTitle}</Text>
+              <Text style={[styles.guidanceBody, { textAlign, writingDirection }]}>{copy.guidanceBody}</Text>
             </View>
           )}
 
@@ -459,6 +423,41 @@ export default function PhotosScreen() {
         </View>
       )}
     </ScreenShell>
+  );
+}
+
+function UploadProgress({
+  stage,
+  rtl,
+  copy,
+}: {
+  stage: Exclude<UploadStage, null>;
+  rtl: boolean;
+  copy: ReturnType<typeof photoCopy>;
+}) {
+  const progress = { choosing: 12, preparing: 38, uploading: 76, registering: 94 }[stage];
+  return (
+    <View style={styles.uploadCard} accessibilityLiveRegion="polite">
+      <View style={[styles.uploadRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+        <ActivityIndicator color={colors.accent} size="small" />
+        <Text style={[styles.uploadText, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>
+          {copy.uploadStages[stage]}
+        </Text>
+        <Text style={styles.uploadPercent}>{progress}%</Text>
+      </View>
+      <View style={[styles.uploadTrack, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+        <View style={[styles.uploadFill, { width: `${progress}%` }]} />
+      </View>
+    </View>
+  );
+}
+
+function SectionHeading({ title, body, rtl }: { title: string; body: string; rtl: boolean }) {
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>{title}</Text>
+      <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>{body}</Text>
+    </View>
   );
 }
 
@@ -492,34 +491,23 @@ function PhotoTile({
       ]}
     >
       {photo?.signedUrl ? (
-        <Image
-          resizeMode="cover"
-          source={{ uri: photo.signedUrl }}
-          style={StyleSheet.absoluteFillObject}
-        />
+        <Image resizeMode="cover" source={{ uri: photo.signedUrl }} style={StyleSheet.absoluteFillObject} />
       ) : (
         <View style={styles.emptyPhoto}>
           <View style={styles.emptyPhotoIcon}>
             <AppIcon name="photo" active size={primary ? 30 : 24} />
           </View>
           {!photo ? <Text style={styles.plus}>+</Text> : null}
-          <Text
-            style={[
-              primary ? styles.emptyPhotoTitle : styles.emptyPhotoTitleSmall,
-              { textAlign: "center", writingDirection: rtl ? "rtl" : "ltr" },
-            ]}
-          >
+          <Text style={[primary ? styles.emptyPhotoTitle : styles.emptyPhotoTitleSmall, { textAlign: "center", writingDirection: rtl ? "rtl" : "ltr" }]}>
             {photo ? copy.securePreviewUnavailable : copy.addSlot}
           </Text>
         </View>
       )}
-
       {photo ? (
         <View style={[styles.tileBadgeRow, rtl ? styles.tileBadgeRowRtl : styles.tileBadgeRowLtr]}>
           <ReviewBadge state={photo.reviewState} compact copy={copy} />
         </View>
       ) : null}
-
       {photo?.isPrimary ? (
         <View style={[styles.primaryBadge, rtl ? styles.primaryBadgeRtl : styles.primaryBadgeLtr]}>
           <Text style={styles.primaryBadgeText}>{copy.primaryBadge}</Text>
@@ -529,190 +517,116 @@ function PhotoTile({
   );
 }
 
-function ReviewBadge({
-  state,
-  compact = false,
-  copy,
-}: {
-  state: MemberPhotoReviewState;
-  compact?: boolean;
-  copy: ReturnType<typeof photoCopy>;
-}) {
+function ReviewBadge({ state, compact = false, copy }: { state: MemberPhotoReviewState; compact?: boolean; copy: ReturnType<typeof photoCopy> }) {
   return (
-    <View
-      style={[
-        styles.reviewBadge,
-        compact ? styles.reviewBadgeCompact : null,
-        state === "approved" ? styles.reviewApproved : null,
-        state === "needs_changes" ? styles.reviewChanges : null,
-        state === "rejected" ? styles.reviewRejected : null,
-      ]}
-    >
-      <View
-        style={[
-          styles.reviewDot,
-          state === "approved" ? styles.reviewDotApproved : null,
-          state === "needs_changes" ? styles.reviewDotChanges : null,
-          state === "rejected" ? styles.reviewDotRejected : null,
-        ]}
-      />
-      <Text
-        style={[
-          styles.reviewBadgeText,
-          state === "needs_changes" ? styles.reviewBadgeTextChanges : null,
-          state === "rejected" ? styles.reviewBadgeTextRejected : null,
-        ]}
-      >
-        {copy.reviewLabel[state]}
-      </Text>
+    <View style={[
+      styles.reviewBadge,
+      compact ? styles.reviewBadgeCompact : null,
+      state === "approved" ? styles.reviewApproved : null,
+      state === "needs_changes" ? styles.reviewChanges : null,
+      state === "rejected" ? styles.reviewRejected : null,
+    ]}>
+      <View style={[
+        styles.reviewDot,
+        state === "approved" ? styles.reviewDotApproved : null,
+        state === "needs_changes" ? styles.reviewDotChanges : null,
+        state === "rejected" ? styles.reviewDotRejected : null,
+      ]} />
+      <Text style={[
+        styles.reviewBadgeText,
+        state === "needs_changes" ? styles.reviewBadgeTextChanges : null,
+        state === "rejected" ? styles.reviewBadgeTextRejected : null,
+      ]}>{copy.reviewLabel[state]}</Text>
     </View>
   );
 }
 
-function OrderButton({
-  label,
-  disabled,
-  direction,
-  rtl,
-  onPress,
-}: {
-  label: string;
-  disabled: boolean;
-  direction: "earlier" | "later";
-  rtl: boolean;
-  onPress: () => void;
-}) {
-  const symbol = direction === "earlier" ? (rtl ? "→" : "←") : rtl ? "←" : "→";
-
+function OrderButton({ label, disabled, symbol, onPress }: { label: string; disabled: boolean; symbol: string; onPress: () => void }) {
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.orderButton,
-        pressed && !disabled ? styles.pressed : null,
-        disabled ? styles.disabled : null,
-      ]}
+      style={({ pressed }) => [styles.orderButton, pressed && !disabled ? styles.pressed : null, disabled ? styles.disabled : null]}
     >
       <Text style={styles.orderSymbol}>{symbol}</Text>
-      <Text style={[styles.orderText, { writingDirection: rtl ? "rtl" : "ltr" }]}>
-        {label}
-      </Text>
+      <Text style={styles.orderText}>{label}</Text>
     </Pressable>
   );
 }
 
 function photoCopy(locale: MobileLocale) {
-  if (locale === "ar") {
-    return {
-      title: "صوري الخاصة",
-      body: "جهّز صورة شخصية واضحة وصوراً إضافية. لا تظهر أي صورة إلا بعد المراجعة ووفق خصوصية التعارف.",
-      account: "حسابي",
-      add: "إضافة صورة",
-      full: "اكتملت 5 صور",
-      loading: "جارٍ تحميل صورك الخاصة",
-      loadErrorTitle: "تعذر تحميل صورك",
-      loadErrorBody: "لم نغيّر أي صورة. تحقق من الاتصال ثم حاول مرة أخرى.",
-      retry: "إعادة المحاولة",
-      privateTitle: "خاصة افتراضياً",
-      privateBody: "التخزين خاص، وكل صورة تحتاج مراجعة قبل أن تصبح مؤهلة للظهور داخل تعارف مسموح.",
-      previewTitle: "ميزة الصور قيد التفعيل في المعاينة",
-      previewBody: "واجهة الإدارة جاهزة، ويجري تفعيل التخزين الخاص في بيئة المعاينة قبل السماح برفع صور حقيقية.",
-      primaryPortrait: "الصورة الشخصية الأساسية",
-      primaryBody: "اختر صورة حديثة وواضحة للوجه. يمكنك تغيير الصورة الأساسية لاحقاً.",
-      additional: "صور إضافية",
-      additionalBody: "حتى أربع صور تساعد على تقديمك بصورة طبيعية ومتوازنة.",
-      primaryBadge: "الأساسية",
-      primarySelected: "الصورة الأساسية محددة",
-      photoSelected: "صورة محددة",
-      makePrimary: "اجعلها الصورة الأساسية",
-      earlier: "تحريك للأمام",
-      later: "تحريك للخلف",
-      delete: "حذف الصورة",
-      deleteTitle: "حذف هذه الصورة؟",
-      deleteBody: "ستُزال من ملفك الخاص. يمكنك إضافة صورة أخرى لاحقاً.",
-      cancel: "إلغاء",
-      confirmDelete: "حذف",
-      addSlot: "إضافة صورة",
-      securePreviewUnavailable: "تعذر فتح المعاينة الآمنة",
-      photoAccessibility: "صورة خاصة في ملف ميثاق",
-      emptyAccessibility: "مكان فارغ لإضافة صورة خاصة",
-      guidanceTitle: "ابدأ بصورة شخصية واحدة",
-      guidanceBody: "سنقصّها ونضغطها ونرفعها إلى التخزين الخاص، ثم تظهر لديك بحالة بانتظار المراجعة.",
-      uploadPending: "اختيار الصور من الهاتف هو الخطوة التالية في هذه النسخة. لن نطلب الوصول للصور قبل اكتمال القص والضغط والرفع الخاص.",
-      primarySaved: "تم تحديث الصورة الأساسية.",
-      orderSaved: "تم حفظ ترتيب الصور.",
-      deleted: "تم حذف الصورة من ملفك الخاص.",
-      cleanupPending: "أُزيلت الصورة من ملفك. سيُعاد تنظيف الملف الخاص بأمان.",
-      actionError: "تعذر حفظ التغيير الآن. لم نفترض نجاح العملية؛ حاول مرة أخرى.",
-      review: {
-        pending: "الصورة بانتظار المراجعة قبل أي ظهور.",
-        approved: "الصورة معتمدة ويمكن استخدامها عندما تسمح إعدادات التعارف.",
-        needs_changes: "تحتاج الصورة إلى استبدال قبل اعتمادها.",
-        rejected: "هذه الصورة غير معتمدة ولن تظهر في أي تعارف.",
-      } as const,
-      reviewLabel: {
-        pending: "قيد المراجعة",
-        approved: "معتمدة",
-        needs_changes: "تحتاج تغييراً",
-        rejected: "غير معتمدة",
-      } as const,
-    };
-  }
-
+  const ar = locale === "ar";
   return {
-    title: "Private photos",
-    body: "Prepare one clear portrait and a few supporting photos. Nothing appears until review and introduction privacy allow it.",
-    account: "Account",
-    add: "Add photo",
-    full: "5 photos added",
-    loading: "Loading your private photos",
-    loadErrorTitle: "We couldn’t load your photos",
-    loadErrorBody: "No photo was changed. Check your connection and try again.",
-    retry: "Try again",
-    privateTitle: "Private by default",
-    privateBody: "Storage is private, and every photo requires review before it can become eligible inside a permitted introduction.",
-    previewTitle: "Photos are being enabled in preview",
-    previewBody: "The management experience is ready while private hosted storage is enabled before real uploads are accepted.",
-    primaryPortrait: "Primary portrait",
-    primaryBody: "Choose a recent, clear portrait. You can change the primary photo later.",
-    additional: "Additional photos",
-    additionalBody: "Up to four supporting photos can present you naturally and with balance.",
-    primaryBadge: "Primary",
-    primarySelected: "Primary photo selected",
-    photoSelected: "Photo selected",
-    makePrimary: "Make primary photo",
-    earlier: "Move earlier",
-    later: "Move later",
-    delete: "Delete photo",
-    deleteTitle: "Delete this photo?",
-    deleteBody: "It will be removed from your private profile. You can add another photo later.",
-    cancel: "Cancel",
-    confirmDelete: "Delete",
-    addSlot: "Add photo",
-    securePreviewUnavailable: "Secure preview unavailable",
-    photoAccessibility: "Private Mithaq profile photo",
-    emptyAccessibility: "Empty slot for a private photo",
-    guidanceTitle: "Begin with one clear portrait",
-    guidanceBody: "Mithaq will crop, compress, and upload it privately, then show it as awaiting review.",
-    uploadPending: "Choosing photos from your device is the next preview slice. Mithaq will not request photo access before private crop, compression, and upload are ready.",
-    primarySaved: "Your primary photo was updated.",
-    orderSaved: "Photo order was saved.",
-    deleted: "The photo was removed from your private profile.",
-    cleanupPending: "The photo was removed from your profile. Secure file cleanup will be retried.",
-    actionError: "We couldn’t save that change. We did not assume success; try again.",
+    title: ar ? "صوري الخاصة" : "Private photos",
+    body: ar
+      ? "أضف صورة شخصية واضحة وما يصل إلى أربع صور إضافية. تبقى جميعها خاصة حتى المراجعة والسماح داخل تعارف."
+      : "Add one clear portrait and up to four supporting photos. Every image stays private until review and introduction permission allow it.",
+    account: ar ? "حسابي" : "Account",
+    add: ar ? "اختيار صورة" : "Choose photo",
+    full: ar ? "اكتملت 5 صور" : "5 photos added",
+    loading: ar ? "جارٍ تحميل صورك الخاصة" : "Loading your private photos",
+    loadErrorTitle: ar ? "تعذر تحميل صورك" : "We couldn’t load your photos",
+    loadErrorBody: ar ? "لم نغيّر أي صورة. تحقق من الاتصال ثم حاول مرة أخرى." : "No photo was changed. Check your connection and try again.",
+    retry: ar ? "إعادة المحاولة" : "Try again",
+    privateTitle: ar ? "خاصة افتراضياً" : "Private by default",
+    privateBody: ar ? "نستخدم وصولاً مؤقتاً للمعاينة، وكل صورة جديدة تبدأ بانتظار المراجعة." : "Self-previews use temporary access, and every new photo starts in pending review.",
+    previewTitle: ar ? "يجب تفعيل تخزين الصور على بيئة المعاينة" : "Photo storage must be enabled in preview",
+    previewBody: ar ? "طبّق ترحيلات M11 على مشروع Supabase المرحلي قبل رفع صور حقيقية." : "Apply the M11 migrations to hosted staging before accepting real uploads.",
+    primaryPortrait: ar ? "الصورة الشخصية الأساسية" : "Primary portrait",
+    primaryBody: ar ? "يتم قص الصورة تلقائياً إلى إطار 4:5 مع الحفاظ على المنتصف، ثم ضغطها قبل الرفع." : "Mithaq center-crops to a 4:5 portrait and compresses it before private upload.",
+    additional: ar ? "صور إضافية" : "Additional photos",
+    additionalBody: ar ? "حتى أربع صور حديثة وطبيعية تساعد على تقديمك بتوازن." : "Up to four recent, natural photos can present you with balance.",
+    primaryBadge: ar ? "الأساسية" : "Primary",
+    primarySelected: ar ? "الصورة الأساسية محددة" : "Primary photo selected",
+    photoSelected: ar ? "صورة محددة" : "Photo selected",
+    makePrimary: ar ? "اجعلها الصورة الأساسية" : "Make primary photo",
+    earlier: ar ? "تحريك للأمام" : "Move earlier",
+    later: ar ? "تحريك للخلف" : "Move later",
+    delete: ar ? "حذف الصورة" : "Delete photo",
+    deleteTitle: ar ? "حذف هذه الصورة؟" : "Delete this photo?",
+    deleteBody: ar ? "ستُزال من ملفك الخاص ومن التخزين. يمكنك إضافة صورة أخرى لاحقاً." : "It will be removed from your private profile and storage. You can add another later.",
+    cancel: ar ? "إلغاء" : "Cancel",
+    confirmDelete: ar ? "حذف" : "Delete",
+    addSlot: ar ? "إضافة صورة" : "Add photo",
+    securePreviewUnavailable: ar ? "تعذر فتح المعاينة الآمنة" : "Secure preview unavailable",
+    photoAccessibility: ar ? "صورة خاصة في ملف ميثاق" : "Private Mithaq profile photo",
+    emptyAccessibility: ar ? "مكان فارغ لإضافة صورة خاصة" : "Empty slot for a private photo",
+    guidanceTitle: ar ? "ابدأ بصورة شخصية واحدة" : "Begin with one clear portrait",
+    guidanceBody: ar ? "اختر صورة حديثة. سنقصّها ونضغطها ثم نرفعها إلى مجلدك الخاص بحالة قيد المراجعة." : "Choose a recent photo. Mithaq crops, compresses, and uploads it to your private folder as pending review.",
+    uploaded: ar ? "تم رفع الصورة بأمان وهي الآن بانتظار المراجعة." : "The photo was uploaded privately and is now pending review.",
+    pickerError: ar ? "تعذر فتح مكتبة الصور أو قراءة الصورة المختارة. حاول بصورة أخرى." : "We couldn’t open the photo library or read the selected image. Try another photo.",
+    primarySaved: ar ? "تم تحديث الصورة الأساسية." : "Your primary photo was updated.",
+    orderSaved: ar ? "تم حفظ ترتيب الصور." : "Photo order was saved.",
+    deleted: ar ? "تم حذف الصورة من ملفك الخاص." : "The photo was removed from your private profile.",
+    cleanupPending: ar ? "أُزيلت الصورة من الملف، لكن تنظيف النسخة المخزنة يحتاج إعادة محاولة آمنة." : "The photo was removed from the profile, but private object cleanup needs a secure retry.",
+    actionError: ar ? "تعذر حفظ التغيير الآن. لم نفترض نجاح العملية؛ حاول مرة أخرى." : "We couldn’t save that change. We did not assume success; try again.",
+    uploadStages: {
+      choosing: ar ? "اختر الصورة التي تريد استخدامها" : "Choose the photo you want to use",
+      preparing: ar ? "جارٍ القص والضغط على جهازك" : "Cropping and compressing on your device",
+      uploading: ar ? "جارٍ الرفع إلى التخزين الخاص" : "Uploading to private storage",
+      registering: ar ? "جارٍ حفظ حالة المراجعة" : "Saving the review state",
+    } as const,
+    uploadErrors: {
+      unauthorized: ar ? "انتهت جلستك. سجّل الدخول من جديد." : "Your session ended. Sign in again.",
+      image_too_small: ar ? "دقة الصورة منخفضة. اختر صورة أوضح وأكبر." : "This image is too small. Choose a clearer, higher-resolution photo.",
+      prepare_failed: ar ? "تعذر تجهيز الصورة. اختر صورة أخرى بصيغة معتادة." : "We couldn’t prepare this image. Choose another common image format.",
+      file_too_large: ar ? "بقي حجم الصورة كبيراً بعد الضغط. اختر صورة أخرى." : "The image remains too large after compression. Choose another photo.",
+      upload_failed: ar ? "تعذر رفع الصورة إلى التخزين الخاص. تحقق من الاتصال وحاول مرة أخرى." : "We couldn’t upload to private storage. Check your connection and try again.",
+      registration_failed: ar ? "لم يكتمل تسجيل الصورة، وتم تنظيف الملف المرفوع بأمان." : "Photo registration failed, and the uploaded object was cleaned up safely.",
+      registration_failed_cleanup_pending: ar ? "لم يكتمل تسجيل الصورة ويحتاج تنظيف الملف الخاص إلى إعادة محاولة." : "Photo registration failed and private-object cleanup needs a retry.",
+    } as const,
     review: {
-      pending: "This photo is waiting for review before any disclosure.",
-      approved: "This photo is approved and can be used when introduction privacy permits it.",
-      needs_changes: "This photo needs to be replaced before approval.",
-      rejected: "This photo is not approved and will not appear in an introduction.",
+      pending: ar ? "الصورة بانتظار المراجعة قبل أي ظهور." : "This photo is waiting for review before any disclosure.",
+      approved: ar ? "الصورة معتمدة ويمكن استخدامها عندما تسمح إعدادات التعارف." : "This photo is approved and can be used when introduction privacy permits it.",
+      needs_changes: ar ? "تحتاج الصورة إلى استبدال قبل اعتمادها." : "This photo needs to be replaced before approval.",
+      rejected: ar ? "هذه الصورة غير معتمدة ولن تظهر في أي تعارف." : "This photo is not approved and will not appear in an introduction.",
     } as const,
     reviewLabel: {
-      pending: "Pending review",
-      approved: "Approved",
-      needs_changes: "Needs changes",
-      rejected: "Not approved",
+      pending: ar ? "قيد المراجعة" : "Pending review",
+      approved: ar ? "معتمدة" : "Approved",
+      needs_changes: ar ? "تحتاج تغييراً" : "Needs changes",
+      rejected: ar ? "غير معتمدة" : "Not approved",
     } as const,
   };
 }
@@ -720,140 +634,48 @@ function photoCopy(locale: MobileLocale) {
 const styles = StyleSheet.create({
   loadingState: { minHeight: 320, alignItems: "center", justifyContent: "center" },
   page: { width: "100%", gap: 18 },
-  summary: {
-    width: "100%",
-    alignItems: "center",
-    gap: 12,
-    borderRadius: radius.lg,
-    backgroundColor: colors.primaryWash,
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-  },
-  summaryIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
-  },
+  summary: { width: "100%", alignItems: "center", gap: 12, borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 15 },
+  summaryIcon: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised },
   summaryCopy: { flex: 1, minWidth: 0 },
-  summaryTitle: {
-    width: "100%",
-    color: colors.foreground,
-    fontSize: 14,
-    lineHeight: 22,
-    fontWeight: "800",
-  },
+  summaryTitle: { width: "100%", color: colors.foreground, fontSize: 14, lineHeight: 22, fontWeight: "800" },
   summaryBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 2 },
-  countPill: {
-    minWidth: 45,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+  countPill: { minWidth: 45, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.border },
   countText: { color: colors.primary, fontSize: 11, fontWeight: "900" },
-  previewNotice: {
-    width: "100%",
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.goldSoft,
-    backgroundColor: "#FFF9EC",
-    padding: 15,
-  },
-  previewNoticeTitle: {
-    width: "100%",
-    color: colors.gold,
-    fontSize: 13,
-    lineHeight: 21,
-    fontWeight: "800",
-  },
+  uploadCard: { width: "100%", borderRadius: radius.lg, backgroundColor: colors.accentWash, borderWidth: 1, borderColor: colors.accentSoft, padding: 14 },
+  uploadRow: { width: "100%", alignItems: "center", gap: 10 },
+  uploadText: { flex: 1, color: colors.foreground, fontSize: 12, lineHeight: 19, fontWeight: "800" },
+  uploadPercent: { color: colors.accent, fontSize: 11, fontWeight: "900" },
+  uploadTrack: { width: "100%", height: 5, borderRadius: 3, overflow: "hidden", backgroundColor: colors.accentSoft, marginTop: 11 },
+  uploadFill: { height: "100%", borderRadius: 3, backgroundColor: colors.accent },
+  previewNotice: { width: "100%", borderRadius: radius.md, borderWidth: 1, borderColor: colors.goldSoft, backgroundColor: "#FFF9EC", padding: 15 },
+  previewNoticeTitle: { width: "100%", color: colors.gold, fontSize: 13, lineHeight: 21, fontWeight: "800" },
   previewNoticeBody: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 20, marginTop: 4 },
   sectionHeader: { width: "100%", marginTop: 4 },
   sectionTitle: { width: "100%", color: colors.foreground, fontSize: 17, lineHeight: 27, fontWeight: "800" },
   sectionBody: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 20, marginTop: 3 },
-  primaryTile: {
-    width: "100%",
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
-    overflow: "hidden",
-    ...shadows.card,
-  },
-  secondaryTile: {
-    width: "48%",
-    aspectRatio: 0.82,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
-    overflow: "hidden",
-  },
+  primaryTile: { width: "100%", borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceMuted, overflow: "hidden", ...shadows.card },
+  secondaryTile: { width: "48%", aspectRatio: 0.82, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceMuted, overflow: "hidden" },
   tileSelected: { borderWidth: 2, borderColor: colors.accent },
   tilePressed: { opacity: 0.86, transform: [{ scale: 0.992 }] },
-  emptyPhoto: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.accentWash,
-    paddingHorizontal: 16,
-  },
-  emptyPhotoIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.accentSoft,
-  },
+  emptyPhoto: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.accentWash, paddingHorizontal: 16 },
+  emptyPhotoIcon: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.accentSoft },
   plus: { color: colors.accent, fontSize: 25, lineHeight: 28, fontWeight: "500", marginTop: 8 },
   emptyPhotoTitle: { color: colors.foreground, fontSize: 14, lineHeight: 23, fontWeight: "800", marginTop: 8 },
   emptyPhotoTitleSmall: { color: colors.muted, fontSize: 10, lineHeight: 16, fontWeight: "700", marginTop: 7 },
   tileBadgeRow: { position: "absolute", top: 10 },
   tileBadgeRowLtr: { left: 10 },
   tileBadgeRowRtl: { right: 10 },
-  primaryBadge: {
-    position: "absolute",
-    bottom: 12,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(23,36,59,0.78)",
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
+  primaryBadge: { position: "absolute", bottom: 12, borderRadius: radius.pill, backgroundColor: "rgba(23,36,59,0.78)", paddingHorizontal: 10, paddingVertical: 7 },
   primaryBadgeLtr: { left: 12 },
   primaryBadgeRtl: { right: 12 },
   primaryBadgeText: { color: colors.white, fontSize: 10, lineHeight: 14, fontWeight: "800" },
   grid: { width: "100%", flexWrap: "wrap", gap: 12 },
-  controls: {
-    width: "100%",
-    gap: 12,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceRaised,
-    padding: 16,
-    ...shadows.card,
-  },
+  controls: { width: "100%", gap: 12, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, padding: 16, ...shadows.card },
   controlsHeader: { width: "100%", alignItems: "center", gap: 12 },
   controlsCopy: { flex: 1, minWidth: 0 },
   controlsTitle: { width: "100%", color: colors.foreground, fontSize: 15, lineHeight: 23, fontWeight: "800" },
   controlsBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 2 },
-  reviewBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.goldSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
+  reviewBadge: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.pill, backgroundColor: colors.goldSoft, paddingHorizontal: 10, paddingVertical: 8 },
   reviewBadgeCompact: { paddingHorizontal: 8, paddingVertical: 6 },
   reviewApproved: { backgroundColor: colors.primarySoft },
   reviewChanges: { backgroundColor: colors.accentSoft },
@@ -866,65 +688,20 @@ const styles = StyleSheet.create({
   reviewBadgeTextChanges: { color: colors.accent },
   reviewBadgeTextRejected: { color: colors.danger },
   orderRow: { width: "100%", gap: 10 },
-  orderButton: {
-    flex: 1,
-    minHeight: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
-    paddingHorizontal: 10,
-  },
+  orderButton: { flex: 1, minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceMuted, paddingHorizontal: 10 },
   orderSymbol: { color: colors.primary, fontSize: 17, lineHeight: 20, fontWeight: "800" },
   orderText: { color: colors.foreground, fontSize: 11, lineHeight: 17, fontWeight: "800" },
-  deleteButton: {
-    minHeight: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-    borderRadius: radius.md,
-    backgroundColor: "#FFF5F6",
-  },
+  deleteButton: { minHeight: 48, alignItems: "center", justifyContent: "center", gap: 9, borderRadius: radius.md, backgroundColor: "#FFF5F6" },
   deleteButtonText: { color: colors.danger, fontSize: 12, lineHeight: 18, fontWeight: "800" },
-  deleteConfirm: {
-    width: "100%",
-    borderRadius: radius.md,
-    backgroundColor: "#FFF5F6",
-    padding: 14,
-  },
+  deleteConfirm: { width: "100%", borderRadius: radius.md, backgroundColor: "#FFF5F6", padding: 14 },
   deleteTitle: { width: "100%", color: colors.danger, fontSize: 14, lineHeight: 22, fontWeight: "800" },
   deleteBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 3 },
   deleteActions: { width: "100%", gap: 9, marginTop: 12 },
-  cancelDelete: {
-    flex: 1,
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+  cancelDelete: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.md, backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.border },
   cancelDeleteText: { color: colors.foreground, fontSize: 12, fontWeight: "800" },
-  confirmDelete: {
-    flex: 1,
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.md,
-    backgroundColor: colors.danger,
-  },
+  confirmDelete: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.md, backgroundColor: colors.danger },
   confirmDeleteText: { color: colors.white, fontSize: 12, fontWeight: "800" },
-  guidance: {
-    width: "100%",
-    borderRadius: radius.lg,
-    backgroundColor: colors.accentWash,
-    padding: 17,
-  },
+  guidance: { width: "100%", borderRadius: radius.lg, backgroundColor: colors.accentWash, padding: 17 },
   guidanceTitle: { width: "100%", color: colors.accent, fontSize: 15, lineHeight: 24, fontWeight: "800" },
   guidanceBody: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 21, marginTop: 4 },
   message: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 20, fontWeight: "700" },
