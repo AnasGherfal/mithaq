@@ -238,7 +238,7 @@ create temporary table m11_photo_ids (
   name text primary key,
   id uuid not null
 ) on commit drop;
-grant select on m11_photo_ids to authenticated;
+grant select on m11_photo_ids to authenticated, service_role;
 
 insert into m11_photo_ids (name, id)
 values
