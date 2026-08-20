@@ -18,6 +18,7 @@ import { StateCard } from "@/components/state-card";
 import type { MobileLocale } from "@/i18n";
 import {
   MemberPhotoUploadError,
+  prepareAndReplaceMemberPhoto,
   prepareAndUploadMemberPhoto,
   type MemberPhotoUploadStage,
 } from "@/lib/member-photo-upload";
@@ -80,7 +81,6 @@ export default function PhotosScreen() {
         router.replace({ pathname: "/auth", params: { locale } });
         return;
       }
-
       await refreshPhotos();
     } catch (error) {
       if (__DEV__ && isPhotoFeatureUnavailable(error)) {
@@ -108,6 +108,35 @@ export default function PhotosScreen() {
   const secondarySlots = Array.from({ length: 4 }, (_, index) => secondary[index] ?? null);
   const busy = action !== null || uploadStage !== null;
 
+  async function choosePhotoAsset() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: false,
+      allowsMultipleSelection: false,
+      quality: 1,
+      selectionLimit: 1,
+      preferredAssetRepresentationMode:
+        ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+    });
+
+    if (result.canceled) return null;
+    const asset = result.assets[0];
+    if (!asset) throw new MemberPhotoUploadError("prepare_failed");
+    return asset;
+  }
+
+  function handleUploadError(error: unknown) {
+    if (error instanceof MemberPhotoUploadError) {
+      if (error.code === "unauthorized") {
+        router.replace({ pathname: "/auth", params: { locale } });
+        return;
+      }
+      setMessage({ tone: "error", text: copy.uploadErrors[error.code] });
+      return;
+    }
+    setMessage({ tone: "error", text: copy.pickerError });
+  }
+
   async function addPhoto() {
     if (busy || featurePending || photos.length >= 5) return;
     setConfirmingDeleteId(null);
@@ -115,23 +144,8 @@ export default function PhotosScreen() {
     setUploadStage("choosing");
 
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: false,
-        allowsMultipleSelection: false,
-        quality: 1,
-        selectionLimit: 1,
-        preferredAssetRepresentationMode:
-          ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
-      });
-
-      if (result.canceled) {
-        setUploadStage(null);
-        return;
-      }
-
-      const asset = result.assets[0];
-      if (!asset) throw new MemberPhotoUploadError("prepare_failed");
+      const asset = await choosePhotoAsset();
+      if (!asset) return;
 
       const uploaded = await prepareAndUploadMemberPhoto({
         uri: asset.uri,
@@ -144,15 +158,41 @@ export default function PhotosScreen() {
       await refreshPhotos(uploaded.photoId);
       setMessage({ tone: "success", text: copy.uploaded });
     } catch (error) {
-      if (error instanceof MemberPhotoUploadError) {
-        if (error.code === "unauthorized") {
-          router.replace({ pathname: "/auth", params: { locale } });
-          return;
-        }
-        setMessage({ tone: "error", text: copy.uploadErrors[error.code] });
-      } else {
-        setMessage({ tone: "error", text: copy.pickerError });
-      }
+      handleUploadError(error);
+    } finally {
+      setUploadStage(null);
+    }
+  }
+
+  async function replacePhoto(photo: MemberPhoto) {
+    if (busy || featurePending) return;
+    setConfirmingDeleteId(null);
+    setMessage(null);
+    setUploadStage("choosing");
+
+    try {
+      const asset = await choosePhotoAsset();
+      if (!asset) return;
+
+      const result = await prepareAndReplaceMemberPhoto({
+        uri: asset.uri,
+        width: asset.width,
+        height: asset.height,
+        photoId: photo.photoId,
+        onStage: setUploadStage,
+      });
+
+      await refreshPhotos(photo.photoId);
+      setMessage({
+        tone: result.previousCleanupFailed ? "neutral" : "success",
+        text: result.previousCleanupFailed
+          ? result.previousCleanupQueued
+            ? copy.replacedCleanupQueued
+            : copy.replacedCleanupPending
+          : copy.replaced,
+      });
+    } catch (error) {
+      handleUploadError(error);
     } finally {
       setUploadStage(null);
     }
@@ -262,9 +302,7 @@ export default function PhotosScreen() {
             </View>
           </View>
 
-          {uploadStage ? (
-            <UploadProgress stage={uploadStage} rtl={rtl} copy={copy} />
-          ) : null}
+          {uploadStage ? <UploadProgress stage={uploadStage} rtl={rtl} copy={copy} /> : null}
 
           {featurePending ? (
             <View style={styles.previewNotice}>
@@ -326,6 +364,14 @@ export default function PhotosScreen() {
                 <ReviewBadge state={selected.reviewState} copy={copy} />
               </View>
 
+              <PrimaryButton
+                tone="quiet"
+                disabled={busy}
+                onPress={() => void replacePhoto(selected)}
+              >
+                {copy.replace}
+              </PrimaryButton>
+
               {!selected.isPrimary ? (
                 <PrimaryButton
                   tone="quiet"
@@ -346,10 +392,7 @@ export default function PhotosScreen() {
                 />
                 <OrderButton
                   label={copy.later}
-                  disabled={
-                    busy ||
-                    ordered.findIndex((item) => item.photoId === selected.photoId) >= ordered.length - 1
-                  }
+                  disabled={busy || ordered.findIndex((item) => item.photoId === selected.photoId) >= ordered.length - 1}
                   symbol={rtl ? "←" : "→"}
                   onPress={() => void moveSelected(1)}
                 />
@@ -360,25 +403,11 @@ export default function PhotosScreen() {
                   <Text style={[styles.deleteTitle, { textAlign, writingDirection }]}>{copy.deleteTitle}</Text>
                   <Text style={[styles.deleteBody, { textAlign, writingDirection }]}>{copy.deleteBody}</Text>
                   <View style={[styles.deleteActions, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-                    <Pressable
-                      accessibilityRole="button"
-                      disabled={busy}
-                      onPress={() => setConfirmingDeleteId(null)}
-                      style={({ pressed }) => [styles.cancelDelete, pressed ? styles.pressed : null]}
-                    >
+                    <Pressable accessibilityRole="button" disabled={busy} onPress={() => setConfirmingDeleteId(null)} style={({ pressed }) => [styles.cancelDelete, pressed ? styles.pressed : null]}>
                       <Text style={styles.cancelDeleteText}>{copy.cancel}</Text>
                     </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      disabled={busy}
-                      onPress={() => void deleteSelected(selected)}
-                      style={({ pressed }) => [styles.confirmDelete, pressed ? styles.pressed : null]}
-                    >
-                      {action === `delete:${selected.photoId}` ? (
-                        <ActivityIndicator color={colors.white} size="small" />
-                      ) : (
-                        <Text style={styles.confirmDeleteText}>{copy.confirmDelete}</Text>
-                      )}
+                    <Pressable accessibilityRole="button" disabled={busy} onPress={() => void deleteSelected(selected)} style={({ pressed }) => [styles.confirmDelete, pressed ? styles.pressed : null]}>
+                      {action === `delete:${selected.photoId}` ? <ActivityIndicator color={colors.white} size="small" /> : <Text style={styles.confirmDeleteText}>{copy.confirmDelete}</Text>}
                     </Pressable>
                   </View>
                 </View>
@@ -387,12 +416,7 @@ export default function PhotosScreen() {
                   accessibilityRole="button"
                   disabled={busy}
                   onPress={() => setConfirmingDeleteId(selected.photoId)}
-                  style={({ pressed }) => [
-                    styles.deleteButton,
-                    { flexDirection: rtl ? "row-reverse" : "row" },
-                    pressed ? styles.pressed : null,
-                    busy ? styles.disabled : null,
-                  ]}
+                  style={({ pressed }) => [styles.deleteButton, { flexDirection: rtl ? "row-reverse" : "row" }, pressed ? styles.pressed : null, busy ? styles.disabled : null]}
                 >
                   <AppIcon name="trash" size={18} />
                   <Text style={styles.deleteButtonText}>{copy.delete}</Text>
@@ -426,23 +450,13 @@ export default function PhotosScreen() {
   );
 }
 
-function UploadProgress({
-  stage,
-  rtl,
-  copy,
-}: {
-  stage: Exclude<UploadStage, null>;
-  rtl: boolean;
-  copy: ReturnType<typeof photoCopy>;
-}) {
+function UploadProgress({ stage, rtl, copy }: { stage: Exclude<UploadStage, null>; rtl: boolean; copy: ReturnType<typeof photoCopy> }) {
   const progress = { choosing: 12, preparing: 38, uploading: 76, registering: 94 }[stage];
   return (
     <View style={styles.uploadCard} accessibilityLiveRegion="polite">
       <View style={[styles.uploadRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
         <ActivityIndicator color={colors.accent} size="small" />
-        <Text style={[styles.uploadText, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>
-          {copy.uploadStages[stage]}
-        </Text>
+        <Text style={[styles.uploadText, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>{copy.uploadStages[stage]}</Text>
         <Text style={styles.uploadPercent}>{progress}%</Text>
       </View>
       <View style={[styles.uploadTrack, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
@@ -461,94 +475,34 @@ function SectionHeading({ title, body, rtl }: { title: string; body: string; rtl
   );
 }
 
-function PhotoTile({
-  photo,
-  selected,
-  primary = false,
-  height,
-  rtl,
-  copy,
-  onPress,
-}: {
-  photo: MemberPhoto | null;
-  selected: boolean;
-  primary?: boolean;
-  height?: number;
-  rtl: boolean;
-  copy: ReturnType<typeof photoCopy>;
-  onPress: () => void;
-}) {
+function PhotoTile({ photo, selected, primary = false, height, rtl, copy, onPress }: { photo: MemberPhoto | null; selected: boolean; primary?: boolean; height?: number; rtl: boolean; copy: ReturnType<typeof photoCopy>; onPress: () => void }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={photo ? copy.photoAccessibility : copy.emptyAccessibility}
-      onPress={onPress}
-      style={({ pressed }) => [
-        primary ? styles.primaryTile : styles.secondaryTile,
-        height ? { height } : null,
-        selected ? styles.tileSelected : null,
-        pressed ? styles.tilePressed : null,
-      ]}
-    >
-      {photo?.signedUrl ? (
-        <Image resizeMode="cover" source={{ uri: photo.signedUrl }} style={StyleSheet.absoluteFillObject} />
-      ) : (
+    <Pressable accessibilityRole="button" accessibilityLabel={photo ? copy.photoAccessibility : copy.emptyAccessibility} onPress={onPress} style={({ pressed }) => [primary ? styles.primaryTile : styles.secondaryTile, height ? { height } : null, selected ? styles.tileSelected : null, pressed ? styles.tilePressed : null]}>
+      {photo?.signedUrl ? <Image resizeMode="cover" source={{ uri: photo.signedUrl }} style={StyleSheet.absoluteFillObject} /> : (
         <View style={styles.emptyPhoto}>
-          <View style={styles.emptyPhotoIcon}>
-            <AppIcon name="photo" active size={primary ? 30 : 24} />
-          </View>
+          <View style={styles.emptyPhotoIcon}><AppIcon name="photo" active size={primary ? 30 : 24} /></View>
           {!photo ? <Text style={styles.plus}>+</Text> : null}
-          <Text style={[primary ? styles.emptyPhotoTitle : styles.emptyPhotoTitleSmall, { textAlign: "center", writingDirection: rtl ? "rtl" : "ltr" }]}>
-            {photo ? copy.securePreviewUnavailable : copy.addSlot}
-          </Text>
+          <Text style={[primary ? styles.emptyPhotoTitle : styles.emptyPhotoTitleSmall, { textAlign: "center", writingDirection: rtl ? "rtl" : "ltr" }]}>{photo ? copy.securePreviewUnavailable : copy.addSlot}</Text>
         </View>
       )}
-      {photo ? (
-        <View style={[styles.tileBadgeRow, rtl ? styles.tileBadgeRowRtl : styles.tileBadgeRowLtr]}>
-          <ReviewBadge state={photo.reviewState} compact copy={copy} />
-        </View>
-      ) : null}
-      {photo?.isPrimary ? (
-        <View style={[styles.primaryBadge, rtl ? styles.primaryBadgeRtl : styles.primaryBadgeLtr]}>
-          <Text style={styles.primaryBadgeText}>{copy.primaryBadge}</Text>
-        </View>
-      ) : null}
+      {photo ? <View style={[styles.tileBadgeRow, rtl ? styles.tileBadgeRowRtl : styles.tileBadgeRowLtr]}><ReviewBadge state={photo.reviewState} compact copy={copy} /></View> : null}
+      {photo?.isPrimary ? <View style={[styles.primaryBadge, rtl ? styles.primaryBadgeRtl : styles.primaryBadgeLtr]}><Text style={styles.primaryBadgeText}>{copy.primaryBadge}</Text></View> : null}
     </Pressable>
   );
 }
 
 function ReviewBadge({ state, compact = false, copy }: { state: MemberPhotoReviewState; compact?: boolean; copy: ReturnType<typeof photoCopy> }) {
   return (
-    <View style={[
-      styles.reviewBadge,
-      compact ? styles.reviewBadgeCompact : null,
-      state === "approved" ? styles.reviewApproved : null,
-      state === "needs_changes" ? styles.reviewChanges : null,
-      state === "rejected" ? styles.reviewRejected : null,
-    ]}>
-      <View style={[
-        styles.reviewDot,
-        state === "approved" ? styles.reviewDotApproved : null,
-        state === "needs_changes" ? styles.reviewDotChanges : null,
-        state === "rejected" ? styles.reviewDotRejected : null,
-      ]} />
-      <Text style={[
-        styles.reviewBadgeText,
-        state === "needs_changes" ? styles.reviewBadgeTextChanges : null,
-        state === "rejected" ? styles.reviewBadgeTextRejected : null,
-      ]}>{copy.reviewLabel[state]}</Text>
+    <View style={[styles.reviewBadge, compact ? styles.reviewBadgeCompact : null, state === "approved" ? styles.reviewApproved : null, state === "needs_changes" ? styles.reviewChanges : null, state === "rejected" ? styles.reviewRejected : null]}>
+      <View style={[styles.reviewDot, state === "approved" ? styles.reviewDotApproved : null, state === "needs_changes" ? styles.reviewDotChanges : null, state === "rejected" ? styles.reviewDotRejected : null]} />
+      <Text style={[styles.reviewBadgeText, state === "needs_changes" ? styles.reviewBadgeTextChanges : null, state === "rejected" ? styles.reviewBadgeTextRejected : null]}>{copy.reviewLabel[state]}</Text>
     </View>
   );
 }
 
 function OrderButton({ label, disabled, symbol, onPress }: { label: string; disabled: boolean; symbol: string; onPress: () => void }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => [styles.orderButton, pressed && !disabled ? styles.pressed : null, disabled ? styles.disabled : null]}
-    >
+    <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.orderButton, pressed && !disabled ? styles.pressed : null, disabled ? styles.disabled : null]}>
       <Text style={styles.orderSymbol}>{symbol}</Text>
       <Text style={styles.orderText}>{label}</Text>
     </Pressable>
@@ -559,9 +513,7 @@ function photoCopy(locale: MobileLocale) {
   const ar = locale === "ar";
   return {
     title: ar ? "صوري الخاصة" : "Private photos",
-    body: ar
-      ? "أضف صورة شخصية واضحة وما يصل إلى أربع صور إضافية. تبقى جميعها خاصة حتى المراجعة والسماح داخل تعارف."
-      : "Add one clear portrait and up to four supporting photos. Every image stays private until review and introduction permission allow it.",
+    body: ar ? "أضف صورة شخصية واضحة وما يصل إلى أربع صور إضافية. تبقى جميعها خاصة حتى المراجعة والسماح داخل تعارف." : "Add one clear portrait and up to four supporting photos. Every image stays private until review and introduction permission allow it.",
     account: ar ? "حسابي" : "Account",
     add: ar ? "اختيار صورة" : "Choose photo",
     full: ar ? "اكتملت 5 صور" : "5 photos added",
@@ -580,6 +532,10 @@ function photoCopy(locale: MobileLocale) {
     primaryBadge: ar ? "الأساسية" : "Primary",
     primarySelected: ar ? "الصورة الأساسية محددة" : "Primary photo selected",
     photoSelected: ar ? "صورة محددة" : "Photo selected",
+    replace: ar ? "استبدال الصورة" : "Replace photo",
+    replaced: ar ? "تم استبدال الصورة. عادت إلى حالة قيد المراجعة مع الحفاظ على ترتيبها." : "The photo was replaced and returned to pending review while keeping its place.",
+    replacedCleanupQueued: ar ? "تم استبدال الصورة وحفظها للمراجعة. تم جدولة تنظيف النسخة القديمة بأمان." : "The replacement is saved for review. Secure cleanup of the previous object was queued.",
+    replacedCleanupPending: ar ? "تم استبدال الصورة، لكن تنظيف النسخة القديمة يحتاج إعادة محاولة آمنة." : "The photo was replaced, but secure cleanup of the previous object still needs a retry.",
     makePrimary: ar ? "اجعلها الصورة الأساسية" : "Make primary photo",
     earlier: ar ? "تحريك للأمام" : "Move earlier",
     later: ar ? "تحريك للخلف" : "Move later",
