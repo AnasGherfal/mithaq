@@ -5,6 +5,10 @@ import { BrandLogo } from "@/components/brand-logo";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { mobileCopy, type MobileLocale } from "@/i18n";
+import {
+  isConnectionSpaceFeatureUnavailable,
+  listMyConnectionSpaces,
+} from "@/lib/connection-spaces";
 import { supabase } from "@/lib/supabase";
 import { colors } from "@/theme";
 
@@ -17,6 +21,9 @@ export default function WelcomeScreen() {
   const rtl = locale === "ar";
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
+  const values = rtl
+    ? ["نية واضحة", "خصوصية", "تواصل إنساني"]
+    : ["CLEAR INTENT", "PRIVATE", "HUMAN"];
 
   useEffect(() => {
     let active = true;
@@ -44,9 +51,30 @@ export default function WelcomeScreen() {
         if (profileError) throw profileError;
         if (!active) return;
 
-        const preferredLocale: MobileLocale =
-          profile?.preferred_locale === "en" ? "en" : "ar";
-        router.replace({ pathname: "/status", params: { locale: preferredLocale } });
+        const preferredLocale: MobileLocale = profile?.preferred_locale === "en" ? "en" : "ar";
+
+        try {
+          const spaces = await listMyConnectionSpaces();
+          const current = spaces.find(
+            (space) => space.isCurrent && space.membershipState === "active",
+          );
+
+          router.replace({
+            pathname:
+              current?.space === "friendship"
+                ? "/friendship"
+                : current?.space === "marriage"
+                  ? "/status"
+                  : "/spaces",
+            params: { locale: preferredLocale },
+          });
+        } catch (spaceError) {
+          if (!isConnectionSpaceFeatureUnavailable(spaceError)) throw spaceError;
+
+          // Hosted preview may temporarily be one migration behind the mobile
+          // branch. Preserve the existing marriage journey until spaces deploy.
+          router.replace({ pathname: "/status", params: { locale: preferredLocale } });
+        }
       } catch {
         if (!active) return;
         setBootError(true);
@@ -96,12 +124,12 @@ export default function WelcomeScreen() {
   return (
     <ScreenShell
       brandVariant="full"
-      eyebrow={rtl ? "تعارف للزواج بخصوصية" : "Private introductions for marriage"}
-      title={rtl ? "تعارف أقل.\nنية أوضح." : "Fewer introductions.\nClearer intent."}
+      eyebrow={rtl ? "زواج أو صداقة · بنية واضحة" : "MARRIAGE OR FRIENDSHIP · CLEAR INTENT"}
+      title={rtl ? "تواصل بوضوح.\nبدون خلط." : "Connect clearly.\nWithout ambiguity."}
       body={
         rtl
-          ? "ميثاق يقدّم تعارفات محدودة ومدروسة، بعيداً عن التصفح والسحب والملفات العامة."
-          : "Mithaq offers limited, intentional introductions without public browsing, swiping, or open profiles."
+          ? "اختر مساحة الزواج أو الأصدقاء أو الاثنين. لكل مساحة ملفها واكتشافها ومحادثاتها المستقلة."
+          : "Choose Marriage, Friends, or both. Each space keeps its own profile, discovery, and conversations."
       }
       rtl={rtl}
       footer={
@@ -124,8 +152,8 @@ export default function WelcomeScreen() {
         />
         <Text style={[styles.statement, { textAlign, writingDirection }]}>
           {rtl
-            ? "خصوصيتك ليست ميزة إضافية. هي طريقة عمل ميثاق."
-            : "Privacy is not an extra feature. It is how Mithaq works."}
+            ? "كل علاقة تبدأ بمعرفة سبب وجودك هنا، قبل معرفة الشخص الآخر."
+            : "Every connection starts by knowing why you are here—before meeting the other person."}
         </Text>
       </View>
 
@@ -135,11 +163,23 @@ export default function WelcomeScreen() {
           { flexDirection: rtl ? "row-reverse" : "row" },
         ]}
       >
-        <Text style={styles.value}>PRIVATE</Text>
-        <View style={styles.valueDot} />
-        <Text style={styles.value}>INTENTIONAL</Text>
-        <View style={styles.valueDot} />
-        <Text style={styles.value}>RESPECTFUL</Text>
+        {values.map((value, index) => (
+          <View
+            key={value}
+            style={[styles.valueGroup, { flexDirection: rtl ? "row-reverse" : "row" }]}
+          >
+            <Text
+              style={[
+                styles.value,
+                rtl ? styles.valueArabic : null,
+                { writingDirection },
+              ]}
+            >
+              {value}
+            </Text>
+            {index < values.length - 1 ? <View style={styles.valueDot} /> : null}
+          </View>
+        ))}
       </View>
 
       <View style={styles.primaryAction}>
@@ -212,12 +252,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 2,
     borderRadius: 1,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.accent,
   },
   statement: {
     color: colors.foreground,
     fontSize: 19,
-    lineHeight: 29,
+    lineHeight: 30,
     fontWeight: "700",
   },
   valuesRow: {
@@ -226,12 +266,14 @@ const styles = StyleSheet.create({
     gap: 9,
     marginTop: 34,
   },
+  valueGroup: { alignItems: "center", gap: 9 },
   value: {
     color: colors.muted,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1.2,
   },
+  valueArabic: { fontSize: 12, lineHeight: 19, letterSpacing: 0 },
   valueDot: {
     width: 3,
     height: 3,
