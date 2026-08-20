@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BrandLogo } from "@/components/brand-logo";
+import { ConnectionSpaceSwitcher } from "@/components/connection-space-switcher";
 import { MemberTabBar } from "@/components/member-tab-bar";
 import { colors, spacing } from "@/theme";
 
@@ -61,6 +62,9 @@ export function ScreenShell({
     bottomBar ??
     (activeTab ? <MemberTabBar locale={locale} active={activeTab} /> : null);
   const memberMode = Boolean(resolvedBottomBar);
+  const showSpaceSwitcher =
+    brandVariant === "compact" && (memberMode || pathname === "/friendship");
+  const fallbackSpace = pathname === "/friendship" ? "friendship" : "marriage";
 
   const content = (
     <View style={[styles.pageColumn, { alignItems: horizontalAlignment }]}>
@@ -69,10 +73,13 @@ export function ScreenShell({
           style={[
             styles.navRow,
             brandVariant === "full" ? styles.navRowFull : null,
-            {
-              alignItems:
-                brandVariant === "full" ? "center" : horizontalAlignment,
-            },
+            showSpaceSwitcher ? styles.navRowWithSpace : null,
+            showSpaceSwitcher
+              ? { flexDirection: rtl ? "row-reverse" : "row" }
+              : {
+                  alignItems:
+                    brandVariant === "full" ? "center" : horizontalAlignment,
+                },
           ]}
         >
           <View
@@ -80,9 +87,11 @@ export function ScreenShell({
               alignSelf:
                 brandVariant === "full"
                   ? "center"
-                  : rtl
-                    ? "flex-end"
-                    : "flex-start",
+                  : showSpaceSwitcher
+                    ? "auto"
+                    : rtl
+                      ? "flex-end"
+                      : "flex-start",
             }}
           >
             <BrandLogo
@@ -91,6 +100,9 @@ export function ScreenShell({
               width={brandVariant === "full" ? Math.min(width - 60, 270) : undefined}
             />
           </View>
+          {showSpaceSwitcher ? (
+            <ConnectionSpaceSwitcher locale={locale} fallbackSpace={fallbackSpace} />
+          ) : null}
         </View>
       ) : null}
 
@@ -216,6 +228,12 @@ const styles = StyleSheet.create({
   fixedContentWithBar: { paddingBottom: 8 },
   scrollContentCompact: { paddingHorizontal: 18 },
   navRow: { width: "100%", minHeight: 50, justifyContent: "center" },
+  navRowWithSpace: {
+    minHeight: 58,
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
   navRowFull: { minHeight: 152, paddingTop: 8 },
   hero: { flexGrow: 0, paddingTop: 38, width: "100%", maxWidth: 560 },
   heroMember: { paddingTop: 12 },
