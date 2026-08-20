@@ -58,11 +58,25 @@ step.
 Two staging members can create complete realistic profiles with approved,
 private photos that appear only through permitted product surfaces.
 
-## M12 — Discovery and matching product completion
+## M12 — Discovery, Friends, and matching product completion
 
-M12 adds a reason to open Mithaq before a curated introduction arrives without
-turning the product into an endless swipe catalogue. The detailed product
-contract is in `docs/m12-discovery-and-matching.md`.
+M12 gives members a reason to open Mithaq before a curated marriage introduction
+arrives, while keeping friendship and marriage as two explicit, non-mixed
+products under one account. Detailed contracts live in
+`docs/m12-discovery-and-matching.md` and `docs/connection-spaces.md`.
+
+### Shared space foundation
+
+- Let a member join Marriage, Friends, or both without silent enrollment.
+- Persist the member's current space and reopen it on returning sessions.
+- Keep profiles, discovery eligibility, interest signals, activity, visibility,
+  and conversations scoped to their originating space.
+- Keep authentication, language, device security, account deletion, and severe
+  safety enforcement account-wide.
+- Never copy marriage biography, photos, or preferences into Friends without an
+  explicit member choice.
+
+### Marriage discovery and matching
 
 - Preserve hard eligibility, mutual hard preferences, safety, blocks, and
   cooldowns as non-negotiable filters.
@@ -81,43 +95,61 @@ contract is in `docs/m12-discovery-and-matching.md`.
   introduction states.
 - Add personality/profile prompts and interest signals needed to make profiles
   feel human rather than demographic forms.
-- Keep Friendship as a separate future connection intent with separate
-  expectations and visibility; do not silently mix friendship-only members
-  into marriage introductions.
-- Add safe staging fixtures/operator tooling to exercise discovery and a
-  complete match between multiple test accounts.
+
+### Friends product
+
+- Use a separate friendship profile based on preferred name, city, friendship
+  introduction, interests, and future friendship-specific prompts.
+- Add finite interest- and activity-based friend discovery with independent
+  eligibility, review, visibility, ranking, and exposure controls.
+- Add private friend requests that do not appear as romantic likes or marriage
+  interest.
+- Open a friendship-only conversation only after the Friends connection rules
+  succeed.
+- Keep Friends activity, unread state, notifications, and conversations out of
+  Marriage navigation and vice versa.
+- Add explicit photo reuse/disclosure later; approved marriage photos are not
+  automatically shown in Friends.
+- Add safe staging fixtures/operator tooling to exercise both spaces and verify
+  that cross-space leakage is impossible.
 
 ### Exit
 
-A staging member can explore a finite, privacy-safe discovery set, privately
-express interest, and still reach the existing controlled introduction flow
-only when compatibility, mutual preferences, safety, and eligibility allow it.
-The curated introduction path also works for members who never use Discover.
+A staging account can use one or both spaces. Marriage discovery can lead into
+the controlled introduction flow only after compatibility and safety gates.
+Friends discovery can lead into a mutual friendship connection using separate
+profile, signal, activity, and conversation contracts. No friendship-only member
+appears in marriage matching, and no marriage signal or message appears inside
+Friends.
 
 ## M13 — Messaging and notifications
 
-- Polish conversation into a native private messenger with keyboard-safe
-  composer, bubbles, timestamps, pagination, retries, unread/read behavior,
+- Polish conversation into native private messengers with keyboard-safe
+  composers, bubbles, timestamps, pagination, retries, unread/read behavior,
   closure, and safety actions.
+- Keep Marriage and Friends conversations in separate server-owned contexts and
+  separate activity streams.
 - Register Expo device tokens with least-privilege server boundaries.
 - Add privacy-safe push notifications for a new introduction, mutual acceptance,
-  and a new message.
-- Add deep links and notification preference controls.
+  friend connection, and a new message.
+- Add deep links and notification preference controls that preserve the target
+  space.
 - Never place message text, phone numbers, or sensitive counterpart identifiers
   in notification payloads.
 
 ### Exit
 
-Two devices can receive an introduction, mutually accept, receive privacy-safe
-notifications, and converse reliably.
+Two devices can receive a marriage introduction or a friendship connection,
+enter the correct separate conversation, receive privacy-safe notifications,
+and converse reliably.
 
 ## M14 — Verification and operating tools
 
 - Keep phone verification, profile review, photo review, and identity
   verification as distinct states.
-- Implement the minimum internal operations surface for profile/photo review,
-  safety reports, blocks, suspension/reactivation, deletion status,
-  introduction state, and moderation audit.
+- Implement the minimum internal operations surface for marriage/friendship
+  profile review, photo review, safety reports, blocks, suspension/reactivation,
+  deletion status, connection state, and moderation audit.
 - Decide and integrate an identity/liveness provider only after legal, privacy,
   cost, and Libya/diaspora coverage review.
 - Never claim identity verification before the verification process genuinely
@@ -132,13 +164,14 @@ Mithaq can safely operate a private beta without manual database editing.
 This milestone does not block the first private/public beta unless the business
 requires monetization at launch.
 
-- Keep the complete core journey functional for free: profile, eligibility,
-  finite discovery, curated introductions, private decisions, mutual
-  conversation, and safety.
+- Keep the complete core journey functional for free in both spaces: profile,
+  finite discovery, private connection decisions, conversation, and safety.
 - Define premium value around advanced preferences, deeper compatibility
   explanations, a modestly larger finite discovery set, greater
   active-introduction capacity, priority consideration, and optional high-touch
   services—not unlimited swipes.
+- Keep space-specific entitlements explicit; a Friends benefit must not silently
+  change Marriage exposure or vice versa.
 - Build server-owned entitlements before UI paywalls.
 - Add Apple/Google subscriptions, receipt validation, restore purchase,
   cancellation, expiry, and clear subscription disclosures.
@@ -172,9 +205,9 @@ Mithaq is published and monitored in production.
 1. Finish M9 dependency/release stability while continuing independent M10 UI
    slices.
 2. Finish M10 across the whole member journey.
-3. Build M11 private photos and guided profile.
-4. Complete M12 discovery plus matching product behavior.
-5. Complete M13 messaging and push.
+3. Finish M11 private photos and guided profile.
+4. Complete M12 Marriage discovery, separate Friends, and matching behavior.
+5. Complete M13 separate messaging and push contexts.
 6. Complete the minimum M14 operating tools and private beta.
 7. Complete M16 production/store release.
 8. Add M15 monetization before or after launch according to the business plan.
@@ -188,9 +221,9 @@ Mithaq is published and monitored in production.
 - No service-role or private credentials in client code.
 - No fabricated compatibility claims, verification claims, user counts, or
   testimonials.
-- Discovery interest is private and cannot bypass compatibility, safety,
-  blocking, consent, or another member's preferences.
-- Friendship, if added, is an explicit separate connection intent rather than
-  an ambiguous use of marriage profiles.
+- Marriage discovery interest is private and cannot bypass compatibility,
+  safety, blocking, consent, or another member's preferences.
+- Marriage and Friends are explicit separate spaces. Profile data, discovery
+  signals, activity, and conversations do not cross automatically.
 - Arabic/English parity, RLS boundaries, private decisions, and safety gates are
   release requirements rather than optional polish.
