@@ -7,6 +7,7 @@ import { StateCard } from "@/components/state-card";
 import type { MobileLocale } from "@/i18n";
 import {
   getMarriageDiscoveryPhoto,
+  hideMarriageDiscoveryMember,
   isMarriageDiscoveryUnavailable,
   listMarriageDiscovery,
   recordMarriageDiscoveryAction,
@@ -34,12 +35,14 @@ export default function MarriageDiscoverScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [photo, setPhoto] = useState<MarriageDiscoveryPhoto | null>(null);
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [confirmHide, setConfirmHide] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(false);
     setFeaturePending(false);
     setMessage(null);
+    setConfirmHide(false);
     try {
       const { data, error } = await supabase.auth.getSession();
       if (error) throw error;
@@ -66,6 +69,7 @@ export default function MarriageDiscoverScreen() {
   useEffect(() => {
     let active = true;
     setPhoto(null);
+    setConfirmHide(false);
 
     if (!current?.photoId || current.photoDisplayMode === "hidden") {
       setPhotoLoading(false);
@@ -92,12 +96,29 @@ export default function MarriageDiscoverScreen() {
     if (!current || acting) return;
     setActing(true);
     setMessage(null);
+    setConfirmHide(false);
     try {
       await recordMarriageDiscoveryAction(current.userId, action);
       setMessage(action === "noticed" ? copy.noticedSaved : null);
       setIndex((value) => value + 1);
     } catch {
       setMessage(copy.actionError);
+    } finally {
+      setActing(false);
+    }
+  }
+
+  async function hideCurrent() {
+    if (!current || acting) return;
+    setActing(true);
+    setMessage(null);
+    try {
+      await hideMarriageDiscoveryMember(current.userId);
+      setConfirmHide(false);
+      setMessage(copy.hiddenSaved);
+      setIndex((value) => value + 1);
+    } catch {
+      setMessage(copy.hideError);
     } finally {
       setActing(false);
     }
@@ -226,6 +247,27 @@ export default function MarriageDiscoverScreen() {
             </PrimaryButton>
           </View>
 
+          {confirmHide ? (
+            <View style={styles.hideConfirmCard}>
+              <Text style={[styles.hideConfirmTitle, { textAlign, writingDirection }]}>{copy.hideConfirmTitle}</Text>
+              <Text style={[styles.hideConfirmBody, { textAlign, writingDirection }]}>{copy.hideConfirmBody}</Text>
+              <View style={styles.hideConfirmActions}>
+                <PrimaryButton disabled={acting} onPress={() => void hideCurrent()}>{copy.hideConfirmButton}</PrimaryButton>
+                <PrimaryButton tone="quiet" disabled={acting} onPress={() => setConfirmHide(false)}>{copy.cancel}</PrimaryButton>
+              </View>
+            </View>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              disabled={acting}
+              onPress={() => setConfirmHide(true)}
+              style={({ pressed }) => [styles.hideLink, pressed ? styles.pressed : null]}
+            >
+              <Text style={[styles.hideLinkText, { textAlign, writingDirection }]}>{copy.hideLink}</Text>
+              <Text style={[styles.hideLinkBody, { textAlign, writingDirection }]}>{copy.hideLinkBody}</Text>
+            </Pressable>
+          )}
+
           {message ? (
             <Text accessibilityLiveRegion="polite" style={[styles.message, { textAlign, writingDirection }]}>
               {message}
@@ -324,6 +366,14 @@ function marriageCopy(locale: MobileLocale) {
     next: ar ? "التالي" : "Next",
     noticedSaved: ar ? "حفظنا اهتمامك بشكل خاص." : "Your interest was saved privately.",
     actionError: ar ? "تعذر حفظ اختيارك الآن. حاول مرة أخرى." : "We couldn’t save that choice. Try again.",
+    hideLink: ar ? "أعرف هذا الشخص أو لا أريد أن نرى بعضنا" : "I know this person or don’t want us shown to each other",
+    hideLinkBody: ar ? "إخفاء متبادل خاص — لن يعرف الشخص أنك فعلت ذلك." : "Private reciprocal hide — this person will not be notified.",
+    hideConfirmTitle: ar ? "إخفاء بعضكما عن بعض؟" : "Hide each other on Mithaq?",
+    hideConfirmBody: ar ? "لن تظهرا لبعضكما في اكتشاف الزواج مستقبلاً. لا نرسل أي إشعار ولا نكشف سبب الإخفاء." : "You will stop appearing to each other in Marriage Discover. We send no notification and never reveal why.",
+    hideConfirmButton: ar ? "نعم، لا تظهرنا لبعض" : "Yes, don’t show us to each other",
+    cancel: ar ? "إلغاء" : "Cancel",
+    hiddenSaved: ar ? "تم الإخفاء بشكل خاص. لن نظهركما لبعض في الاكتشاف." : "Hidden privately. You won’t be shown to each other in Discover.",
+    hideError: ar ? "تعذر حفظ الإخفاء الآن. حاول مرة أخرى." : "We couldn’t save that privacy choice. Try again.",
     viewIntroductions: ar ? "عرض التعارف الحالي" : "View current introductions",
     priorities: ar ? "مراجعة أولويات الزواج" : "Review Marriage priorities",
     doneTitle: ar ? "انتهت مجموعة اليوم" : "You’ve seen today’s set",
@@ -449,6 +499,13 @@ const styles = StyleSheet.create({
   privacyDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.primary, marginTop: 6 },
   privacyText: { flex: 1, color: colors.muted, fontSize: 10, lineHeight: 17 },
   actions: { width: "100%", gap: 9 },
+  hideLink: { borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, padding: 12, gap: 4 },
+  hideLinkText: { color: colors.foreground, fontSize: 11, lineHeight: 18, fontWeight: "800" },
+  hideLinkBody: { color: colors.muted, fontSize: 9, lineHeight: 15 },
+  hideConfirmCard: { borderRadius: radius.lg, borderWidth: 1, borderColor: colors.goldSoft, backgroundColor: colors.goldSoft, padding: 14, gap: 7 },
+  hideConfirmTitle: { color: colors.foreground, fontSize: 13, lineHeight: 21, fontWeight: "900" },
+  hideConfirmBody: { color: colors.muted, fontSize: 10, lineHeight: 17 },
+  hideConfirmActions: { gap: 8, marginTop: 4 },
   message: { width: "100%", color: colors.primary, fontSize: 11, lineHeight: 18, fontWeight: "800" },
   secondaryLink: { minHeight: 44, alignItems: "center", justifyContent: "center" },
   secondaryLinkText: { color: colors.primary, fontSize: 12, fontWeight: "800" },
