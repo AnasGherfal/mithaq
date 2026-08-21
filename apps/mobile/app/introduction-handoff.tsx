@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
+import { ProfilePortrait } from "@/components/profile-portrait";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
 import { TrustBadges } from "@/components/trust-badges";
@@ -21,6 +22,7 @@ type IntroductionRow = {
 
 type PreviewRow = {
   display_name: string | null;
+  primary_photo_url: string | null;
   real_person_verified: boolean | null;
   age_18_plus_verified: boolean | null;
   identity_verified: boolean | null;
@@ -141,6 +143,7 @@ export default function IntroductionHandoffScreen() {
   const hasVerifiedTrust = Boolean(
     preview?.real_person_verified || preview?.age_18_plus_verified || preview?.identity_verified,
   );
+  const portraitInitial = preview?.display_name?.trim().charAt(0) || "م";
 
   return (
     <ScreenShell
@@ -179,6 +182,22 @@ export default function IntroductionHandoffScreen() {
               {preview?.display_name ? copy.mutualWithName(preview.display_name) : copy.mutual}
             </Text>
             <Text style={[styles.mutualBody, { textAlign: rtl ? "right" : "left" }]}>{copy.mutualBody}</Text>
+          </View>
+
+          <View style={styles.partnerPortraitCard}>
+            <Text style={[styles.partnerPortraitTitle, { textAlign: rtl ? "right" : "left" }]}>
+              {copy.partnerPhotoTitle}
+            </Text>
+            <Text style={[styles.partnerPortraitBody, { textAlign: rtl ? "right" : "left" }]}>
+              {preview?.primary_photo_url ? copy.partnerPhotoRevealed : copy.partnerPhotoPrivate}
+            </Text>
+            <ProfilePortrait
+              height={250}
+              initials={portraitInitial}
+              privacyLabel={copy.partnerPhotoPrivacyLabel}
+              rtl={rtl}
+              uri={preview?.primary_photo_url}
+            />
           </View>
 
           {hasVerifiedTrust ? (
@@ -313,6 +332,10 @@ function handoffCopy(locale: MobileLocale) {
       mutual: "تم القبول من الطرفين",
       mutualWithName: (name: string) => `أنت و${name} اخترتما المتابعة`,
       mutualBody: "لا نعرض أي قبول من طرف واحد. ظهور هذه الصفحة يعني أن القرار أصبح متبادلاً فعلاً.",
+      partnerPhotoTitle: "صورة الطرف الآخر",
+      partnerPhotoRevealed: "سمح الطرف الآخر بعرض صورة معتمدة داخل هذا التعارف. تبقى هذه الشاشة محمية من اللقطات والتسجيل.",
+      partnerPhotoPrivate: "لم يسمح الطرف الآخر بعرض صورة هنا بعد. يمكنك متابعة التعارف دون صورة.",
+      partnerPhotoPrivacyLabel: "صورة خاصة محمية",
       trustTitle: "ما تحقّق منه ميثاق",
       trustBody: "هذه العلامات تخص فقط الأمور التي تحقّق منها ميثاق فعلياً، ولا تعني أن كل تفاصيل الملف موثّقة.",
       photoTitle: "كشف الصورة يبقى باختيارك",
@@ -360,6 +383,10 @@ function handoffCopy(locale: MobileLocale) {
     mutual: "Both members accepted",
     mutualWithName: (name: string) => `You and ${name} chose to continue`,
     mutualBody: "Mithaq never exposes one-sided acceptance. Seeing this page means the decision is genuinely mutual.",
+    partnerPhotoTitle: "The other person’s photo",
+    partnerPhotoRevealed: "The other person allowed an approved photo to appear in this introduction. This screen stays protected from screenshots and recording.",
+    partnerPhotoPrivate: "The other person has not allowed a photo to appear here yet. You can continue without one.",
+    partnerPhotoPrivacyLabel: "Protected private photo",
     trustTitle: "What Mithaq verified",
     trustBody: "These badges cover only facts Mithaq actually verified. They do not mean every profile answer is verified.",
     photoTitle: "Photo reveal stays your choice",
@@ -416,6 +443,16 @@ const styles = StyleSheet.create({
   mutualMarkText: { color: colors.primary, fontSize: 24, fontWeight: "900" },
   mutualTitle: { color: colors.white, fontSize: 19, fontWeight: "800" },
   mutualBody: { color: "rgba(255,255,255,0.78)", fontSize: 13, lineHeight: 21, marginTop: 7 },
+  partnerPortraitCard: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    padding: 14,
+    gap: 9,
+  },
+  partnerPortraitTitle: { color: colors.foreground, fontSize: 15, fontWeight: "900" },
+  partnerPortraitBody: { color: colors.muted, fontSize: 11, lineHeight: 18 },
   trustCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
