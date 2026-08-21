@@ -22,6 +22,7 @@ type AccountPath =
   | "/profile"
   | "/photos"
   | "/questionnaire"
+  | "/marriage-priorities"
   | "/privacy"
   | "/safety"
   | "/security";
@@ -57,6 +58,8 @@ export default function AccountScreen() {
         photosBody: "الصورة الأساسية والصور الإضافية وحالة مراجعة كل صورة.",
         preferences: "التفضيلات",
         preferencesBody: "حدودك الأساسية وما تبحث عنه في شريك الحياة.",
+        priorities: "أولويات الحياة الزوجية",
+        prioritiesBody: "السكن والأطفال والعمل وحفل الزواج — اختيارات عملية يمكنك تعديلها متى شئت.",
         trust: "الخصوصية والثقة",
         privacy: "الخصوصية والموافقات",
         privacyBody: "الموافقات والتحديثات الاختيارية وطلب حذف الحساب.",
@@ -91,6 +94,8 @@ export default function AccountScreen() {
         photosBody: "Your primary portrait, supporting photos, and each review state.",
         preferences: "Preferences",
         preferencesBody: "Your important boundaries and what you seek in a life partner.",
+        priorities: "Marriage life priorities",
+        prioritiesBody: "Home, children, work, and wedding expectations — practical choices you can update anytime.",
         trust: "Privacy & trust",
         privacy: "Privacy & consent",
         privacyBody: "Consent history, optional updates, and account deletion.",
@@ -293,6 +298,13 @@ export default function AccountScreen() {
               title={copy.preferences}
               body={copy.preferencesBody}
               onPress={() => open("/questionnaire")}
+            />
+            <SettingsRow
+              rtl={rtl}
+              icon="activity"
+              title={copy.priorities}
+              body={copy.prioritiesBody}
+              onPress={() => open("/marriage-priorities")}
               last
             />
           </SettingsGroup>
@@ -518,11 +530,12 @@ const styles = StyleSheet.create({
   groupTitle: {
     width: "100%",
     color: colors.muted,
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: 11,
+    lineHeight: 18,
     fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
     marginBottom: 8,
-    paddingHorizontal: 4,
   },
   group: {
     width: "100%",
@@ -531,39 +544,29 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surfaceRaised,
     overflow: "hidden",
-  },
-  signOutGroup: {
-    width: "100%",
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceRaised,
-    overflow: "hidden",
-    marginBottom: 4,
+    ...shadows.card,
   },
   row: {
     width: "100%",
-    minHeight: 76,
+    minHeight: 78,
     alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 14,
+    gap: 13,
+    paddingHorizontal: 15,
     paddingVertical: 12,
   },
   rowDivider: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
-  rowPressed: { backgroundColor: colors.surfaceMuted },
-  rowLoading: { opacity: 0.62 },
   rowIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 39,
+    height: 39,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.primaryWash,
   },
-  rowIconDanger: { backgroundColor: "rgba(182,70,88,0.08)" },
+  rowIconDanger: { backgroundColor: colors.accentWash },
   rowCopy: { flex: 1, minWidth: 0 },
   rowTitle: {
     width: "100%",
@@ -580,4 +583,15 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 2,
   },
+  signOutGroup: {
+    width: "100%",
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.accentSoft,
+    backgroundColor: colors.surfaceRaised,
+    overflow: "hidden",
+    marginBottom: 6,
+  },
+  rowPressed: { backgroundColor: colors.surfaceMuted },
+  rowLoading: { opacity: 0.66 },
 });
