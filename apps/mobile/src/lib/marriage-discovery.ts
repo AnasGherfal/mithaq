@@ -1,5 +1,13 @@
 import { supabase } from "@/lib/supabase";
 
+export type MarriageDiscoveryPhotoMode = "full" | "blurred" | "hidden";
+export type MarriageDiscoveryAlignmentReason =
+  | "same_city"
+  | "living_arrangement"
+  | "children_plan"
+  | "work_after_marriage"
+  | "wedding_style";
+
 export type MarriageDiscoveryProfile = {
   userId: string;
   displayName: string;
@@ -9,8 +17,19 @@ export type MarriageDiscoveryProfile = {
   city: string;
   originRegion: string;
   ageBandId: number;
+  ageBandLabel: string;
   maritalStatus: string;
   hasChildren: boolean;
+  photoId: string | null;
+  photoDisplayMode: MarriageDiscoveryPhotoMode;
+  alignmentReasons: MarriageDiscoveryAlignmentReason[];
+  alignmentCount: number;
+};
+
+export type MarriageDiscoveryPhoto = {
+  photoId: string;
+  displayMode: "full" | "blurred";
+  uri: string;
 };
 
 type DiscoveryRow = {
@@ -22,9 +41,29 @@ type DiscoveryRow = {
   city: string | null;
   origin_region: string | null;
   age_band_id: number;
+  age_band_label: string | null;
   marital_status: string;
   has_children: boolean | null;
+  photo_id: string | null;
+  photo_display_mode: string | null;
+  alignment_reasons: string[] | null;
+  alignment_count: number | string | null;
 };
+
+type DiscoveryPhotoResponse = {
+  photoId?: unknown;
+  displayMode?: unknown;
+  signedUrl?: unknown;
+  imageDataUrl?: unknown;
+};
+
+const alignmentReasonValues: MarriageDiscoveryAlignmentReason[] = [
+  "same_city",
+  "living_arrangement",
+  "children_plan",
+  "work_after_marriage",
+  "wedding_style",
+];
 
 export function isMarriageDiscoveryUnavailable(error: unknown) {
   const message = normalizeError(error);
@@ -47,17 +86,64 @@ export async function listMarriageDiscovery(limit = 6): Promise<MarriageDiscover
     city: row.city ?? "",
     originRegion: row.origin_region ?? "",
     ageBandId: Number(row.age_band_id),
+    ageBandLabel: row.age_band_label ?? "",
     maritalStatus: row.marital_status,
     hasChildren: Boolean(row.has_children),
+    photoId: row.photo_id,
+    photoDisplayMode: normalizePhotoMode(row.photo_display_mode),
+    alignmentReasons: (row.alignment_reasons ?? []).filter(
+      (value): value is MarriageDiscoveryAlignmentReason =>
+        alignmentReasonValues.includes(value as MarriageDiscoveryAlignmentReason),
+    ),
+    alignmentCount: Number(row.alignment_count ?? 0),
   }));
 }
 
-export async function recordMarriageDiscoveryAction(candidateUserId: string, action: "noticed" | "skipped") {
+export async function getMarriageDiscoveryPhoto(
+  candidateUserId: string,
+  photoId: string,
+): Promise<MarriageDiscoveryPhoto | null> {
+  const { data, error } = await supabase.functions.invoke(
+    "marriage-discovery-photo-url",
+    {
+      body: { candidateUserId, photoId },
+    },
+  );
+  if (error) return null;
+
+  const response = (data ?? {}) as DiscoveryPhotoResponse;
+  const displayMode = response.displayMode === "full" || response.displayMode === "blurred"
+    ? response.displayMode
+    : null;
+  const uri = typeof response.signedUrl === "string"
+    ? response.signedUrl
+    : typeof response.imageDataUrl === "string"
+      ? response.imageDataUrl
+      : null;
+
+  if (!displayMode || !uri) return null;
+
+  return {
+    photoId: typeof response.photoId === "string" ? response.photoId : photoId,
+    displayMode,
+    uri,
+  };
+}
+
+export async function recordMarriageDiscoveryAction(
+  candidateUserId: string,
+  action: "noticed" | "skipped",
+) {
   const { error } = await supabase.rpc("record_marriage_discovery_action", {
     p_candidate_user_id: candidateUserId,
     p_action: action,
   });
   if (error) throw error;
+}
+
+function normalizePhotoMode(value: string | null): MarriageDiscoveryPhotoMode {
+  if (value === "full" || value === "blurred") return value;
+  return "hidden";
 }
 
 function normalizeError(error: unknown) {
