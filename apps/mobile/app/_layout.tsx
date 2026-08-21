@@ -5,9 +5,12 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { BrandLogo } from "@/components/brand-logo";
 import { PrimaryButton } from "@/components/primary-button";
 import { BiometricGate } from "@/security/biometric-gate";
+import { useAppSwitcherPrivacy } from "@/security/screen-privacy";
 import { colors } from "@/theme";
 
 export default function RootLayout() {
+  useAppSwitcherPrivacy();
+
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
@@ -32,6 +35,8 @@ export default function RootLayout() {
 }
 
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  useAppSwitcherPrivacy();
+
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
