@@ -7,7 +7,6 @@ import type { MobileLocale } from "@/i18n";
 import { colors, radius, shadows } from "@/theme";
 
 type DemoMode = "friends" | "marriage" | "chat" | "photos";
-
 type DemoMessage = { id: number; mine: boolean; body: string };
 
 const friendPeople = [
@@ -16,8 +15,22 @@ const friendPeople = [
 ];
 
 const marriagePeople = [
-  { name: "Mariam", city: "Tripoli", about: "Family-oriented, thoughtful, and enjoys meaningful conversations and a calm social life.", details: "Engineer · University graduate" },
-  { name: "Amina", city: "Misrata", about: "Values kindness, family, personal growth, and spending time with close friends and relatives.", details: "Teacher · University graduate" },
+  {
+    name: "Mariam",
+    city: "Tripoli",
+    age: "25–29",
+    about: "Family-oriented, thoughtful, and enjoys meaningful conversations and a calm social life.",
+    details: "Engineer · University graduate",
+    reasons: ["Same city", "Living expectations", "Wedding expectations"],
+  },
+  {
+    name: "Amina",
+    city: "Misrata",
+    age: "30–34",
+    about: "Values kindness, family, personal growth, and spending time with close friends and relatives.",
+    details: "Teacher · University graduate",
+    reasons: ["Similar view on children", "Work expectations"],
+  },
 ];
 
 export default function DevTestScreen() {
@@ -102,9 +115,29 @@ export default function DevTestScreen() {
         {mode === "marriage" ? (
           <View style={styles.card}>
             <Text style={[styles.kicker, { textAlign, writingDirection: direction }]}>{copy.marriageKicker}</Text>
+            <View style={styles.demoPortrait}>
+              <Text style={styles.demoInitial}>{marriage.name.charAt(0)}</Text>
+              <View style={styles.demoPhotoBadge}>
+                <Text style={[styles.demoPhotoBadgeText, { writingDirection: direction }]}>{copy.photoPrivacy}</Text>
+              </View>
+            </View>
             <Text style={[styles.name, { textAlign, writingDirection: direction }]}>{marriage.name}</Text>
-            <Text style={[styles.meta, { textAlign, writingDirection: direction }]}>{marriage.city} · {marriage.details}</Text>
+            <Text style={[styles.meta, { textAlign, writingDirection: direction }]}>{marriage.age} · {marriage.city} · {marriage.details}</Text>
             <Text style={[styles.body, { textAlign, writingDirection: direction }]}>{marriage.about}</Text>
+
+            <View style={styles.whyCard}>
+              <Text style={[styles.whyTitle, { textAlign, writingDirection: direction }]}>{copy.whyTitle}</Text>
+              <Text style={[styles.whyBody, { textAlign, writingDirection: direction }]}>{copy.whyBody}</Text>
+              <View style={[styles.chips, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+                {marriage.reasons.map((reason) => (
+                  <View key={reason} style={styles.reasonChip}>
+                    <Text style={styles.reasonChipText}>{copy.reason(reason)}</Text>
+                  </View>
+                ))}
+              </View>
+              <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.noScore}</Text>
+            </View>
+
             {interestSaved ? <Text style={[styles.success, { textAlign, writingDirection: direction }]}>{copy.privateInterestSaved}</Text> : null}
             <View style={styles.actions}>
               <PrimaryButton onPress={() => setInterestSaved(true)}>{copy.caughtAttention}</PrimaryButton>
@@ -140,6 +173,7 @@ export default function DevTestScreen() {
             <Text style={[styles.kicker, { textAlign, writingDirection: direction }]}>{copy.photosKicker}</Text>
             <Text style={[styles.body, { textAlign, writingDirection: direction }]}>{copy.photosBody}</Text>
             <PrimaryButton onPress={() => router.push({ pathname: "/photos", params: { locale } })}>{copy.openPhotos}</PrimaryButton>
+            <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/questionnaire", params: { locale } })}>{copy.photoPrivacySettings}</PrimaryButton>
             <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.photosNote}</Text>
           </View>
         ) : null}
@@ -150,6 +184,16 @@ export default function DevTestScreen() {
 
 function testCopy(locale: MobileLocale) {
   const ar = locale === "ar";
+  const reasonLabels: Record<string, string> = ar
+    ? {
+        "Same city": "نفس المدينة",
+        "Living expectations": "توقعات السكن",
+        "Wedding expectations": "توقعات حفل الزواج",
+        "Similar view on children": "نظرة متقاربة للأطفال",
+        "Work expectations": "توقعات العمل",
+      }
+    : {};
+
   return {
     eyebrow: ar ? "مختبر تجربة المستخدم" : "UX TEST LAB",
     title: ar ? "جرّب المزايا بدون حساب ثانٍ" : "Test features without a second account",
@@ -162,6 +206,11 @@ function testCopy(locale: MobileLocale) {
     marriageKicker: ar ? "معاينة اكتشاف الزواج" : "MARRIAGE DISCOVER PREVIEW",
     chatKicker: ar ? "معاينة محادثة الأصدقاء" : "FRIENDS CHAT PREVIEW",
     photosKicker: ar ? "معاينة الصور" : "PHOTO PREVIEW",
+    photoPrivacy: ar ? "الصورة حسب اختيار الخصوصية" : "Photo follows privacy choice",
+    whyTitle: ar ? "لماذا أظهر لك ميثاق هذا الشخص؟" : "Why Mithaq showed you this person",
+    whyBody: ar ? "هذه أمثلة لفئات توافق عملية، وليست كشفاً لإجابات الشخص الخاصة." : "These are example alignment categories, not a reveal of the person’s private answers.",
+    reason: (value: string) => reasonLabels[value] ?? value,
+    noScore: ar ? "لا نعرض نسبة توافق وهمية." : "Mithaq does not show a fake compatibility percentage.",
     connect: ar ? "تواصل" : "Connect",
     next: ar ? "التالي" : "Next",
     requestSent: ar ? "تم إرسال طلب خاص في هذه المعاينة." : "Private request sent in this preview.",
@@ -169,12 +218,13 @@ function testCopy(locale: MobileLocale) {
     connected: ar ? "أصبحتم متصلين كأصدقاء في المعاينة." : "You are now Friends connections in this preview.",
     openChat: ar ? "فتح المحادثة" : "Open chat",
     caughtAttention: ar ? "لفت انتباهي" : "Caught my attention",
-    privateInterestSaved: ar ? "تم حفظ الاهتمام بشكل خاص في هذه المعاينة." : "Private interest saved in this preview.",
+    privateInterestSaved: ar ? "تم حفظ الاهتمام بشكل خاص في هذه المعاينة. لا يظهر للشخص الآخر." : "Private interest saved in this preview. The other person is not told.",
     messagePlaceholder: ar ? "اكتب رسالة تجريبية…" : "Write a test message…",
     send: ar ? "إرسال" : "Send",
-    photosBody: ar ? "افتح شاشة الصور لاختيار صورة حقيقية من هاتفك ومعاينتها. إذا لم يكن الحفظ متاحاً بعد، تبقى الصورة على جهازك فقط." : "Open Photos to choose a real image from your phone and preview it. If saving is not available yet, the image stays on your device only.",
+    photosBody: ar ? "افتح شاشة الصور لاختيار صورة حقيقية من هاتفك ورفعها بشكل خاص. يمكنك أيضاً تجربة من يرى صورتك من إعدادات الخصوصية." : "Open Photos to choose a real image from your phone and save it privately. You can also test who can see it from your privacy preferences.",
     openPhotos: ar ? "فتح الصور" : "Open Photos",
-    photosNote: ar ? "لا نعرض أي تفاصيل تقنية للمستخدم داخل تجربة الصور." : "The photo experience should never expose technical backend details to the user.",
+    photoPrivacySettings: ar ? "إعدادات ظهور الصورة" : "Photo visibility settings",
+    photosNote: ar ? "لا نعرض أي تفاصيل تقنية للمستخدم داخل تجربة الصور." : "The photo experience never exposes backend or developer details to the user.",
   };
 }
 
@@ -190,12 +240,21 @@ const styles = StyleSheet.create({
   tabTextActive: { color: colors.primaryStrong },
   card: { width: "100%", borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, padding: 18, gap: 12, ...shadows.card },
   kicker: { color: colors.primary, fontSize: 10, fontWeight: "900" },
+  demoPortrait: { width: "100%", aspectRatio: 4 / 5, borderRadius: radius.lg, backgroundColor: colors.primaryWash, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  demoInitial: { color: colors.primary, fontSize: 70, fontWeight: "900" },
+  demoPhotoBadge: { position: "absolute", bottom: 12, left: 12, borderRadius: radius.pill, backgroundColor: colors.surfaceRaised, paddingHorizontal: 10, paddingVertical: 7 },
+  demoPhotoBadgeText: { color: colors.foreground, fontSize: 9, fontWeight: "800" },
   name: { color: colors.foreground, fontSize: 25, lineHeight: 31, fontWeight: "900" },
   meta: { color: colors.muted, fontSize: 11, lineHeight: 18 },
   body: { color: colors.foreground, fontSize: 14, lineHeight: 23 },
   chips: { gap: 6, flexWrap: "wrap" },
   chip: { borderRadius: radius.pill, backgroundColor: colors.surfaceMuted, paddingHorizontal: 9, paddingVertical: 6 },
   chipText: { color: colors.muted, fontSize: 10, fontWeight: "700" },
+  whyCard: { borderRadius: radius.lg, borderWidth: 1, borderColor: colors.primarySoft, backgroundColor: colors.primaryWash, padding: 13, gap: 8 },
+  whyTitle: { color: colors.primaryStrong, fontSize: 13, lineHeight: 21, fontWeight: "900" },
+  whyBody: { color: colors.foreground, fontSize: 11, lineHeight: 18 },
+  reasonChip: { borderRadius: radius.pill, backgroundColor: colors.surfaceRaised, paddingHorizontal: 9, paddingVertical: 6 },
+  reasonChipText: { color: colors.primary, fontSize: 9, fontWeight: "800" },
   actions: { gap: 8 },
   success: { color: colors.primaryStrong, fontSize: 12, lineHeight: 19, fontWeight: "800" },
   messages: { gap: 8, minHeight: 150, justifyContent: "flex-end" },
