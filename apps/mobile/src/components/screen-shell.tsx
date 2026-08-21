@@ -41,12 +41,12 @@ export function ScreenShell({ eyebrow, title, body, footer, bottomBar, rtl = fal
   const friendshipRoute = pathname.startsWith("/friendship");
   const friendshipContext = friendshipRoute || (pathname === "/account" && params.space === "friendship");
 
-  const marriageActiveTab = pathname === "/status" ? "home" : pathname === "/introductions" ? "introductions" : pathname === "/activity" ? "activity" : pathname === "/account" && !friendshipContext ? "account" : null;
+  const marriageActiveTab = pathname === "/status" ? "home" : pathname === "/marriage-discover" ? "discover" : pathname === "/introductions" ? "introductions" : pathname === "/activity" ? "activity" : pathname === "/account" && !friendshipContext ? "account" : null;
   const friendshipActiveTab = pathname === "/friendship" ? "home" : pathname === "/friendship-discover" ? "discover" : pathname === "/friendship-connections" ? "connections" : pathname === "/friendship-chats" ? "chats" : pathname === "/account" && friendshipContext ? "account" : null;
 
   const resolvedBottomBar = bottomBar ?? (friendshipActiveTab ? <FriendshipTabBar locale={locale} active={friendshipActiveTab} /> : marriageActiveTab ? <MemberTabBar locale={locale} active={marriageActiveTab} /> : null);
   const memberMode = Boolean(resolvedBottomBar);
-  const showSpaceSwitcher = brandVariant === "compact" && (memberMode || friendshipRoute);
+  const showSpaceSwitcher = brandVariant === "compact" && (memberMode || friendshipRoute || pathname === "/marriage-discover");
   const fallbackSpace = friendshipContext ? "friendship" : "marriage";
 
   const content = (
