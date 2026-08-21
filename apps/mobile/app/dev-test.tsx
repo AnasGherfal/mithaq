@@ -7,7 +7,7 @@ import { TrustBadges } from "@/components/trust-badges";
 import type { MobileLocale } from "@/i18n";
 import { colors, radius, shadows } from "@/theme";
 
-type DemoMode = "discover" | "privacy" | "photos";
+type DemoMode = "discover" | "introduction" | "privacy" | "photos";
 
 const profiles = [
   {
@@ -53,6 +53,8 @@ export default function DevTestScreen() {
   const [index, setIndex] = useState(0);
   const [interestSaved, setInterestSaved] = useState(false);
   const [shielded, setShielded] = useState(false);
+  const [photoRevealConfirm, setPhotoRevealConfirm] = useState(false);
+  const [photoRevealed, setPhotoRevealed] = useState(false);
   const profile = profiles[index % profiles.length]!;
   const direction = rtl ? "rtl" : "ltr";
   const textAlign = rtl ? "right" : "left";
@@ -73,7 +75,7 @@ export default function DevTestScreen() {
         </View>
 
         <View style={[styles.tabs, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-          {(["discover", "privacy", "photos"] as DemoMode[]).map((item) => (
+          {(["discover", "introduction", "privacy", "photos"] as DemoMode[]).map((item) => (
             <Pressable
               key={item}
               onPress={() => setMode(item)}
@@ -114,16 +116,8 @@ export default function DevTestScreen() {
             <View style={styles.details}>
               <Row rtl={rtl} label={copy.age} value={profile.age} />
               <Row rtl={rtl} label={copy.city} value={profile.city} />
-              <Row
-                rtl={rtl}
-                label={copy.marital}
-                value={locale === "ar" ? localizeMarital(profile.marital) : profile.marital}
-              />
-              <Row
-                rtl={rtl}
-                label={copy.children}
-                value={locale === "ar" ? (profile.children === "Yes" ? "نعم" : "لا") : profile.children}
-              />
+              <Row rtl={rtl} label={copy.marital} value={locale === "ar" ? localizeMarital(profile.marital) : profile.marital} />
+              <Row rtl={rtl} label={copy.children} value={locale === "ar" ? (profile.children === "Yes" ? "نعم" : "لا") : profile.children} />
             </View>
 
             <View style={styles.whyCard}>
@@ -139,9 +133,7 @@ export default function DevTestScreen() {
               <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.noScore}</Text>
             </View>
 
-            {interestSaved ? (
-              <Text style={[styles.success, { textAlign, writingDirection: direction }]}>{copy.privateInterestSaved}</Text>
-            ) : null}
+            {interestSaved ? <Text style={[styles.success, { textAlign, writingDirection: direction }]}>{copy.privateInterestSaved}</Text> : null}
             <View style={styles.actions}>
               <PrimaryButton onPress={() => setInterestSaved(true)}>{copy.caughtAttention}</PrimaryButton>
               <PrimaryButton
@@ -153,6 +145,58 @@ export default function DevTestScreen() {
               >
                 {copy.next}
               </PrimaryButton>
+            </View>
+          </View>
+        ) : null}
+
+        {mode === "introduction" ? (
+          <View style={styles.card}>
+            <Text style={[styles.kicker, { textAlign, writingDirection: direction }]}>{copy.introductionKicker}</Text>
+            <Text style={[styles.name, { textAlign, writingDirection: direction }]}>{copy.mutualTitle}</Text>
+            <Text style={[styles.body, { textAlign, writingDirection: direction }]}>{copy.mutualBody}</Text>
+
+            <View style={styles.trustCard}>
+              <Text style={[styles.trustTitle, { textAlign, writingDirection: direction }]}>{copy.trustTitle}</Text>
+              <TrustBadges
+                locale={locale}
+                realPersonVerified
+                age18PlusVerified
+                identityVerified={false}
+              />
+            </View>
+
+            <View style={styles.revealCard}>
+              <Text style={[styles.privateTitle, { textAlign, writingDirection: direction }]}>{copy.revealTitle}</Text>
+              <Text style={[styles.privateBody, { textAlign, writingDirection: direction }]}>
+                {photoRevealed ? copy.revealedBody : copy.revealBody}
+              </Text>
+              {!photoRevealed ? (
+                <View style={styles.actions}>
+                  {photoRevealConfirm ? (
+                    <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.revealWarning}</Text>
+                  ) : null}
+                  <PrimaryButton
+                    onPress={() => {
+                      if (!photoRevealConfirm) {
+                        setPhotoRevealConfirm(true);
+                        return;
+                      }
+                      setPhotoRevealed(true);
+                      setPhotoRevealConfirm(false);
+                    }}
+                  >
+                    {photoRevealConfirm ? copy.confirmReveal : copy.revealButton}
+                  </PrimaryButton>
+                  {photoRevealConfirm ? (
+                    <PrimaryButton tone="quiet" onPress={() => setPhotoRevealConfirm(false)}>{copy.cancel}</PrimaryButton>
+                  ) : null}
+                </View>
+              ) : null}
+            </View>
+
+            <View style={styles.privateCard}>
+              <Text style={[styles.privateTitle, { textAlign, writingDirection: direction }]}>{copy.chatReady}</Text>
+              <Text style={[styles.privateBody, { textAlign, writingDirection: direction }]}>{copy.chatReadyBody}</Text>
             </View>
           </View>
         ) : null}
@@ -177,10 +221,7 @@ export default function DevTestScreen() {
               <PrimaryButton onPress={() => setShielded(true)}>{copy.simulateShield}</PrimaryButton>
             )}
 
-            <PrimaryButton
-              tone="quiet"
-              onPress={() => router.push({ pathname: "/profile-visibility", params: { locale } })}
-            >
+            <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/profile-visibility", params: { locale } })}>
               {copy.openPrivacy}
             </PrimaryButton>
           </View>
@@ -191,9 +232,7 @@ export default function DevTestScreen() {
             <Text style={[styles.kicker, { textAlign, writingDirection: direction }]}>{copy.photosKicker}</Text>
             <Text style={[styles.name, { textAlign, writingDirection: direction }]}>{copy.photosOptional}</Text>
             <Text style={[styles.body, { textAlign, writingDirection: direction }]}>{copy.photosBody}</Text>
-            <PrimaryButton onPress={() => router.push({ pathname: "/photos", params: { locale } })}>
-              {copy.openPhotos}
-            </PrimaryButton>
+            <PrimaryButton onPress={() => router.push({ pathname: "/photos", params: { locale } })}>{copy.openPhotos}</PrimaryButton>
             <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.photosNote}</Text>
           </View>
         ) : null}
@@ -233,18 +272,18 @@ function testCopy(locale: MobileLocale) {
   return {
     eyebrow: ar ? "مختبر تجربة الزواج" : "MARRIAGE UX TEST LAB",
     title: ar ? "جرّب رحلة ميثاق بدون حساب ثانٍ" : "Test Mithaq without a second account",
-    body: ar ? "معاينات محلية لتجربة الاكتشاف والثقة والخصوصية والصور على هاتفك." : "Local previews for testing Discover, trust, privacy, and photos on your phone.",
+    body: ar ? "معاينات محلية لتجربة الاكتشاف والتعارف والخصوصية والصور على هاتفك." : "Local previews for testing Discover, introductions, privacy, and photos on your phone.",
     back: ar ? "رجوع" : "Back",
     devOnly: ar ? "للتطوير فقط" : "Development only",
     devOnlyBody: ar ? "هذه بيانات تجريبية وليست أعضاء حقيقيين ولا تظهر في نسخة الإنتاج." : "These are sample profiles, not real members, and this screen does not ship in production.",
-    tabs: { discover: ar ? "الاكتشاف" : "Discover", privacy: ar ? "الخصوصية" : "Privacy", photos: ar ? "الصور" : "Photos" },
+    tabs: { discover: ar ? "الاكتشاف" : "Discover", introduction: ar ? "التعارف" : "Introduction", privacy: ar ? "الخصوصية" : "Privacy", photos: ar ? "الصور" : "Photos" },
     discoverKicker: ar ? "معاينة اكتشاف الزواج" : "MARRIAGE DISCOVER PREVIEW",
     anonymousTitle: ar ? "ملف زواج مجهول" : "Anonymous Marriage profile",
     anonymousBody: ar ? "لا اسم ولا صورة ولا عمل ولا تعليم في مرحلة الاكتشاف الأولى." : "No name, photo, work, or education is shown in the first discovery stage.",
     trustTitle: ar ? "موثّق من ميثاق" : "Verified by Mithaq",
     trustBody: ar ? "هذه العلامات تخص فقط ما تحقّق منه ميثاق. لا تعني أن كل إجابة في الملف موثّقة." : "These badges cover only checks Mithaq actually verified. They do not mean every profile answer is verified.",
     noBadgeTitle: ar ? "لا توجد علامات تحقق إضافية" : "No additional verification badges",
-    noBadgeBody: ar ? "في التطبيق الحقيقي لن نضع تحذيراً أحمر أو نصف هذا الشخص بأنه غير موثوق؛ ببساطة لن تظهر أي علامة إضافية." : "In the real app there is no red warning and we do not label this person unsafe; there simply would be no extra badge.",
+    noBadgeBody: ar ? "في التطبيق الحقيقي لن نضع تحذيراً أحمر؛ ببساطة لن تظهر أي علامة إضافية." : "In the real app there is no red warning; there simply would be no extra badge.",
     age: ar ? "العمر" : "Age",
     city: ar ? "المدينة" : "City",
     marital: ar ? "الحالة الاجتماعية" : "Marital status",
@@ -256,6 +295,18 @@ function testCopy(locale: MobileLocale) {
     caughtAttention: ar ? "لفت انتباهي" : "Caught my attention",
     privateInterestSaved: ar ? "تم حفظ الاهتمام بشكل خاص. الطرف الآخر لا يعرف." : "Private interest saved. The other person is not told.",
     next: ar ? "التالي" : "Next",
+    introductionKicker: ar ? "بعد القبول المتبادل" : "AFTER MUTUAL ACCEPTANCE",
+    mutualTitle: ar ? "القبول أصبح متبادلاً" : "Interest is mutual",
+    mutualBody: ar ? "الآن يمكن لكليكما متابعة التعارف بدون كشف رقم الهاتف أو إجبار أي طرف على كشف صورة." : "You can now continue without sharing phone numbers or forcing either person to reveal a photo.",
+    revealTitle: ar ? "كشف الصورة باختيارك" : "Photo reveal is your choice",
+    revealBody: ar ? "تخيّل أن إعدادك هو «بعد موافقتي الصريحة». صورتك المعتمدة ما زالت خاصة ويمكنك كشفها لهذا التعارف فقط." : "Imagine your setting is “only after my explicit approval.” Your approved photo is still private and can be revealed for this introduction only.",
+    revealWarning: ar ? "بعد الكشف قد يكون الطرف الآخر قد شاهد الصورة، لذلك لا يمكن اعتبار التراجع لاحقاً وكأنها لم تُشاهد." : "Once revealed, the other person may have seen it. A later change cannot make an already viewed photo unseen.",
+    revealButton: ar ? "كشف صورتي لهذا التعارف" : "Reveal my photo here",
+    confirmReveal: ar ? "نعم، اكشف صورتي هنا" : "Yes, reveal my photo here",
+    cancel: ar ? "إلغاء" : "Cancel",
+    revealedBody: ar ? "تم كشف الصورة في هذه المعاينة لهذا التعارف فقط." : "The photo is now revealed in this preview for this introduction only.",
+    chatReady: ar ? "المحادثة لا تحتاج صورة" : "Chat does not require a photo",
+    chatReadyBody: ar ? "حتى لو أبقيت صورتك خاصة، يمكنك بدء المحادثة بعد القبول المتبادل." : "Even if you keep your photo private, you can start chatting after mutual acceptance.",
     privacyKicker: ar ? "اختبار درع العائلة" : "FAMILY SHIELD PREVIEW",
     familyScenario: ar ? "مثال: أخ أو قريب أو زميل" : "Example: sibling, relative, or coworker",
     familyScenarioBody: ar ? "بدلاً من الانتظار حتى يرى أحدكما الآخر، يمكن إضافة رقمه مسبقاً إلى درع الخصوصية." : "Instead of waiting until one of you sees the other, add their number to the privacy shield beforehand.",
@@ -278,8 +329,8 @@ const styles = StyleSheet.create({
   warning: { borderRadius: radius.lg, backgroundColor: colors.goldSoft, padding: 14, gap: 4 },
   warningTitle: { color: colors.gold, fontSize: 13, fontWeight: "900" },
   warningBody: { color: colors.muted, fontSize: 11, lineHeight: 18 },
-  tabs: { width: "100%", gap: 6 },
-  tab: { flex: 1, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, paddingVertical: 10, paddingHorizontal: 8, alignItems: "center" },
+  tabs: { width: "100%", gap: 6, flexWrap: "wrap" },
+  tab: { flexGrow: 1, minWidth: "45%", borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, paddingVertical: 10, paddingHorizontal: 8, alignItems: "center" },
   tabActive: { backgroundColor: colors.primaryWash, borderColor: colors.primarySoft },
   tabText: { color: colors.muted, fontSize: 10, fontWeight: "800" },
   tabTextActive: { color: colors.primaryStrong },
@@ -310,6 +361,7 @@ const styles = StyleSheet.create({
   privateCard: { borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 14, gap: 5 },
   privateTitle: { color: colors.primaryStrong, fontSize: 12, lineHeight: 19, fontWeight: "900" },
   privateBody: { color: colors.muted, fontSize: 11, lineHeight: 18 },
+  revealCard: { borderRadius: radius.lg, borderWidth: 1, borderColor: colors.goldSoft, backgroundColor: colors.surfaceRaised, padding: 14, gap: 9 },
   successCard: { borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 14, gap: 5 },
   note: { color: colors.muted, fontSize: 10, lineHeight: 17 },
 });
