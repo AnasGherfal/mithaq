@@ -9,6 +9,36 @@ The spaces share one secure account but do not share profile visibility,
 interest signals, activity, or conversations. The complete non-mixing contract
 is in `docs/connection-spaces.md`.
 
+## Current implementation status
+
+The first Friends product loop is now implemented in source:
+
+- separate friendship profiles and explicit Marriage/Friends memberships;
+- a top-level current-space switcher rather than hiding the product choice only
+  inside Account;
+- finite Friends discovery with a maximum server-controlled request limit;
+- ranking by shared friendship interests, then same-city relevance, with a
+  stable daily rotation instead of an infinite swipe feed;
+- block-aware and account-state-aware discovery eligibility;
+- private friend requests stored in the private schema;
+- incoming and outgoing request views;
+- explicit accept, decline, and withdraw actions;
+- accepted friendship connections kept in the Friends request/connection
+  context only;
+- no direct raw-table access for authenticated clients;
+- pgTAP coverage for discovery eligibility, block enforcement, private request
+  storage, request direction, duplicate prevention, acceptance, and the rule
+  that Marriage-only members cannot enter Friends discovery.
+
+Hosted staging still needs these migrations before the iPhone preview can use
+real Friends candidates and real friend requests. Source/test presence does not
+mean the hosted database has already been upgraded or the pgTAP suite has been
+executed successfully.
+
+The next Friends slice after hosted validation is **Friends-only conversation
+creation for accepted connections**, followed by Friends activity/unread state
+and push notification context.
+
 ## Product problem
 
 A purely passive matchmaking flow is high-intent but low-frequency: complete a
@@ -116,6 +146,11 @@ Friends discovery is finite and based on friendship-specific signals such as
 shared interests, city, activities, language, availability, and future community
 preferences. It must have independent review, visibility, ranking, and exposure
 controls.
+
+The first implementation uses completed Friendship profiles, active Friendship
+space membership, shared interests, city relevance, account availability, and
+account-wide blocking. It intentionally does not query Marriage preferences or
+Marriage profile fields.
 
 The Friends profile should answer questions such as:
 
