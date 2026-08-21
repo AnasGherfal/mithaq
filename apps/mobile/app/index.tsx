@@ -5,10 +5,6 @@ import { BrandLogo } from "@/components/brand-logo";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { mobileCopy, type MobileLocale } from "@/i18n";
-import {
-  isConnectionSpaceFeatureUnavailable,
-  listMyConnectionSpaces,
-} from "@/lib/connection-spaces";
 import { supabase } from "@/lib/supabase";
 import { colors } from "@/theme";
 
@@ -22,8 +18,8 @@ export default function WelcomeScreen() {
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
   const values = rtl
-    ? ["نية واضحة", "خصوصية", "تواصل إنساني"]
-    : ["CLEAR INTENT", "PRIVATE", "HUMAN"];
+    ? ["زواج جاد", "خصوصية", "اختيارك"]
+    : ["SERIOUS MARRIAGE", "PRIVATE", "YOUR CHOICE"];
 
   useEffect(() => {
     let active = true;
@@ -52,29 +48,7 @@ export default function WelcomeScreen() {
         if (!active) return;
 
         const preferredLocale: MobileLocale = profile?.preferred_locale === "en" ? "en" : "ar";
-
-        try {
-          const spaces = await listMyConnectionSpaces();
-          const current = spaces.find(
-            (space) => space.isCurrent && space.membershipState === "active",
-          );
-
-          router.replace({
-            pathname:
-              current?.space === "friendship"
-                ? "/friendship"
-                : current?.space === "marriage"
-                  ? "/status"
-                  : "/spaces",
-            params: { locale: preferredLocale },
-          });
-        } catch (spaceError) {
-          if (!isConnectionSpaceFeatureUnavailable(spaceError)) throw spaceError;
-
-          // Hosted preview may temporarily be one migration behind the mobile
-          // branch. Preserve the existing marriage journey until spaces deploy.
-          router.replace({ pathname: "/status", params: { locale: preferredLocale } });
-        }
+        router.replace({ pathname: "/status", params: { locale: preferredLocale } });
       } catch {
         if (!active) return;
         setBootError(true);
@@ -124,12 +98,12 @@ export default function WelcomeScreen() {
   return (
     <ScreenShell
       brandVariant="full"
-      eyebrow={rtl ? "زواج أو صداقة · بنية واضحة" : "MARRIAGE OR FRIENDSHIP · CLEAR INTENT"}
-      title={rtl ? "تواصل بوضوح.\nبدون خلط." : "Connect clearly.\nWithout ambiguity."}
+      eyebrow={rtl ? "زواج جاد · بخصوصية" : "SERIOUS MARRIAGE · PRIVATE BY DESIGN"}
+      title={rtl ? "اختيارك للزواج\nيبقى لك." : "Your marriage search.\nOn your terms."}
       body={
         rtl
-          ? "اختر مساحة الزواج أو الأصدقاء أو الاثنين. لكل مساحة ملفها واكتشافها ومحادثاتها المستقلة."
-          : "Choose Marriage, Friends, or both. Each space keeps its own profile, discovery, and conversations."
+          ? "ميثاق يساعدك على اكتشاف توافق جاد بدون ملف عام، وبدون أن يعرف الآخرون أنك تستخدم التطبيق."
+          : "Mithaq helps you explore serious marriage compatibility without a public profile or announcing that you use the app."
       }
       rtl={rtl}
       footer={
@@ -144,39 +118,18 @@ export default function WelcomeScreen() {
       }
     >
       <View style={styles.statementBlock}>
-        <View
-          style={[
-            styles.statementRule,
-            { alignSelf: rtl ? "flex-end" : "flex-start" },
-          ]}
-        />
+        <View style={[styles.statementRule, { alignSelf: rtl ? "flex-end" : "flex-start" }]} />
         <Text style={[styles.statement, { textAlign, writingDirection }]}>
           {rtl
-            ? "كل علاقة تبدأ بمعرفة سبب وجودك هنا، قبل معرفة الشخص الآخر."
-            : "Every connection starts by knowing why you are here—before meeting the other person."}
+            ? "ابدأ بتوافق مجهول. لا اسم ولا صورة في الاكتشاف الأول، وأنت تحدد متى يُكشف المزيد."
+            : "Start with anonymous compatibility. No name or photo in first-stage Discover, and you control when more is revealed."}
         </Text>
       </View>
 
-      <View
-        style={[
-          styles.valuesRow,
-          { flexDirection: rtl ? "row-reverse" : "row" },
-        ]}
-      >
+      <View style={[styles.valuesRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
         {values.map((value, index) => (
-          <View
-            key={value}
-            style={[styles.valueGroup, { flexDirection: rtl ? "row-reverse" : "row" }]}
-          >
-            <Text
-              style={[
-                styles.value,
-                rtl ? styles.valueArabic : null,
-                { writingDirection },
-              ]}
-            >
-              {value}
-            </Text>
+          <View key={value} style={[styles.valueGroup, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+            <Text style={[styles.value, rtl ? styles.valueArabic : null, { writingDirection }]}>{value}</Text>
             {index < values.length - 1 ? <View style={styles.valueDot} /> : null}
           </View>
         ))}
@@ -192,100 +145,26 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 18,
-    backgroundColor: colors.background,
-    paddingHorizontal: 28,
-  },
-  loadingArabic: {
-    color: colors.primary,
-    fontSize: 15,
-    lineHeight: 23,
-    fontWeight: "800",
-    marginTop: 2,
-  },
+  loadingState: { flex: 1, alignItems: "center", justifyContent: "center", gap: 18, backgroundColor: colors.background, paddingHorizontal: 28 },
+  loadingArabic: { color: colors.primary, fontSize: 15, lineHeight: 23, fontWeight: "800", marginTop: 2 },
   loadingEnglish: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: -14 },
-  recoveryState: {
-    flex: 1,
-    justifyContent: "center",
-    backgroundColor: colors.background,
-    paddingHorizontal: 28,
-    paddingVertical: 40,
-  },
-  recoveryEyebrow: {
-    color: colors.gold,
-    fontSize: 10,
-    lineHeight: 15,
-    letterSpacing: 1.4,
-    fontWeight: "800",
-    marginTop: 24,
-  },
-  recoveryArabic: {
-    color: colors.primary,
-    fontSize: 28,
-    lineHeight: 39,
-    fontWeight: "900",
-    textAlign: "right",
-    marginTop: 12,
-  },
-  recoveryTitle: {
-    color: colors.foreground,
-    fontSize: 21,
-    lineHeight: 29,
-    fontWeight: "800",
-    marginTop: 3,
-  },
-  recoveryBodyArabic: {
-    color: colors.muted,
-    fontSize: 14,
-    lineHeight: 24,
-    textAlign: "right",
-    marginTop: 16,
-  },
+  recoveryState: { flex: 1, justifyContent: "center", backgroundColor: colors.background, paddingHorizontal: 28, paddingVertical: 40 },
+  recoveryEyebrow: { color: colors.gold, fontSize: 10, lineHeight: 15, letterSpacing: 1.4, fontWeight: "800", marginTop: 24 },
+  recoveryArabic: { color: colors.primary, fontSize: 28, lineHeight: 39, fontWeight: "900", textAlign: "right", marginTop: 12 },
+  recoveryTitle: { color: colors.foreground, fontSize: 21, lineHeight: 29, fontWeight: "800", marginTop: 3 },
+  recoveryBodyArabic: { color: colors.muted, fontSize: 14, lineHeight: 24, textAlign: "right", marginTop: 16 },
   recoveryBody: { color: colors.muted, fontSize: 13, lineHeight: 22, marginTop: 7 },
   recoveryAction: { marginTop: 28 },
   statementBlock: { gap: 15 },
-  statementRule: {
-    width: 44,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: colors.accent,
-  },
-  statement: {
-    color: colors.foreground,
-    fontSize: 19,
-    lineHeight: 30,
-    fontWeight: "700",
-  },
-  valuesRow: {
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 9,
-    marginTop: 34,
-  },
+  statementRule: { width: 44, height: 2, borderRadius: 1, backgroundColor: colors.accent },
+  statement: { color: colors.foreground, fontSize: 19, lineHeight: 30, fontWeight: "700" },
+  valuesRow: { alignItems: "center", flexWrap: "wrap", gap: 9, marginTop: 34 },
   valueGroup: { alignItems: "center", gap: 9 },
-  value: {
-    color: colors.muted,
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1.2,
-  },
+  value: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 1.2 },
   valueArabic: { fontSize: 12, lineHeight: 19, letterSpacing: 0 },
-  valueDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.gold,
-  },
+  valueDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.gold },
   primaryAction: { marginTop: 44 },
-  languageButton: {
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  languageButton: { minHeight: 44, alignItems: "center", justifyContent: "center" },
   languageText: { color: colors.primary, fontSize: 13, fontWeight: "800" },
   pressed: { opacity: 0.55 },
 });
