@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
 const memberPhotoBucket = "member-profile-photos";
-const signedUrlLifetimeSeconds = 5 * 60;
+const signedUrlLifetimeSeconds = 90;
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
