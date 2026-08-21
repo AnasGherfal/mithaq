@@ -24,6 +24,9 @@ export type MarriageDiscoveryProfile = {
   photoDisplayMode: MarriageDiscoveryPhotoMode;
   alignmentReasons: MarriageDiscoveryAlignmentReason[];
   alignmentCount: number;
+  realPersonVerified: boolean;
+  age18PlusVerified: boolean;
+  identityVerified: boolean;
 };
 
 export type MarriageDiscoveryPhoto = {
@@ -48,6 +51,9 @@ type DiscoveryRow = {
   photo_display_mode: string | null;
   alignment_reasons: string[] | null;
   alignment_count: number | string | null;
+  real_person_verified: boolean | null;
+  age_18_plus_verified: boolean | null;
+  identity_verified: boolean | null;
 };
 
 type DiscoveryPhotoResponse = {
@@ -100,6 +106,9 @@ export async function listMarriageDiscovery(limit = 6): Promise<MarriageDiscover
         alignmentReasonValues.includes(value as MarriageDiscoveryAlignmentReason),
     ),
     alignmentCount: Number(row.alignment_count ?? 0),
+    realPersonVerified: Boolean(row.real_person_verified),
+    age18PlusVerified: Boolean(row.age_18_plus_verified),
+    identityVerified: Boolean(row.identity_verified),
   }));
 }
 
