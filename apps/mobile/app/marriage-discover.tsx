@@ -5,6 +5,7 @@ import { AppIcon } from "@/components/app-icon";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
+import { TrustBadges } from "@/components/trust-badges";
 import type { MobileLocale } from "@/i18n";
 import {
   isMarriageDiscoveryUnavailable,
@@ -59,6 +60,10 @@ export default function MarriageDiscoverScreen() {
   }, [load]);
 
   const current = profiles[index] ?? null;
+  const hasVerifiedTrust = Boolean(
+    current &&
+      (current.realPersonVerified || current.age18PlusVerified || current.identityVerified),
+  );
 
   async function act(action: "noticed" | "skipped") {
     if (!current || acting) return;
@@ -136,6 +141,19 @@ export default function MarriageDiscoverScreen() {
               <Text style={[styles.anonymousTitle, { textAlign, writingDirection }]}>{copy.anonymousTitle}</Text>
               <Text style={[styles.anonymousBody, { textAlign, writingDirection }]}>{copy.anonymousBody}</Text>
             </View>
+
+            {hasVerifiedTrust ? (
+              <View style={styles.trustCard}>
+                <Text style={[styles.trustTitle, { textAlign, writingDirection }]}>{copy.trustTitle}</Text>
+                <TrustBadges
+                  locale={locale}
+                  realPersonVerified={current.realPersonVerified}
+                  age18PlusVerified={current.age18PlusVerified}
+                  identityVerified={current.identityVerified}
+                />
+                <Text style={[styles.trustBody, { textAlign, writingDirection }]}>{copy.trustBody}</Text>
+              </View>
+            ) : null}
 
             <View style={styles.details}>
               <Detail label={copy.age} value={current.ageBandLabel} rtl={rtl} />
@@ -220,6 +238,8 @@ function marriageCopy(locale: MobileLocale) {
     today: ar ? "متبقٍ اليوم" : "Profiles left today",
     anonymousTitle: ar ? "ملف زواج مجهول" : "Anonymous Marriage profile",
     anonymousBody: ar ? "الاسم والصورة والعمل والتعليم مخفية في هذه المرحلة لحماية الطرفين من الظهور غير المرغوب." : "Name, photo, work, and education stay hidden at this stage so neither person is exposed unexpectedly.",
+    trustTitle: ar ? "موثّق من ميثاق" : "Verified by Mithaq",
+    trustBody: ar ? "هذه العلامات تخص فقط ما تحقّق منه ميثاق فعلياً. بقية معلومات الملف يصرّح بها العضو بنفسه." : "These badges cover only facts Mithaq actually verified. Other profile answers remain member-declared.",
     age: ar ? "العمر" : "Age",
     city: ar ? "المدينة" : "City",
     notShared: ar ? "غير محدد" : "Not specified",
@@ -264,6 +284,9 @@ const styles = StyleSheet.create({
   anonymousIcon: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised, marginBottom: 12 },
   anonymousTitle: { width: "100%", color: colors.primaryStrong, fontSize: 20, lineHeight: 28, fontWeight: "900" },
   anonymousBody: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 20, marginTop: 7 },
+  trustCard: { width: "100%", gap: 8, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.primarySoft, backgroundColor: colors.surfaceRaised, padding: 13 },
+  trustTitle: { width: "100%", color: colors.primaryStrong, fontSize: 12, lineHeight: 19, fontWeight: "900" },
+  trustBody: { width: "100%", color: colors.muted, fontSize: 9, lineHeight: 15 },
   details: { width: "100%", borderTopWidth: 1, borderTopColor: colors.border },
   detailRow: { width: "100%", justifyContent: "space-between", gap: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   detailLabel: { color: colors.muted, fontSize: 10, fontWeight: "700", flex: 1 },
