@@ -10,7 +10,13 @@ export type FriendshipDiscoveryProfile = {
   sharedInterestCount: number;
 };
 
-export type FriendshipRequestStatus = "pending" | "accepted" | "declined" | "withdrawn";
+export type FriendshipRequestStatus =
+  | "pending"
+  | "accepted"
+  | "declined"
+  | "withdrawn"
+  | "expired"
+  | "blocked";
 export type FriendshipRequestDirection = "incoming" | "outgoing";
 
 export type FriendshipRequest = {
@@ -22,6 +28,15 @@ export type FriendshipRequest = {
   city: string;
   interests: string[];
   createdAt: string;
+};
+
+export type FriendshipConnection = {
+  connectionId: string;
+  counterpartUserId: string;
+  displayName: string;
+  city: string;
+  interests: string[];
+  connectedAt: string;
 };
 
 type DiscoveryRow = {
@@ -45,12 +60,22 @@ type RequestRow = {
   created_at: string;
 };
 
+type ConnectionRow = {
+  connection_id: string;
+  counterpart_user_id: string;
+  display_name: string;
+  city: string;
+  interests: string[] | null;
+  connected_at: string;
+};
+
 export function isFriendshipDiscoveryUnavailable(error: unknown) {
   const message = normalizeError(error);
   return (
     (message.includes("list_friendship_discovery") ||
       message.includes("send_friendship_request") ||
-      message.includes("list_my_friendship_requests")) &&
+      message.includes("list_my_friendship_requests") ||
+      message.includes("list_my_friendship_connections")) &&
     (message.includes("schema cache") ||
       message.includes("could not find the function") ||
       message.includes("does not exist"))
@@ -96,6 +121,20 @@ export async function listMyFriendshipRequests(): Promise<FriendshipRequest[]> {
     city: row.city,
     interests: row.interests ?? [],
     createdAt: row.created_at,
+  }));
+}
+
+export async function listMyFriendshipConnections(): Promise<FriendshipConnection[]> {
+  const { data, error } = await supabase.rpc("list_my_friendship_connections");
+  if (error) throw error;
+
+  return ((data ?? []) as ConnectionRow[]).map((row) => ({
+    connectionId: row.connection_id,
+    counterpartUserId: row.counterpart_user_id,
+    displayName: row.display_name,
+    city: row.city,
+    interests: row.interests ?? [],
+    connectedAt: row.connected_at,
   }));
 }
 
