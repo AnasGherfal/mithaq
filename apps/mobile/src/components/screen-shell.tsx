@@ -40,6 +40,7 @@ export function ScreenShell({ eyebrow, title, body, footer, bottomBar, rtl = fal
   const horizontalAlignment = rtl ? "flex-end" : "flex-start";
   const locale = rtl ? "ar" : "en";
   const friendshipRoute = pathname.startsWith("/friendship");
+  const marriageRoute = pathname.startsWith("/marriage-");
   const friendshipContext = friendshipRoute || (pathname === "/account" && params.space === "friendship");
 
   const marriageActiveTab = pathname === "/status" ? "home" : pathname === "/marriage-discover" ? "discover" : pathname === "/introductions" ? "introductions" : pathname === "/activity" ? "activity" : pathname === "/account" && !friendshipContext ? "account" : null;
@@ -47,7 +48,7 @@ export function ScreenShell({ eyebrow, title, body, footer, bottomBar, rtl = fal
 
   const resolvedBottomBar = bottomBar ?? (friendshipActiveTab ? <FriendshipTabBar locale={locale} active={friendshipActiveTab} /> : marriageActiveTab ? <MemberTabBar locale={locale} active={marriageActiveTab} /> : null);
   const memberMode = Boolean(resolvedBottomBar);
-  const showSpaceSwitcher = brandVariant === "compact" && (memberMode || friendshipRoute || pathname === "/marriage-discover");
+  const showSpaceSwitcher = brandVariant === "compact" && (memberMode || friendshipRoute || marriageRoute);
   const fallbackSpace = friendshipContext ? "friendship" : "marriage";
 
   const content = (
