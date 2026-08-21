@@ -45,11 +45,8 @@ export default function MarriageDiscoverScreen() {
       setProfiles(await listMarriageDiscovery(6));
       setIndex(0);
     } catch (error) {
-      if (__DEV__ && isMarriageDiscoveryUnavailable(error)) {
-        setFeaturePending(true);
-      } else {
-        setLoadError(true);
-      }
+      if (__DEV__ && isMarriageDiscoveryUnavailable(error)) setFeaturePending(true);
+      else setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -82,6 +79,14 @@ export default function MarriageDiscoverScreen() {
       title={copy.title}
       body={copy.body}
       rtl={rtl}
+      footer={
+        <PrimaryButton
+          tone="quiet"
+          onPress={() => router.push({ pathname: "/marriage-priorities", params: { locale } })}
+        >
+          {copy.priorities}
+        </PrimaryButton>
+      }
     >
       {loading ? (
         <View style={styles.loading}>
@@ -183,6 +188,20 @@ function Detail({ label, value, rtl }: { label: string; value: string; rtl: bool
 
 function marriageCopy(locale: MobileLocale) {
   const ar = locale === "ar";
+  const statusLabels: Record<string, string> = ar
+    ? {
+        never_married: "لم يسبق له/لها الزواج",
+        married: "متزوج/متزوجة",
+        divorced: "مطلق/مطلقة",
+        widowed: "أرمل/أرملة",
+      }
+    : {
+        never_married: "Never married",
+        married: "Married",
+        divorced: "Divorced",
+        widowed: "Widowed",
+      };
+
   return {
     eyebrow: ar ? "الزواج · اكتشاف" : "MARRIAGE · DISCOVER",
     title: ar ? "أشخاص يستحقون نظرة هادئة" : "People worth a closer look",
@@ -195,18 +214,19 @@ function marriageCopy(locale: MobileLocale) {
     children: ar ? "أطفال" : "Children",
     yes: ar ? "نعم" : "Yes",
     no: ar ? "لا" : "No",
-    marital: (value: string) => ar ? ({ single: "أعزب/عزباء", divorced: "مطلق/مطلقة", widowed: "أرمل/أرملة" }[value] ?? value) : value.replaceAll("_", " "),
+    marital: (value: string) => statusLabels[value] ?? value.replaceAll("_", " "),
     privateNote: ar ? "اختيار «لفت انتباهي» خاص تماماً ولا يرسل إشعاراً لهذا الشخص." : "“Caught my attention” is private. It does not notify this person.",
     notice: ar ? "لفت انتباهي" : "Caught my attention",
     next: ar ? "التالي" : "Next",
     noticedSaved: ar ? "حفظنا اهتمامك بشكل خاص." : "Your interest was saved privately.",
     actionError: ar ? "تعذر حفظ اختيارك الآن. حاول مرة أخرى." : "We couldn’t save that choice. Try again.",
     viewIntroductions: ar ? "عرض التعارف الحالي" : "View current introductions",
+    priorities: ar ? "مراجعة أولويات الزواج" : "Review Marriage priorities",
     doneTitle: ar ? "انتهت مجموعة اليوم" : "You’ve seen today’s set",
     doneBody: ar ? "لا يوجد تمرير لا نهائي هنا. عد لاحقاً لمجموعة صغيرة جديدة أو راجع التعارف الحالي." : "There is no endless feed here. Come back for another small set or review your current introductions.",
     introductions: ar ? "التعارف" : "Introductions",
-    previewTitle: ar ? "اكتشاف الزواج بانتظار ترحيل الاستضافة" : "Marriage Discover needs the staging migration",
-    previewBody: ar ? "طبّق ترحيل Marriage Discover على Supabase المرحلي لتفعيل الاكتشاف الحقيقي." : "Deploy the Marriage Discover migration to hosted staging to activate real discovery.",
+    previewTitle: ar ? "الاكتشاف غير متاح في هذه المعاينة بعد" : "Discover isn’t available in this preview yet",
+    previewBody: ar ? "يمكنك الآن مراجعة ملفك وأولويات الزواج، وسيظهر الأشخاص هنا عندما يصبح الاكتشاف متاحاً لحسابك." : "You can still review your profile and Marriage priorities. People will appear here when discovery becomes available for your account.",
     loadErrorTitle: ar ? "تعذر تحميل اكتشاف الزواج" : "We couldn’t load Marriage Discover",
     loadErrorBody: ar ? "تحقق من الاتصال ثم حاول مرة أخرى." : "Check your connection and try again.",
     retry: ar ? "إعادة المحاولة" : "Try again",
