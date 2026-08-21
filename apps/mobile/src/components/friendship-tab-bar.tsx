@@ -42,7 +42,12 @@ export function FriendshipTabBar({ locale, active }: Props) {
               accessibilityState={{ selected, disabled: selected }}
               accessibilityLabel={label}
               disabled={selected}
-              onPress={() => router.replace({ pathname: tab.path, params: { locale } })}
+              onPress={() =>
+                router.replace({
+                  pathname: tab.path,
+                  params: tab.key === "account" ? { locale, space: "friendship" } : { locale },
+                })
+              }
               style={({ pressed }) => [
                 styles.tab,
                 selected ? styles.tabSelected : null,
