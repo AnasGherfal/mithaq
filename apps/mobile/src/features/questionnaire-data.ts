@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 
-export type MaritalStatus = "never_married" | "divorced" | "widowed";
+export type MaritalStatus = "never_married" | "married" | "divorced" | "widowed";
 export type YesNoDepends = "yes" | "no" | "depends";
 
 export type QuestionnaireDraft = {
