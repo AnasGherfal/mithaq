@@ -52,8 +52,8 @@ export const defaultQuestionnaire: QuestionnaireDraft = {
   openToDiaspora: true,
   relocationWillingness: "depends",
   preferredCountries: [],
-  willingIdentityVerification: true,
-  photoPrivacyPreference: "after_mutual_interest",
+  willingIdentityVerification: false,
+  photoPrivacyPreference: "none",
   familyInvolvementPreference: "after_initial_interest",
 };
 
