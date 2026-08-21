@@ -22,7 +22,7 @@ begin
   return query
   select
     fc.id,
-    case when fc.user_a_id = v_user_id then fc.user_b_id else fc.user_a_id end,
+    case when fc.user_low_id = v_user_id then fc.user_high_id else fc.user_low_id end,
     fp.display_name,
     fp.city,
     lm.body,
@@ -42,7 +42,7 @@ begin
     on c.connection_id = fc.id
    and c.status = 'open'::public.conversation_status
   join public.friendship_profiles fp
-    on fp.user_id = case when fc.user_a_id = v_user_id then fc.user_b_id else fc.user_a_id end
+    on fp.user_id = case when fc.user_low_id = v_user_id then fc.user_high_id else fc.user_low_id end
   left join lateral (
     select m.body, m.sent_at
     from private.friendship_messages m
@@ -50,11 +50,11 @@ begin
     order by m.sent_at desc, m.id desc
     limit 1
   ) lm on true
-  where (fc.user_a_id = v_user_id or fc.user_b_id = v_user_id)
-    and not private.members_are_blocked(fc.user_a_id, fc.user_b_id)
+  where (fc.user_low_id = v_user_id or fc.user_high_id = v_user_id)
+    and not private.members_are_blocked(fc.user_low_id, fc.user_high_id)
     and private.friendship_member_is_eligible(v_user_id)
     and private.friendship_member_is_eligible(
-      case when fc.user_a_id = v_user_id then fc.user_b_id else fc.user_a_id end
+      case when fc.user_low_id = v_user_id then fc.user_high_id else fc.user_low_id end
     )
   order by lm.sent_at desc nulls last, fc.connected_at desc, fc.id;
 end;
