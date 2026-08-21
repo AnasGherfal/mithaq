@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import * as ScreenCapture from "expo-screen-capture";
+import { usePathname } from "expo-router";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import type { MobileLocale } from "@/i18n";
 import { colors, radius } from "@/theme";
 
 const APP_SWITCHER_BLUR_INTENSITY = 0.96;
+const PRIVATE_MEMBER_SCREEN_KEY = "mithaq-private-member-content";
 
 /**
  * Keeps Mithaq's content out of iOS background/app-switcher snapshots.
@@ -39,9 +41,9 @@ export function useAppSwitcherPrivacy() {
  * On Android this uses FLAG_SECURE, which also blanks the screen in Recents.
  * On supported iOS versions Expo prevents capture at the native view layer.
  */
-export function useSensitiveScreenProtection(key: string) {
+export function useSensitiveScreenProtection(key: string, enabled = true) {
   useEffect(() => {
-    if (Platform.OS === "web") return;
+    if (!enabled || Platform.OS === "web") return;
 
     let disposed = false;
     const activation = (async () => {
@@ -56,7 +58,23 @@ export function useSensitiveScreenProtection(key: string) {
         void ScreenCapture.allowScreenCaptureAsync(key).catch(() => undefined);
       });
     };
-  }, [key]);
+  }, [enabled, key]);
+}
+
+/**
+ * Central route guard so future private-profile screens cannot accidentally
+ * forget capture protection. Discovery stays screenshot-able because it is
+ * anonymous-first and contains no name or photo.
+ */
+export function PrivateMemberCaptureGuard() {
+  const pathname = usePathname();
+  const protectedRoute =
+    pathname === "/introductions" ||
+    pathname === "/introduction-handoff" ||
+    pathname === "/conversation";
+
+  useSensitiveScreenProtection(PRIVATE_MEMBER_SCREEN_KEY, protectedRoute);
+  return null;
 }
 
 export function ScreenPrivacyNotice({ locale }: { locale: MobileLocale }) {
