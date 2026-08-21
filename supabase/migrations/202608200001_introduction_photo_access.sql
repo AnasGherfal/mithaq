@@ -3,7 +3,7 @@ create or replace function public.list_introduction_photo_refs(
 )
 returns table (
   photo_id uuid,
-  position smallint,
+  "position" smallint,
   is_primary boolean
 )
 language plpgsql
