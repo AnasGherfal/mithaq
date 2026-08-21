@@ -92,7 +92,7 @@ export default function FriendshipRequestsScreen() {
 
   const incoming = requests.filter((item) => item.direction === "incoming" && item.status === "pending");
   const outgoing = requests.filter((item) => item.direction === "outgoing" && item.status === "pending");
-  const connected = requests.filter((item) => item.status === "accepted");
+  const pendingCount = incoming.length + outgoing.length;
 
   return (
     <ScreenShell
@@ -101,14 +101,23 @@ export default function FriendshipRequestsScreen() {
       body={copy.body}
       rtl={rtl}
       footer={
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.replace({ pathname: "/friendship", params: { locale } })}
-          style={({ pressed }) => [styles.back, pressed ? styles.pressed : null]}
-        >
-          <AppIcon name="back" rtl={rtl} size={17} />
-          <Text style={[styles.backText, { writingDirection }]}>{copy.home}</Text>
-        </Pressable>
+        <View style={styles.footer}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.replace({ pathname: "/friendship", params: { locale } })}
+            style={({ pressed }) => [styles.footerLink, pressed ? styles.pressed : null]}
+          >
+            <AppIcon name="back" rtl={rtl} size={17} />
+            <Text style={[styles.footerText, { writingDirection }]}>{copy.home}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push({ pathname: "/friendship-connections", params: { locale } })}
+            style={({ pressed }) => [styles.footerLink, pressed ? styles.pressed : null]}
+          >
+            <Text style={[styles.footerText, { writingDirection }]}>{copy.connections}</Text>
+          </Pressable>
+        </View>
       }
     >
       {loading ? (
@@ -126,7 +135,7 @@ export default function FriendshipRequestsScreen() {
         />
       ) : featurePending ? (
         <StateCard rtl={rtl} title={copy.previewTitle} body={copy.previewBody} />
-      ) : requests.length === 0 ? (
+      ) : pendingCount === 0 ? (
         <StateCard
           rtl={rtl}
           title={copy.emptyTitle}
@@ -175,19 +184,6 @@ export default function FriendshipRequestsScreen() {
                   >
                     {copy.withdraw}
                   </PrimaryButton>
-                </RequestCard>
-              ))}
-            </RequestSection>
-          ) : null}
-
-          {connected.length > 0 ? (
-            <RequestSection title={copy.connected} rtl={rtl}>
-              {connected.map((request) => (
-                <RequestCard key={request.requestId} request={request} rtl={rtl} copy={copy}>
-                  <View style={[styles.connectedPill, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-                    <View style={styles.connectedDot} />
-                    <Text style={[styles.connectedText, { writingDirection }]}>{copy.connectedLabel}</Text>
-                  </View>
                 </RequestCard>
               ))}
             </RequestSection>
@@ -246,34 +242,31 @@ function requestCopy(locale: MobileLocale) {
   const ar = locale === "ar";
   return {
     eyebrow: ar ? "الأصدقاء · الطلبات" : "FRIENDS · REQUESTS",
-    title: ar ? "طلبات واتصالات الأصدقاء" : "Friend requests and connections",
-    body: ar ? "الطلبات والاتصالات هنا للأصدقاء فقط ولا تظهر في مساحة الزواج." : "Everything here belongs only to Friends and never appears in Marriage.",
+    title: ar ? "طلبات الصداقة الخاصة" : "Private friend requests",
+    body: ar ? "هنا تظهر الطلبات المعلقة فقط. الاتصالات المقبولة لها قائمة مستقلة داخل مساحة الأصدقاء." : "Only pending requests live here. Accepted friendships have their own separate Friends connections list.",
     home: ar ? "الأصدقاء" : "Friends home",
+    connections: ar ? "الاتصالات" : "Connections",
     incoming: ar ? "طلبات وصلت إليك" : "Requests for you",
     outgoing: ar ? "طلبات أرسلتها" : "Requests you sent",
-    connected: ar ? "اتصالات مقبولة" : "Accepted connections",
     accept: ar ? "قبول" : "Accept",
     decline: ar ? "رفض" : "Decline",
     withdraw: ar ? "سحب الطلب" : "Withdraw request",
-    connectedLabel: ar ? "صداقة مقبولة" : "Friend connection",
-    accepted: ar ? "تم قبول طلب الصداقة." : "Friend request accepted.",
+    accepted: ar ? "تم قبول الطلب ونقله إلى اتصالات الأصدقاء." : "Accepted. This person is now in Friends connections.",
     declined: ar ? "تم رفض الطلب بشكل خاص." : "The request was declined privately.",
     withdrawn: ar ? "تم سحب طلب الصداقة." : "The friend request was withdrawn.",
     actionError: ar ? "تعذر حفظ التغيير الآن. حاول مرة أخرى." : "We couldn’t save that change. Try again.",
-    emptyTitle: ar ? "لا توجد طلبات بعد" : "No friend requests yet",
-    emptyBody: ar ? "اكتشف أشخاصاً من اهتمامات مشتركة وأرسل أول طلب خاص." : "Discover people through shared interests and send your first private request.",
+    emptyTitle: ar ? "لا توجد طلبات معلقة" : "No pending requests",
+    emptyBody: ar ? "يمكنك اكتشاف أشخاص جدد أو فتح اتصالاتك المقبولة من الأسفل." : "Discover someone new or open your accepted Friends connections below.",
     discover: ar ? "اكتشاف الأصدقاء" : "Discover friends",
     previewTitle: ar ? "طلبات الأصدقاء بانتظار ترحيل الاستضافة" : "Friend requests need the staging migration",
-    previewBody: ar ? "طبّق ترحيل اكتشاف الأصدقاء والطلبات على Supabase المرحلي لتفعيل هذه الشاشة." : "Deploy the Friends discovery/request migration to hosted staging to activate this screen.",
+    previewBody: ar ? "طبّق ترحيلات Friends على Supabase المرحلي لتفعيل الطلبات والاتصالات." : "Deploy the Friends migrations to hosted staging to activate requests and connections.",
     retry: ar ? "إعادة المحاولة" : "Try again",
     loadErrorTitle: ar ? "تعذر تحميل طلبات الأصدقاء" : "We couldn’t load friend requests",
     loadErrorBody: ar ? "تحقق من الاتصال ثم حاول مرة أخرى." : "Check your connection and try again.",
-    requestMeta: (request: FriendshipRequest) => {
-      if (request.status === "accepted") return ar ? "تم قبول الاتصال" : "Connection accepted";
-      return request.direction === "incoming"
+    requestMeta: (request: FriendshipRequest) =>
+      request.direction === "incoming"
         ? ar ? "طلب صداقة خاص وصل إليك" : "A private friend request for you"
-        : ar ? "طلب صداقة خاص أرسلته" : "Your private friend request";
-    },
+        : ar ? "طلب صداقة خاص أرسلته" : "Your private friend request",
   };
 }
 
@@ -296,11 +289,9 @@ const styles = StyleSheet.create({
   meta: { width: "100%", color: colors.primary, fontSize: 10, lineHeight: 17, fontWeight: "800" },
   actions: { width: "100%", gap: 9 },
   actionButton: { flex: 1 },
-  connectedPill: { alignSelf: "flex-start", alignItems: "center", gap: 6, borderRadius: radius.pill, backgroundColor: colors.primarySoft, paddingHorizontal: 10, paddingVertical: 7 },
-  connectedDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary },
-  connectedText: { color: colors.primaryStrong, fontSize: 10, fontWeight: "800" },
   message: { width: "100%", color: colors.primary, fontSize: 12, lineHeight: 19, fontWeight: "800" },
-  back: { minHeight: 46, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-  backText: { color: colors.primary, fontSize: 13, fontWeight: "800" },
+  footer: { width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  footerLink: { minHeight: 46, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  footerText: { color: colors.primary, fontSize: 13, fontWeight: "800" },
   pressed: { opacity: 0.55 },
 });
