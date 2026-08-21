@@ -32,7 +32,7 @@ export function questionnaireCopy(locale: MobileLocale) {
     stageBodies: ar
       ? [
           "اختر المعلومات الأساسية التي تساعد ميثاق على فهم ملفك.",
-          "المكان والحالة الاجتماعية من أهم حدود التوافق الأولية.",
+          "المكان والحالة الاجتماعية يساعداننا على فهم التوافق، ولا تمنع أي حالة اجتماعية من استخدام ميثاق.",
           "حدد استعدادك وما تقبله بوضوح. يمكنك تعديل ذلك لاحقاً.",
           "أخبرنا بمرونتك تجاه ليبيا والخارج والانتقال.",
           "أنت تتحكم في الصورة والتحقق وما يُكشف داخل التعارف.",
@@ -40,7 +40,7 @@ export function questionnaireCopy(locale: MobileLocale) {
         ]
       : [
           "Choose the basic details Mithaq needs to understand your profile.",
-          "Location and marital status are important first compatibility boundaries.",
+          "Location and marital status help us understand fit. No marital status prevents someone from using Mithaq.",
           "Set your readiness and boundaries clearly. You can change them later.",
           "Tell us how flexible you are across Libya, the diaspora, and relocation.",
           "You control photos, verification, and what is revealed in an introduction.",
@@ -71,6 +71,7 @@ export function questionnaireCopy(locale: MobileLocale) {
     marital: ar ? "الحالة الاجتماعية" : "Marital status",
     status: {
       never_married: ar ? "لم يسبق لي الزواج" : "Never married",
+      married: ar ? "متزوج/متزوجة" : "Married",
       divorced: ar ? "مطلق/مطلقة" : "Divorced",
       widowed: ar ? "أرمل/أرملة" : "Widowed",
     },
