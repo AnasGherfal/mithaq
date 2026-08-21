@@ -68,8 +68,12 @@ const alignmentReasonValues: MarriageDiscoveryAlignmentReason[] = [
 export function isMarriageDiscoveryUnavailable(error: unknown) {
   const message = normalizeError(error);
   return (
-    (message.includes("list_marriage_discovery") || message.includes("record_marriage_discovery_action")) &&
-    (message.includes("schema cache") || message.includes("could not find the function") || message.includes("does not exist"))
+    (message.includes("list_marriage_discovery") ||
+      message.includes("record_marriage_discovery_action") ||
+      message.includes("hide_marriage_discovery_member")) &&
+    (message.includes("schema cache") ||
+      message.includes("could not find the function") ||
+      message.includes("does not exist"))
   );
 }
 
@@ -137,6 +141,13 @@ export async function recordMarriageDiscoveryAction(
   const { error } = await supabase.rpc("record_marriage_discovery_action", {
     p_candidate_user_id: candidateUserId,
     p_action: action,
+  });
+  if (error) throw error;
+}
+
+export async function hideMarriageDiscoveryMember(candidateUserId: string) {
+  const { error } = await supabase.rpc("hide_marriage_discovery_member", {
+    p_target_user_id: candidateUserId,
   });
   if (error) throw error;
 }
