@@ -62,7 +62,7 @@ export async function getIntroductionPhotoUrl(
       typeof response.photoId === "string" ? response.photoId : photoId,
     signedUrl: response.signedUrl,
     expiresIn:
-      typeof response.expiresIn === "number" ? response.expiresIn : 5 * 60,
+      typeof response.expiresIn === "number" ? response.expiresIn : 90,
   };
 }
 
