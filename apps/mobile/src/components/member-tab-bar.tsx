@@ -5,21 +5,23 @@ import { AppIcon } from "@/components/app-icon";
 import type { MobileLocale } from "@/i18n";
 import { colors, shadows } from "@/theme";
 
-type MemberTab = "home" | "introductions" | "activity" | "account";
+type MemberTab = "home" | "discover" | "introductions" | "activity" | "account";
 type Props = { locale: MobileLocale; active: MemberTab };
 
 type TabDefinition = {
   key: MemberTab;
   ar: string;
   en: string;
-  path: "/status" | "/introductions" | "/activity" | "/account";
+  path: "/status" | "/marriage-discover" | "/introductions" | "/activity" | "/account";
+  icon: "home" | "introductions" | "activity" | "account";
 };
 
 const tabs: TabDefinition[] = [
-  { key: "home", ar: "الرئيسية", en: "Home", path: "/status" },
-  { key: "introductions", ar: "التعارف", en: "Introductions", path: "/introductions" },
-  { key: "activity", ar: "النشاط", en: "Activity", path: "/activity" },
-  { key: "account", ar: "حسابي", en: "Account", path: "/account" },
+  { key: "home", ar: "الرئيسية", en: "Home", path: "/status", icon: "home" },
+  { key: "discover", ar: "اكتشاف", en: "Discover", path: "/marriage-discover", icon: "introductions" },
+  { key: "introductions", ar: "التعارف", en: "Introductions", path: "/introductions", icon: "introductions" },
+  { key: "activity", ar: "النشاط", en: "Activity", path: "/activity", icon: "activity" },
+  { key: "account", ar: "حسابي", en: "Account", path: "/account", icon: "account" },
 ];
 
 export function MemberTabBar({ locale, active }: Props) {
@@ -42,22 +44,15 @@ export function MemberTabBar({ locale, active }: Props) {
               accessibilityState={{ selected, disabled: selected }}
               accessibilityLabel={label}
               disabled={selected}
-              onPress={() =>
-                router.replace({ pathname: tab.path, params: { locale } })
-              }
+              onPress={() => router.replace({ pathname: tab.path, params: { locale } })}
               style={({ pressed }) => [
                 styles.tab,
                 selected ? styles.tabSelected : null,
                 pressed && !selected ? styles.pressed : null,
               ]}
             >
-              <View
-                style={[
-                  styles.iconWrap,
-                  selected ? styles.iconWrapSelected : null,
-                ]}
-              >
-                <AppIcon name={tab.key} active={selected} size={21} />
+              <View style={[styles.iconWrap, selected ? styles.iconWrapSelected : null]}>
+                <AppIcon name={tab.icon} active={selected} size={20} />
               </View>
               <Text
                 style={[
@@ -86,7 +81,7 @@ const styles = StyleSheet.create({
   bar: {
     minHeight: 66,
     alignItems: "center",
-    paddingHorizontal: 8,
+    paddingHorizontal: 5,
     paddingTop: 7,
     paddingBottom: 5,
     backgroundColor: colors.surfaceRaised,
@@ -97,42 +92,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    borderRadius: 19,
+    borderRadius: 17,
   },
-  tabSelected: {
-    backgroundColor: colors.surfaceMuted,
-  },
+  tabSelected: { backgroundColor: colors.surfaceMuted },
   iconWrap: {
-    minWidth: 40,
-    height: 29,
-    borderRadius: 15,
+    minWidth: 36,
+    height: 27,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
-  iconWrapSelected: {
-    backgroundColor: colors.primaryWash,
-  },
+  iconWrapSelected: { backgroundColor: colors.primaryWash },
   label: {
     color: colors.muted,
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: 9,
+    lineHeight: 13,
     fontWeight: "600",
-    letterSpacing: 0,
     textAlign: "center",
   },
   labelArabic: {
-    fontSize: 11,
-    lineHeight: 17,
+    fontSize: 10,
+    lineHeight: 16,
     fontWeight: "600",
     writingDirection: "rtl",
-    letterSpacing: 0,
   },
-  labelSelected: {
-    color: colors.primary,
-    fontWeight: "800",
-  },
-  pressed: {
-    opacity: 0.52,
-    transform: [{ scale: 0.97 }],
-  },
+  labelSelected: { color: colors.primary, fontWeight: "800" },
+  pressed: { opacity: 0.52, transform: [{ scale: 0.97 }] },
 });
