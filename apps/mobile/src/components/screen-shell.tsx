@@ -48,6 +48,7 @@ export function ScreenShell({
   const horizontalAlignment = rtl ? "flex-end" : "flex-start";
   const locale = rtl ? "ar" : "en";
   const privateCaptureRoute =
+    pathname === "/marriage-discover" ||
     pathname === "/introductions" ||
     pathname === "/introduction-handoff" ||
     pathname === "/conversation";
