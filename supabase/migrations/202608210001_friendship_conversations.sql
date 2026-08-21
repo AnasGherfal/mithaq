@@ -67,7 +67,7 @@ begin
   where c.connection_id = p_connection_id
     and c.status = 'open'::public.conversation_status
     and (c.user_a_id = p_user_id or c.user_b_id = p_user_id)
-    and (fc.user_a_id = p_user_id or fc.user_b_id = p_user_id);
+    and (fc.user_low_id = p_user_id or fc.user_high_id = p_user_id);
 
   if v_conversation_id is null or v_other_user_id is null then return null; end if;
   if private.members_are_blocked(p_user_id, v_other_user_id)
@@ -95,17 +95,17 @@ begin
   select * into v_connection
   from private.friendship_connections fc
   where fc.id = p_connection_id
-    and (fc.user_a_id = v_user_id or fc.user_b_id = v_user_id);
+    and (fc.user_low_id = v_user_id or fc.user_high_id = v_user_id);
 
   if not found then raise exception 'friendship conversation unavailable'; end if;
-  if private.members_are_blocked(v_connection.user_a_id, v_connection.user_b_id)
-     or not private.friendship_member_is_eligible(v_connection.user_a_id)
-     or not private.friendship_member_is_eligible(v_connection.user_b_id) then
+  if private.members_are_blocked(v_connection.user_low_id, v_connection.user_high_id)
+     or not private.friendship_member_is_eligible(v_connection.user_low_id)
+     or not private.friendship_member_is_eligible(v_connection.user_high_id) then
     raise exception 'friendship conversation unavailable';
   end if;
 
   insert into private.friendship_conversations (connection_id, user_a_id, user_b_id)
-  values (v_connection.id, v_connection.user_a_id, v_connection.user_b_id)
+  values (v_connection.id, v_connection.user_low_id, v_connection.user_high_id)
   on conflict (connection_id) do nothing;
 
   select id into v_id
