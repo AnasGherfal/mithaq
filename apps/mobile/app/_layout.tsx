@@ -5,7 +5,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { BrandLogo } from "@/components/brand-logo";
 import { PrimaryButton } from "@/components/primary-button";
 import { BiometricGate } from "@/security/biometric-gate";
-import { useAppSwitcherPrivacy } from "@/security/screen-privacy";
+import {
+  PrivateMemberCaptureGuard,
+  useAppSwitcherPrivacy,
+} from "@/security/screen-privacy";
 import { colors } from "@/theme";
 
 export default function RootLayout() {
@@ -13,6 +16,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <PrivateMemberCaptureGuard />
       <StatusBar style="dark" />
       <BiometricGate>
         <Stack
