@@ -97,7 +97,7 @@ create or replace function public.list_my_member_photos()
 returns table (
   photo_id uuid,
   storage_path text,
-  position smallint,
+  "position" smallint,
   is_primary boolean,
   review_state public.member_photo_review_state,
   review_after timestamptz,
