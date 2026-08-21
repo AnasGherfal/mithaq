@@ -6,36 +6,18 @@ export function questionnaireCopy(locale: MobileLocale) {
   return {
     eyebrow: ar ? "تفضيلاتك الخاصة" : "Private preferences",
     title: ar ? "دعنا نفهم ما يناسبك" : "Help us understand what fits you",
-    body: ar
-      ? "إجاباتك خاصة وتُستخدم لتقييم التوافق فقط."
-      : "Your answers stay private and are used only to evaluate compatibility.",
-    steps: ar
-      ? ["الأساسيات", "المكان", "الزواج", "النطاق", "الخصوصية", "الأسرة"]
-      : ["Basics", "Location", "Marriage", "Reach", "Privacy", "Family"],
+    body: ar ? "إجاباتك خاصة وتُستخدم لتقييم التوافق فقط." : "Your answers stay private and are used only to evaluate compatibility.",
+    steps: ar ? ["الأساسيات", "المكان", "الزواج", "النطاق", "الخصوصية", "الأسرة"] : ["Basics", "Location", "Marriage", "Reach", "Privacy", "Family"],
     stageTitles: ar
-      ? [
-          "لنبدأ بالأساسيات",
-          "أين تعيش اليوم؟",
-          "ما الذي تبحث عنه؟",
-          "أين يمكن أن يكون التعارف؟",
-          "ما مستوى الخصوصية المناسب؟",
-          "كيف تفضّل إشراك الأسرة؟",
-        ]
-      : [
-          "Let’s start with the basics",
-          "Where do you live today?",
-          "What are you looking for?",
-          "Where could an introduction be?",
-          "What level of privacy feels right?",
-          "How should family be involved?",
-        ],
+      ? ["لنبدأ بالأساسيات", "أين تعيش اليوم؟", "ما الذي تبحث عنه؟", "أين يمكن أن يكون التعارف؟", "كيف تريد حماية هويتك؟", "كيف تفضّل إشراك الأسرة؟"]
+      : ["Let’s start with the basics", "Where do you live today?", "What are you looking for?", "Where could an introduction be?", "How do you want to protect your identity?", "How should family be involved?"],
     stageBodies: ar
       ? [
           "اختر المعلومات الأساسية التي تساعد ميثاق على فهم ملفك.",
           "المكان والحالة الاجتماعية يساعداننا على فهم التوافق، ولا تمنع أي حالة اجتماعية من استخدام ميثاق.",
           "حدد استعدادك وما تقبله بوضوح. يمكنك تعديل ذلك لاحقاً.",
           "أخبرنا بمرونتك تجاه ليبيا والخارج والانتقال.",
-          "أنت تتحكم في صورتك وما يظهر منها وفي أي مرحلة.",
+          "الاكتشاف مجهول افتراضياً: لا اسم ولا صورة ولا عمل أو تعليم قبل تعارف متحكم به. الصور والتحقق الإضافي اختياريان في الإطلاق الأول.",
           "راجع تفضيلاتك الأخيرة قبل حفظها والمتابعة.",
         ]
       : [
@@ -43,7 +25,7 @@ export function questionnaireCopy(locale: MobileLocale) {
           "Location and marital status help us understand fit. No marital status prevents someone from using Mithaq.",
           "Set your readiness and boundaries clearly. You can change them later.",
           "Tell us how flexible you are across Libya, the diaspora, and relocation.",
-          "You control whether your photo is shown, blurred, or kept private at each stage.",
+          "Discover is anonymous by default: no name, photo, work, or education before a controlled introduction. Photos and extra verification are optional at initial launch.",
           "Review the final preferences before saving and continuing.",
         ],
     back: ar ? "رجوع" : "Back",
@@ -51,14 +33,10 @@ export function questionnaireCopy(locale: MobileLocale) {
     save: ar ? "حفظ والمتابعة" : "Save and continue",
     loading: ar ? "جارٍ تحميل إجاباتك الخاصة" : "Loading your private answers",
     loadErrorTitle: ar ? "تعذر تحميل إجاباتك بأمان" : "We could not load your answers safely",
-    loadErrorBody: ar
-      ? "لم نعرض نموذجاً فارغاً حتى لا تستبدل إجابات محفوظة بالخطأ. تحقق من الاتصال ثم حاول مرة أخرى."
-      : "We did not show a blank form because it could overwrite saved answers. Check your connection and try again.",
+    loadErrorBody: ar ? "لم نعرض نموذجاً فارغاً حتى لا تستبدل إجابات محفوظة بالخطأ. تحقق من الاتصال ثم حاول مرة أخرى." : "We did not show a blank form because it could overwrite saved answers. Check your connection and try again.",
     retry: ar ? "إعادة المحاولة" : "Try again",
     aboutYou: ar ? "عنك" : "About you",
-    aboutYouBody: ar
-      ? "معلومات أساسية تساعدنا على فهم ملفك."
-      : "Basic details that help us understand your profile.",
+    aboutYouBody: ar ? "معلومات أساسية تساعدنا على فهم ملفك." : "Basic details that help us understand your profile.",
     woman: ar ? "امرأة" : "Woman",
     man: ar ? "رجل" : "Man",
     ageRange: ar ? "الفئة العمرية" : "Age range",
@@ -76,13 +54,9 @@ export function questionnaireCopy(locale: MobileLocale) {
       widowed: ar ? "أرمل/أرملة" : "Widowed",
     },
     children: ar ? "لدي أطفال" : "I have children",
-    libyanAttestation: ar
-      ? "أؤكد أنني ليبي/ليبية أو من أصل ليبي"
-      : "I confirm I am Libyan or of Libyan origin",
+    libyanAttestation: ar ? "أؤكد أنني ليبي/ليبية أو من أصل ليبي" : "I confirm I am Libyan or of Libyan origin",
     preferences: ar ? "ما تبحث عنه" : "What you are looking for",
-    preferencesBody: ar
-      ? "هذه التفضيلات خاصة وتُستخدم لتقييم التوافق."
-      : "These preferences stay private and support compatibility assessment.",
+    preferencesBody: ar ? "هذه التفضيلات خاصة وتُستخدم لتقييم التوافق." : "These preferences stay private and support compatibility assessment.",
     timeline: ar ? "الاستعداد للزواج" : "Marriage timeline",
     timelineValues: {
       within_6_months: ar ? "خلال 6 أشهر" : "Within 6 months",
@@ -99,26 +73,18 @@ export function questionnaireCopy(locale: MobileLocale) {
     relocation: ar ? "الاستعداد للانتقال" : "Relocation willingness",
     countries: ar ? "دول مفضلة" : "Preferred countries",
     countriesHelp: ar ? "اختياري — رموز مثل GB, CA" : "Optional — codes such as GB, CA",
-    tri: {
-      yes: ar ? "نعم" : "Yes",
-      no: ar ? "لا" : "No",
-      depends: ar ? "يعتمد" : "Depends",
-    },
+    tri: { yes: ar ? "نعم" : "Yes", no: ar ? "لا" : "No", depends: ar ? "يعتمد" : "Depends" },
     privacyTitle: ar ? "الخصوصية والثقة" : "Privacy and trust",
-    privacyBody: ar
-      ? "اختر ما يناسبك. يمكنك تغيير هذه الإعدادات لاحقاً."
-      : "Choose what feels right. You can change these settings later.",
-    identity: ar ? "مستعد للتحقق من الهوية لاحقاً" : "Willing to verify identity later",
-    photo: ar ? "من يمكنه رؤية صورتي؟" : "Who can see my photo?",
+    privacyBody: ar ? "الظهور المجهول هو الأساس. هذه الخيارات تخص ما يمكن كشفه لاحقاً فقط." : "Anonymous visibility is the default. These choices only control what may be revealed later.",
+    identity: ar ? "أرغب في تحقق إضافي مستقبلاً (اختياري)" : "I may want additional verification later (optional)",
+    photo: ar ? "خصوصية الصورة (اختياري)" : "Photo privacy (optional)",
     photoValues: {
-      discovery_visible: ar
-        ? "إظهار صورتي المعتمدة للأشخاص المؤهلين في اكتشاف الزواج"
-        : "Show my approved photo to eligible people in Marriage Discover",
-      blurred: ar ? "إظهار معاينة ضبابية في الاكتشاف" : "Show a blurred preview in Discover",
-      after_mutual_interest: ar ? "إظهارها بعد القبول المتبادل" : "Show it after mutual acceptance",
+      discovery_visible: ar ? "خاصة في الاكتشاف · يمكن كشفها بعد قبول متبادل" : "Private in Discover · may reveal after mutual acceptance",
+      none: ar ? "لا أريد إضافة أو إظهار صورة" : "Do not add or show a photo",
+      blurred: ar ? "خاصة في الاكتشاف · كشفها لاحقاً فقط" : "Private in Discover · reveal only later",
+      after_mutual_interest: ar ? "بعد قبول متبادل" : "After mutual acceptance",
       explicit_approval: ar ? "فقط بعد موافقة صريحة مني" : "Only after my explicit approval",
       after_family_involvement: ar ? "بعد إشراك الأسرة" : "After family involvement",
-      none: ar ? "عدم إظهار صورة" : "Do not show a photo",
     },
     family: ar ? "إشراك الأسرة" : "Family involvement",
     familyValues: {
@@ -127,14 +93,10 @@ export function questionnaireCopy(locale: MobileLocale) {
       later: ar ? "لاحقاً" : "Later",
       unsure: ar ? "غير متأكد" : "Unsure",
     },
-    reassuranceTitle: ar ? "أنت تتحكم في الخصوصية" : "You stay in control",
-    reassuranceBody: ar
-      ? "لا يوجد ملف عام. إذا اخترت صورة كاملة أو ضبابية في الاكتشاف، تظهر فقط لأعضاء مؤهلين داخل مساحة الزواج."
-      : "There is no public profile. If you choose a full or blurred Discover photo, it is shown only to eligible members inside Marriage.",
+    reassuranceTitle: ar ? "لا تحتاج لصورة كي تبدأ" : "You do not need a photo to start",
+    reassuranceBody: ar ? "يمكنك استخدام الاكتشاف المجهول بدون رفع صورة. الاسم والصورة والعمل والتعليم لا تظهر في مرحلة الاكتشاف الأولى." : "You can use anonymous Discover without uploading a photo. Name, photo, work, and education are not shown in the first discovery stage.",
     reviewTitle: ar ? "ملخص تفضيلاتك" : "Your preference summary",
-    reviewBody: ar
-      ? "هذه ليست نتيجة توافق. إنها مراجعة لما سيستخدمه ميثاق عند البحث عن تعارف مناسب."
-      : "This is not a compatibility score. It is a review of what Mithaq will use when looking for a suitable introduction.",
+    reviewBody: ar ? "هذه ليست نتيجة توافق. إنها مراجعة لما سيستخدمه ميثاق عند البحث عن تعارف مناسب." : "This is not a compatibility score. It is a review of what Mithaq will use when looking for a suitable introduction.",
     reviewAge: ar ? "العمر المناسب" : "Preferred age",
     reviewLocations: ar ? "نطاق البحث" : "Search reach",
     reviewPhoto: ar ? "الصورة" : "Photo",
@@ -143,31 +105,15 @@ export function questionnaireCopy(locale: MobileLocale) {
     locationLibya: ar ? "ليبيا" : "Libya",
     locationDiaspora: ar ? "خارج ليبيا" : "Diaspora",
     validation: {
-      country: ar
-        ? "أدخل رمز دولة صحيحاً من حرفين، مثل LY أو GB."
-        : "Enter a valid two-letter country code, such as LY or GB.",
+      country: ar ? "أدخل رمز دولة صحيحاً من حرفين، مثل LY أو GB." : "Enter a valid two-letter country code, such as LY or GB.",
       city: ar ? "أدخل مدينتك الحالية للمتابعة." : "Enter your current city to continue.",
-      libyan: ar
-        ? "يلزم تأكيد الارتباط بليبيا للانضمام إلى ميثاق حالياً."
-        : "Confirm your Libyan connection to continue with Mithaq at this stage.",
-      age: ar
-        ? "راجع نطاق العمر المفضل وتأكد أن الحد الأدنى لا يتجاوز الحد الأعلى."
-        : "Check the preferred age range and make sure the minimum does not exceed the maximum.",
-      status: ar
-        ? "اختر حالة اجتماعية مقبولة واحدة على الأقل."
-        : "Choose at least one accepted marital status.",
-      location: ar
-        ? "اختر الانفتاح على شخص في ليبيا أو في الخارج على الأقل."
-        : "Choose at least one location option: Libya or diaspora.",
-      countries: ar
-        ? "استخدم رموز دول من حرفين مفصولة بفواصل، مثل GB, CA."
-        : "Use two-letter country codes separated by commas, such as GB, CA.",
-      unauthorized: ar
-        ? "انتهت جلستك. سجّل الدخول من جديد للمتابعة."
-        : "Your session ended. Sign in again to continue.",
-      database: ar
-        ? "تعذر حفظ إجاباتك الآن. لم نعتبر التسجيل مكتملاً؛ حاول مرة أخرى."
-        : "We could not save your answers right now. Registration was not marked complete; try again.",
+      libyan: ar ? "يلزم تأكيد الارتباط بليبيا للانضمام إلى ميثاق حالياً." : "Confirm your Libyan connection to continue with Mithaq at this stage.",
+      age: ar ? "راجع نطاق العمر المفضل وتأكد أن الحد الأدنى لا يتجاوز الحد الأعلى." : "Check the preferred age range and make sure the minimum does not exceed the maximum.",
+      status: ar ? "اختر حالة اجتماعية مقبولة واحدة على الأقل." : "Choose at least one accepted marital status.",
+      location: ar ? "اختر الانفتاح على شخص في ليبيا أو في الخارج على الأقل." : "Choose at least one location option: Libya or diaspora.",
+      countries: ar ? "استخدم رموز دول من حرفين مفصولة بفواصل، مثل GB, CA." : "Use two-letter country codes separated by commas, such as GB, CA.",
+      unauthorized: ar ? "انتهت جلستك. سجّل الدخول من جديد للمتابعة." : "Your session ended. Sign in again to continue.",
+      database: ar ? "تعذر حفظ إجاباتك الآن. لم نعتبر التسجيل مكتملاً؛ حاول مرة أخرى." : "We could not save your answers right now. Registration was not marked complete; try again.",
     },
     error: ar ? "راجع إجاباتك وحاول مرة أخرى." : "Review your answers and try again.",
   };
