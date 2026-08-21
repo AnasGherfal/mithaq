@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BrandLogo } from "@/components/brand-logo";
 import { MemberTabBar } from "@/components/member-tab-bar";
+import { ScreenPrivacyNotice } from "@/security/screen-privacy";
 import { colors, radius, spacing } from "@/theme";
 
 type BrandVariant = "compact" | "full" | "none";
@@ -46,6 +47,10 @@ export function ScreenShell({
   const writingDirection = rtl ? "rtl" : "ltr";
   const horizontalAlignment = rtl ? "flex-end" : "flex-start";
   const locale = rtl ? "ar" : "en";
+  const privateCaptureRoute =
+    pathname === "/introductions" ||
+    pathname === "/introduction-handoff" ||
+    pathname === "/conversation";
 
   const marriageActiveTab =
     pathname === "/status"
@@ -158,10 +163,17 @@ export function ScreenShell({
         ) : null}
       </View>
 
+      {privateCaptureRoute ? (
+        <View style={styles.privacyProtection}>
+          <ScreenPrivacyNotice locale={locale} />
+        </View>
+      ) : null}
+
       <View
         style={[
           styles.content,
           memberMode ? styles.contentMember : null,
+          privateCaptureRoute ? styles.contentAfterPrivacyProtection : null,
           { alignItems: "stretch", alignSelf: "stretch" },
         ]}
       >
@@ -235,8 +247,10 @@ const styles = StyleSheet.create({
   body: { width: "100%", color: colors.muted, fontSize: 16, lineHeight: 27, marginTop: 14, maxWidth: 520 },
   bodyArabic: { fontSize: 17, lineHeight: 32, letterSpacing: 0 },
   bodyMember: { fontSize: 14, lineHeight: 23, marginTop: 8 },
+  privacyProtection: { width: "100%", marginTop: 12 },
   content: { marginTop: 32, width: "100%", alignSelf: "stretch" },
   contentMember: { marginTop: 14, flex: 1, minHeight: 0 },
+  contentAfterPrivacyProtection: { marginTop: 12 },
   footer: { marginTop: "auto", paddingTop: spacing.xl },
   bottomBar: { backgroundColor: colors.surfaceRaised },
   pressed: { opacity: 0.6 },
