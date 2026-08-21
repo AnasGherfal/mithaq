@@ -26,7 +26,11 @@ select is(
 );
 
 select ok(
-  'married' = any(enum_range(null::public.marital_status)::text[]),
+  exists (
+    select 1
+    from unnest(enum_range(null::public.marital_status)) status
+    where status::text = 'married'
+  ),
   'married is a supported marital status'
 );
 
