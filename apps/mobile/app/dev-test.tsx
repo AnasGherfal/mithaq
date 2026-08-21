@@ -45,6 +45,8 @@ export default function DevTestScreen() {
   const [marriageIndex, setMarriageIndex] = useState(0);
   const [friendState, setFriendState] = useState<"discover" | "requested" | "connected">("discover");
   const [interestSaved, setInterestSaved] = useState(false);
+  const [hideConfirm, setHideConfirm] = useState(false);
+  const [marriageHidden, setMarriageHidden] = useState(false);
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<DemoMessage[]>([
     { id: 1, mine: false, body: locale === "ar" ? "مرحباً! كيف كان يومك؟" : "Hey! How was your day?" },
@@ -54,6 +56,13 @@ export default function DevTestScreen() {
   const marriage = marriagePeople[marriageIndex % marriagePeople.length]!;
   const direction = rtl ? "rtl" : "ltr";
   const textAlign = rtl ? "right" : "left";
+
+  function nextMarriage() {
+    setMarriageIndex((value) => value + 1);
+    setInterestSaved(false);
+    setHideConfirm(false);
+    setMarriageHidden(false);
+  }
 
   function send() {
     const body = draft.trim();
@@ -113,36 +122,70 @@ export default function DevTestScreen() {
         ) : null}
 
         {mode === "marriage" ? (
-          <View style={styles.card}>
-            <Text style={[styles.kicker, { textAlign, writingDirection: direction }]}>{copy.marriageKicker}</Text>
-            <View style={styles.demoPortrait}>
-              <Text style={styles.demoInitial}>{marriage.name.charAt(0)}</Text>
-              <View style={styles.demoPhotoBadge}>
-                <Text style={[styles.demoPhotoBadgeText, { writingDirection: direction }]}>{copy.photoPrivacy}</Text>
+          <View style={styles.marriageStack}>
+            <View style={styles.visibilityCard}>
+              <View style={[styles.visibilityTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+                <Text style={[styles.visibilityTitle, { textAlign, writingDirection: direction }]}>{copy.privateVisibilityTitle}</Text>
+                <View style={styles.recommendedBadge}><Text style={styles.recommendedText}>{copy.recommended}</Text></View>
               </View>
+              <Text style={[styles.visibilityBody, { textAlign, writingDirection: direction }]}>{copy.privateVisibilityBody}</Text>
+              <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/profile-visibility", params: { locale } })}>{copy.openVisibility}</PrimaryButton>
             </View>
-            <Text style={[styles.name, { textAlign, writingDirection: direction }]}>{marriage.name}</Text>
-            <Text style={[styles.meta, { textAlign, writingDirection: direction }]}>{marriage.age} · {marriage.city} · {marriage.details}</Text>
-            <Text style={[styles.body, { textAlign, writingDirection: direction }]}>{marriage.about}</Text>
 
-            <View style={styles.whyCard}>
-              <Text style={[styles.whyTitle, { textAlign, writingDirection: direction }]}>{copy.whyTitle}</Text>
-              <Text style={[styles.whyBody, { textAlign, writingDirection: direction }]}>{copy.whyBody}</Text>
-              <View style={[styles.chips, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-                {marriage.reasons.map((reason) => (
-                  <View key={reason} style={styles.reasonChip}>
-                    <Text style={styles.reasonChipText}>{copy.reason(reason)}</Text>
+            {marriageHidden ? (
+              <View style={styles.card}>
+                <Text style={[styles.kicker, { textAlign, writingDirection: direction }]}>{copy.hiddenKicker}</Text>
+                <Text style={[styles.successTitle, { textAlign, writingDirection: direction }]}>{copy.hiddenTitle}</Text>
+                <Text style={[styles.body, { textAlign, writingDirection: direction }]}>{copy.hiddenBody}</Text>
+                <PrimaryButton onPress={nextMarriage}>{copy.showNext}</PrimaryButton>
+              </View>
+            ) : (
+              <View style={styles.card}>
+                <Text style={[styles.kicker, { textAlign, writingDirection: direction }]}>{copy.marriageKicker}</Text>
+                <View style={styles.demoPortrait}>
+                  <Text style={styles.demoInitial}>{marriage.name.charAt(0)}</Text>
+                  <View style={styles.demoPhotoBadge}>
+                    <Text style={[styles.demoPhotoBadgeText, { writingDirection: direction }]}>{copy.photoPrivacy}</Text>
                   </View>
-                ))}
-              </View>
-              <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.noScore}</Text>
-            </View>
+                </View>
+                <Text style={[styles.name, { textAlign, writingDirection: direction }]}>{marriage.name}</Text>
+                <Text style={[styles.meta, { textAlign, writingDirection: direction }]}>{marriage.age} · {marriage.city} · {marriage.details}</Text>
+                <Text style={[styles.body, { textAlign, writingDirection: direction }]}>{marriage.about}</Text>
 
-            {interestSaved ? <Text style={[styles.success, { textAlign, writingDirection: direction }]}>{copy.privateInterestSaved}</Text> : null}
-            <View style={styles.actions}>
-              <PrimaryButton onPress={() => setInterestSaved(true)}>{copy.caughtAttention}</PrimaryButton>
-              <PrimaryButton tone="quiet" onPress={() => { setMarriageIndex((i) => i + 1); setInterestSaved(false); }}>{copy.next}</PrimaryButton>
-            </View>
+                <View style={styles.whyCard}>
+                  <Text style={[styles.whyTitle, { textAlign, writingDirection: direction }]}>{copy.whyTitle}</Text>
+                  <Text style={[styles.whyBody, { textAlign, writingDirection: direction }]}>{copy.whyBody}</Text>
+                  <View style={[styles.chips, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+                    {marriage.reasons.map((reason) => (
+                      <View key={reason} style={styles.reasonChip}>
+                        <Text style={styles.reasonChipText}>{copy.reason(reason)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.noScore}</Text>
+                </View>
+
+                {interestSaved ? <Text style={[styles.success, { textAlign, writingDirection: direction }]}>{copy.privateInterestSaved}</Text> : null}
+                <View style={styles.actions}>
+                  <PrimaryButton onPress={() => setInterestSaved(true)}>{copy.caughtAttention}</PrimaryButton>
+                  <PrimaryButton tone="quiet" onPress={nextMarriage}>{copy.next}</PrimaryButton>
+                </View>
+
+                {hideConfirm ? (
+                  <View style={styles.hideConfirm}>
+                    <Text style={[styles.hideTitle, { textAlign, writingDirection: direction }]}>{copy.hideConfirmTitle}</Text>
+                    <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.hideConfirmBody}</Text>
+                    <PrimaryButton onPress={() => { setMarriageHidden(true); setHideConfirm(false); setInterestSaved(false); }}>{copy.hideConfirmButton}</PrimaryButton>
+                    <PrimaryButton tone="quiet" onPress={() => setHideConfirm(false)}>{copy.cancel}</PrimaryButton>
+                  </View>
+                ) : (
+                  <Pressable onPress={() => setHideConfirm(true)} style={({ pressed }) => [styles.hideLink, pressed ? styles.pressed : null]}>
+                    <Text style={[styles.hideLinkText, { textAlign, writingDirection: direction }]}>{copy.hideLink}</Text>
+                    <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.hideLinkBody}</Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
           </View>
         ) : null}
 
@@ -211,6 +254,10 @@ function testCopy(locale: MobileLocale) {
     whyBody: ar ? "هذه أمثلة لفئات توافق عملية، وليست كشفاً لإجابات الشخص الخاصة." : "These are example alignment categories, not a reveal of the person’s private answers.",
     reason: (value: string) => reasonLabels[value] ?? value,
     noScore: ar ? "لا نعرض نسبة توافق وهمية." : "Mithaq does not show a fake compatibility percentage.",
+    privateVisibilityTitle: ar ? "الظهور الخاص" : "Private visibility",
+    privateVisibilityBody: ar ? "في هذا الوضع لا يراك شخص في الاكتشاف إلا بعد أن تختاره أنت أولاً بشكل خاص. لا يعرف أنك اخترته." : "In this mode, a person cannot discover you until you privately choose them first. They are not told you chose them.",
+    recommended: ar ? "موصى به" : "Recommended",
+    openVisibility: ar ? "فتح إعدادات الظهور الحقيقية" : "Open real visibility settings",
     connect: ar ? "تواصل" : "Connect",
     next: ar ? "التالي" : "Next",
     requestSent: ar ? "تم إرسال طلب خاص في هذه المعاينة." : "Private request sent in this preview.",
@@ -219,6 +266,16 @@ function testCopy(locale: MobileLocale) {
     openChat: ar ? "فتح المحادثة" : "Open chat",
     caughtAttention: ar ? "لفت انتباهي" : "Caught my attention",
     privateInterestSaved: ar ? "تم حفظ الاهتمام بشكل خاص في هذه المعاينة. لا يظهر للشخص الآخر." : "Private interest saved in this preview. The other person is not told.",
+    hideLink: ar ? "أعرف هذا الشخص — لا تظهرنا لبعض" : "I know this person — don’t show us to each other",
+    hideLinkBody: ar ? "مثال: أخ، قريب، زميل. لا يصل إليه أي إشعار." : "Example: sibling, relative, coworker. They receive no notification.",
+    hideConfirmTitle: ar ? "محاكاة الإخفاء المتبادل؟" : "Simulate reciprocal hide?",
+    hideConfirmBody: ar ? "بعد التأكيد لن تظهرا لبعض في هذه المعاينة، كما في تجربة ميثاق الحقيقية." : "After confirmation, you stop appearing to each other in this preview, just like the real Mithaq privacy flow.",
+    hideConfirmButton: ar ? "نعم، لا تظهرنا لبعض" : "Yes, don’t show us to each other",
+    cancel: ar ? "إلغاء" : "Cancel",
+    hiddenKicker: ar ? "محاكاة الخصوصية" : "PRIVACY SIMULATION",
+    hiddenTitle: ar ? "لن تظهرا لبعض" : "You won’t be shown to each other",
+    hiddenBody: ar ? "الشخص الآخر لا يعرف أنك رأيته أو أخفيته، ولا نكشف سبب الإخفاء." : "The other person does not know you saw or hid them, and Mithaq does not reveal the reason.",
+    showNext: ar ? "عرض شخص تجريبي آخر" : "Show another sample person",
     messagePlaceholder: ar ? "اكتب رسالة تجريبية…" : "Write a test message…",
     send: ar ? "إرسال" : "Send",
     photosBody: ar ? "افتح شاشة الصور لاختيار صورة حقيقية من هاتفك ورفعها بشكل خاص. يمكنك أيضاً تجربة من يرى صورتك من إعدادات الخصوصية." : "Open Photos to choose a real image from your phone and save it privately. You can also test who can see it from your privacy preferences.",
@@ -230,6 +287,7 @@ function testCopy(locale: MobileLocale) {
 
 const styles = StyleSheet.create({
   stack: { width: "100%", gap: 14 },
+  marriageStack: { width: "100%", gap: 12 },
   warning: { borderRadius: radius.lg, backgroundColor: colors.goldSoft, padding: 14, gap: 4 },
   warningTitle: { color: colors.gold, fontSize: 13, fontWeight: "900" },
   warningBody: { color: colors.muted, fontSize: 11, lineHeight: 18 },
@@ -238,6 +296,12 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: colors.primaryWash, borderColor: colors.primarySoft },
   tabText: { color: colors.muted, fontSize: 11, fontWeight: "800" },
   tabTextActive: { color: colors.primaryStrong },
+  visibilityCard: { borderRadius: radius.lg, borderWidth: 1, borderColor: colors.primarySoft, backgroundColor: colors.primaryWash, padding: 14, gap: 8 },
+  visibilityTop: { alignItems: "center", gap: 8 },
+  visibilityTitle: { flex: 1, color: colors.primaryStrong, fontSize: 14, lineHeight: 22, fontWeight: "900" },
+  visibilityBody: { color: colors.foreground, fontSize: 11, lineHeight: 19 },
+  recommendedBadge: { borderRadius: radius.pill, backgroundColor: colors.goldSoft, paddingHorizontal: 8, paddingVertical: 4 },
+  recommendedText: { color: colors.gold, fontSize: 9, fontWeight: "900" },
   card: { width: "100%", borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, padding: 18, gap: 12, ...shadows.card },
   kicker: { color: colors.primary, fontSize: 10, fontWeight: "900" },
   demoPortrait: { width: "100%", aspectRatio: 4 / 5, borderRadius: radius.lg, backgroundColor: colors.primaryWash, alignItems: "center", justifyContent: "center", overflow: "hidden" },
@@ -257,6 +321,12 @@ const styles = StyleSheet.create({
   reasonChipText: { color: colors.primary, fontSize: 9, fontWeight: "800" },
   actions: { gap: 8 },
   success: { color: colors.primaryStrong, fontSize: 12, lineHeight: 19, fontWeight: "800" },
+  successTitle: { color: colors.primaryStrong, fontSize: 20, lineHeight: 28, fontWeight: "900" },
+  hideLink: { borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: 12, gap: 4 },
+  hideLinkText: { color: colors.foreground, fontSize: 11, lineHeight: 18, fontWeight: "800" },
+  hideConfirm: { borderRadius: radius.md, backgroundColor: colors.goldSoft, padding: 12, gap: 8 },
+  hideTitle: { color: colors.foreground, fontSize: 13, lineHeight: 21, fontWeight: "900" },
+  pressed: { opacity: 0.6 },
   messages: { gap: 8, minHeight: 150, justifyContent: "flex-end" },
   bubble: { maxWidth: "82%", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 9 },
   bubbleMine: { backgroundColor: colors.primary },
