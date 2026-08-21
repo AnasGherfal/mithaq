@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import { usePathname } from "expo-router";
+import { useLocalSearchParams, usePathname } from "expo-router";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BrandLogo } from "@/components/brand-logo";
 import { ConnectionSpaceSwitcher } from "@/components/connection-space-switcher";
+import { FriendshipTabBar } from "@/components/friendship-tab-bar";
 import { MemberTabBar } from "@/components/member-tab-bar";
 import { colors, spacing } from "@/theme";
 
@@ -41,31 +42,47 @@ export function ScreenShell({
 }: ScreenShellProps) {
   const { width } = useWindowDimensions();
   const pathname = usePathname();
+  const params = useLocalSearchParams<{ space?: string }>();
   const compact = width < 370;
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
   const horizontalAlignment = rtl ? "flex-end" : "flex-start";
   const locale = rtl ? "ar" : "en";
+  const friendshipRoute = pathname.startsWith("/friendship");
+  const friendshipContext = friendshipRoute || (pathname === "/account" && params.space === "friendship");
 
-  const activeTab =
+  const marriageActiveTab =
     pathname === "/status"
       ? "home"
       : pathname === "/introductions"
         ? "introductions"
         : pathname === "/activity"
           ? "activity"
-          : pathname === "/account"
+          : pathname === "/account" && !friendshipContext
+            ? "account"
+            : null;
+
+  const friendshipActiveTab =
+    pathname === "/friendship"
+      ? "home"
+      : pathname === "/friendship-discover"
+        ? "discover"
+        : pathname === "/friendship-connections"
+          ? "connections"
+          : pathname === "/account" && friendshipContext
             ? "account"
             : null;
 
   const resolvedBottomBar =
     bottomBar ??
-    (activeTab ? <MemberTabBar locale={locale} active={activeTab} /> : null);
+    (friendshipActiveTab ? (
+      <FriendshipTabBar locale={locale} active={friendshipActiveTab} />
+    ) : marriageActiveTab ? (
+      <MemberTabBar locale={locale} active={marriageActiveTab} />
+    ) : null);
   const memberMode = Boolean(resolvedBottomBar);
-  const friendshipRoute = pathname.startsWith("/friendship");
-  const showSpaceSwitcher =
-    brandVariant === "compact" && (memberMode || friendshipRoute);
-  const fallbackSpace = friendshipRoute ? "friendship" : "marriage";
+  const showSpaceSwitcher = brandVariant === "compact" && (memberMode || friendshipRoute);
+  const fallbackSpace = friendshipContext ? "friendship" : "marriage";
 
   const content = (
     <View style={[styles.pageColumn, { alignItems: horizontalAlignment }]}>
@@ -78,8 +95,7 @@ export function ScreenShell({
             showSpaceSwitcher
               ? { flexDirection: rtl ? "row-reverse" : "row" }
               : {
-                  alignItems:
-                    brandVariant === "full" ? "center" : horizontalAlignment,
+                  alignItems: brandVariant === "full" ? "center" : horizontalAlignment,
                 },
           ]}
         >
@@ -163,9 +179,7 @@ export function ScreenShell({
       >
         {children}
       </View>
-      {footer ? (
-        <View style={[styles.footer, { alignSelf: "stretch" }]}>{footer}</View>
-      ) : null}
+      {footer ? <View style={[styles.footer, { alignSelf: "stretch" }]}>{footer}</View> : null}
     </View>
   );
 
@@ -201,9 +215,7 @@ export function ScreenShell({
           </View>
         )}
       </KeyboardAvoidingView>
-      {resolvedBottomBar ? (
-        <View style={styles.bottomBar}>{resolvedBottomBar}</View>
-      ) : null}
+      {resolvedBottomBar ? <View style={styles.bottomBar}>{resolvedBottomBar}</View> : null}
     </SafeAreaView>
   );
 }
@@ -212,80 +224,26 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: colors.background },
   pageColumn: { width: "100%", flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    paddingBottom: 24,
-  },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 24 },
   scrollContentWithBar: { paddingBottom: 16 },
-  fixedContent: {
-    flex: 1,
-    alignItems: "stretch",
-    paddingHorizontal: 24,
-    paddingTop: 6,
-    paddingBottom: 8,
-  },
+  fixedContent: { flex: 1, alignItems: "stretch", paddingHorizontal: 24, paddingTop: 6, paddingBottom: 8 },
   fixedContentWithBar: { paddingBottom: 8 },
   scrollContentCompact: { paddingHorizontal: 18 },
   navRow: { width: "100%", minHeight: 50, justifyContent: "center" },
-  navRowWithSpace: {
-    minHeight: 58,
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
+  navRowWithSpace: { minHeight: 58, alignItems: "center", justifyContent: "space-between", gap: 12 },
   navRowFull: { minHeight: 152, paddingTop: 8 },
   hero: { flexGrow: 0, paddingTop: 38, width: "100%", maxWidth: 560 },
   heroMember: { paddingTop: 12 },
   heroAfterFullBrand: { paddingTop: 22 },
-  eyebrow: {
-    width: "100%",
-    color: colors.primary,
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: "800",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
-    marginBottom: 12,
-  },
-  eyebrowArabic: {
-    fontSize: 14,
-    lineHeight: 24,
-    letterSpacing: 0,
-    textTransform: "none",
-  },
-  title: {
-    width: "100%",
-    color: colors.foreground,
-    fontSize: 42,
-    lineHeight: 50,
-    fontWeight: "800",
-    letterSpacing: -1.5,
-  },
+  eyebrow: { width: "100%", color: colors.primary, fontSize: 12, lineHeight: 18, fontWeight: "800", letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 12 },
+  eyebrowArabic: { fontSize: 14, lineHeight: 24, letterSpacing: 0, textTransform: "none" },
+  title: { width: "100%", color: colors.foreground, fontSize: 42, lineHeight: 50, fontWeight: "800", letterSpacing: -1.5 },
   titleCompact: { fontSize: 36, lineHeight: 43, letterSpacing: -1 },
-  titleArabic: {
-    fontSize: 39,
-    lineHeight: 60,
-    letterSpacing: 0,
-    fontWeight: "700",
-  },
+  titleArabic: { fontSize: 39, lineHeight: 60, letterSpacing: 0, fontWeight: "700" },
   titleArabicCompact: { fontSize: 34, lineHeight: 54, letterSpacing: 0 },
   titleMember: { fontSize: 28, lineHeight: 35, letterSpacing: -0.35 },
-  titleMemberArabic: {
-    fontSize: 30,
-    lineHeight: 46,
-    letterSpacing: 0,
-    fontWeight: "700",
-  },
-  body: {
-    width: "100%",
-    color: colors.muted,
-    fontSize: 16,
-    lineHeight: 27,
-    marginTop: 14,
-    maxWidth: 520,
-  },
+  titleMemberArabic: { fontSize: 30, lineHeight: 46, letterSpacing: 0, fontWeight: "700" },
+  body: { width: "100%", color: colors.muted, fontSize: 16, lineHeight: 27, marginTop: 14, maxWidth: 520 },
   bodyArabic: { fontSize: 17, lineHeight: 32, letterSpacing: 0 },
   bodyMember: { fontSize: 14, lineHeight: 23, marginTop: 8 },
   content: { marginTop: 32, width: "100%", alignSelf: "stretch" },
