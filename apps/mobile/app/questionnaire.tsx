@@ -397,11 +397,12 @@ function ReachStep({
 
 function PrivacyStep({ copy, rtl, draft, update }: StepProps) {
   const photos: QuestionnaireDraft["photoPrivacyPreference"][] = [
-    "none",
+    "discovery_visible",
     "blurred",
     "after_mutual_interest",
     "explicit_approval",
     "after_family_involvement",
+    "none",
   ];
   return (
     <View style={styles.section}>
