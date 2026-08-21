@@ -34,13 +34,6 @@ export function useAppSwitcherPrivacy() {
   }, []);
 }
 
-/**
- * Blocks screenshots and screen recording while a screen containing another
- * member's revealed identity, private conversation, or photo is mounted.
- *
- * On Android this uses FLAG_SECURE, which also blanks the screen in Recents.
- * On supported iOS versions Expo prevents capture at the native view layer.
- */
 export function useSensitiveScreenProtection(key: string, enabled = true) {
   useEffect(() => {
     if (!enabled || Platform.OS === "web") return;
@@ -62,13 +55,14 @@ export function useSensitiveScreenProtection(key: string, enabled = true) {
 }
 
 /**
- * Central route guard so future private-profile screens cannot accidentally
- * forget capture protection. Discovery stays screenshot-able because it is
- * anonymous-first and contains no name or photo.
+ * Central route guard for screens that can contain another member's identity,
+ * photo, or private conversation. Discover is protected too because members
+ * can now explicitly choose an open profile from the first stage.
  */
 export function PrivateMemberCaptureGuard() {
   const pathname = usePathname();
   const protectedRoute =
+    pathname === "/marriage-discover" ||
     pathname === "/introductions" ||
     pathname === "/introduction-handoff" ||
     pathname === "/conversation";
@@ -104,8 +98,8 @@ export function ScreenPrivacyNotice({ locale }: { locale: MobileLocale }) {
           ]}
         >
           {rtl
-            ? "يمنع ميثاق لقطات الشاشة وتسجيلها هنا لحماية صور ومحادثات الطرف الآخر."
-            : "Mithaq blocks screenshots and screen recording here to protect the other person's photos and conversation."}
+            ? "يمنع ميثاق لقطات الشاشة وتسجيلها هنا لحماية صور وبيانات ومحادثات الأعضاء."
+            : "Mithaq blocks screenshots and screen recording here to protect member photos, profile information, and conversations."}
         </Text>
       </View>
     </View>
