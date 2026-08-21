@@ -35,7 +35,7 @@ export function questionnaireCopy(locale: MobileLocale) {
           "المكان والحالة الاجتماعية يساعداننا على فهم التوافق، ولا تمنع أي حالة اجتماعية من استخدام ميثاق.",
           "حدد استعدادك وما تقبله بوضوح. يمكنك تعديل ذلك لاحقاً.",
           "أخبرنا بمرونتك تجاه ليبيا والخارج والانتقال.",
-          "أنت تتحكم في الصورة والتحقق وما يُكشف داخل التعارف.",
+          "أنت تتحكم في صورتك وما يظهر منها وفي أي مرحلة.",
           "راجع تفضيلاتك الأخيرة قبل حفظها والمتابعة.",
         ]
       : [
@@ -43,7 +43,7 @@ export function questionnaireCopy(locale: MobileLocale) {
           "Location and marital status help us understand fit. No marital status prevents someone from using Mithaq.",
           "Set your readiness and boundaries clearly. You can change them later.",
           "Tell us how flexible you are across Libya, the diaspora, and relocation.",
-          "You control photos, verification, and what is revealed in an introduction.",
+          "You control whether your photo is shown, blurred, or kept private at each stage.",
           "Review the final preferences before saving and continuing.",
         ],
     back: ar ? "رجوع" : "Back",
@@ -106,16 +106,19 @@ export function questionnaireCopy(locale: MobileLocale) {
     },
     privacyTitle: ar ? "الخصوصية والثقة" : "Privacy and trust",
     privacyBody: ar
-      ? "حدد مستوى الراحة الذي تفضله داخل التعارف الخاص."
-      : "Set the level of comfort you want inside private introductions.",
+      ? "اختر ما يناسبك. يمكنك تغيير هذه الإعدادات لاحقاً."
+      : "Choose what feels right. You can change these settings later.",
     identity: ar ? "مستعد للتحقق من الهوية لاحقاً" : "Willing to verify identity later",
-    photo: ar ? "خصوصية الصورة" : "Photo privacy",
+    photo: ar ? "من يمكنه رؤية صورتي؟" : "Who can see my photo?",
     photoValues: {
-      none: ar ? "لا أريد إظهار صورة" : "Do not show a photo",
-      blurred: ar ? "صورة ضبابية أولاً" : "Blurred first",
-      after_mutual_interest: ar ? "بعد اهتمام متبادل" : "After mutual interest",
-      explicit_approval: ar ? "بعد موافقة صريحة مني" : "Only after my explicit approval",
+      discovery_visible: ar
+        ? "إظهار صورتي المعتمدة للأشخاص المؤهلين في اكتشاف الزواج"
+        : "Show my approved photo to eligible people in Marriage Discover",
+      blurred: ar ? "إظهار معاينة ضبابية في الاكتشاف" : "Show a blurred preview in Discover",
+      after_mutual_interest: ar ? "إظهارها بعد القبول المتبادل" : "Show it after mutual acceptance",
+      explicit_approval: ar ? "فقط بعد موافقة صريحة مني" : "Only after my explicit approval",
       after_family_involvement: ar ? "بعد إشراك الأسرة" : "After family involvement",
+      none: ar ? "عدم إظهار صورة" : "Do not show a photo",
     },
     family: ar ? "إشراك الأسرة" : "Family involvement",
     familyValues: {
@@ -126,8 +129,8 @@ export function questionnaireCopy(locale: MobileLocale) {
     },
     reassuranceTitle: ar ? "أنت تتحكم في الخصوصية" : "You stay in control",
     reassuranceBody: ar
-      ? "لا يوجد ملف عام أو سحب عشوائي. تظهر معلوماتك فقط داخل تعارف مؤهل ووفق إعداداتك."
-      : "There is no public profile or random swipe deck. Your details appear only inside an eligible introduction under your settings.",
+      ? "لا يوجد ملف عام. إذا اخترت صورة كاملة أو ضبابية في الاكتشاف، تظهر فقط لأعضاء مؤهلين داخل مساحة الزواج."
+      : "There is no public profile. If you choose a full or blurred Discover photo, it is shown only to eligible members inside Marriage.",
     reviewTitle: ar ? "ملخص تفضيلاتك" : "Your preference summary",
     reviewBody: ar
       ? "هذه ليست نتيجة توافق. إنها مراجعة لما سيستخدمه ميثاق عند البحث عن تعارف مناسب."
