@@ -83,6 +83,11 @@ export function isMarriageDiscoveryUnavailable(error: unknown) {
   );
 }
 
+export function isMarriageDiscoveryProfilePending(error: unknown) {
+  const message = normalizeError(error);
+  return message.includes("marriage profile required");
+}
+
 export async function listMarriageDiscovery(limit = 6): Promise<MarriageDiscoveryProfile[]> {
   const { data, error } = await supabase.rpc("list_marriage_discovery", { p_limit: limit });
   if (error) throw error;
