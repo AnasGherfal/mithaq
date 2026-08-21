@@ -8,6 +8,7 @@ import { StateCard } from "@/components/state-card";
 import { TrustBadges } from "@/components/trust-badges";
 import type { MobileLocale } from "@/i18n";
 import {
+  isMarriageDiscoveryProfilePending,
   isMarriageDiscoveryUnavailable,
   listMarriageDiscovery,
   recordMarriageDiscoveryAction,
@@ -28,6 +29,7 @@ export default function MarriageDiscoverScreen() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [featurePending, setFeaturePending] = useState(false);
+  const [profilePending, setProfilePending] = useState(false);
   const [profiles, setProfiles] = useState<MarriageDiscoveryProfile[]>([]);
   const [index, setIndex] = useState(0);
   const [acting, setActing] = useState(false);
@@ -37,6 +39,7 @@ export default function MarriageDiscoverScreen() {
     setLoading(true);
     setLoadError(false);
     setFeaturePending(false);
+    setProfilePending(false);
     setMessage(null);
     try {
       const { data, error } = await supabase.auth.getSession();
@@ -48,7 +51,8 @@ export default function MarriageDiscoverScreen() {
       setProfiles(await listMarriageDiscovery(6));
       setIndex(0);
     } catch (error) {
-      if (__DEV__ && isMarriageDiscoveryUnavailable(error)) setFeaturePending(true);
+      if (isMarriageDiscoveryProfilePending(error)) setProfilePending(true);
+      else if (__DEV__ && isMarriageDiscoveryUnavailable(error)) setFeaturePending(true);
       else setLoadError(true);
     } finally {
       setLoading(false);
@@ -107,6 +111,15 @@ export default function MarriageDiscoverScreen() {
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
+      ) : profilePending ? (
+        <StateCard
+          rtl={rtl}
+          tone="neutral"
+          title={copy.reviewTitle}
+          body={copy.reviewBody}
+          actionLabel={copy.reviewProfile}
+          onAction={() => router.push({ pathname: "/profile", params: { locale } })}
+        />
       ) : loadError ? (
         <StateCard
           rtl={rtl}
@@ -240,6 +253,9 @@ function marriageCopy(locale: MobileLocale) {
     anonymousBody: ar ? "الاسم والصورة والعمل والتعليم مخفية في هذه المرحلة لحماية الطرفين من الظهور غير المرغوب." : "Name, photo, work, and education stay hidden at this stage so neither person is exposed unexpectedly.",
     trustTitle: ar ? "موثّق من ميثاق" : "Verified by Mithaq",
     trustBody: ar ? "هذه العلامات تخص فقط ما تحقّق منه ميثاق فعلياً. بقية معلومات الملف يصرّح بها العضو بنفسه." : "These badges cover only facts Mithaq actually verified. Other profile answers remain member-declared.",
+    reviewTitle: ar ? "ملفك قيد المراجعة" : "Your profile is being reviewed",
+    reviewBody: ar ? "اكتمال الملف لا يعني ظهوره مباشرة. سنفتح الاكتشاف عندما تصبح مراجعة ملفك جاهزة، ولا تحتاج إلى إعادة إدخال بياناتك." : "Completing your profile does not publish it immediately. Discover opens when your profile review is ready; you do not need to re-enter your information.",
+    reviewProfile: ar ? "مراجعة ملفي" : "Review my profile",
     age: ar ? "العمر" : "Age",
     city: ar ? "المدينة" : "City",
     notShared: ar ? "غير محدد" : "Not specified",
@@ -261,8 +277,8 @@ function marriageCopy(locale: MobileLocale) {
     viewIntroductions: ar ? "عرض التعارف الحالي" : "View current introductions",
     priorities: ar ? "أولويات الزواج" : "Marriage priorities",
     privacy: ar ? "درع العائلة والخصوصية" : "Family Shield & privacy",
-    doneTitle: ar ? "انتهت مجموعة اليوم" : "You’ve seen today’s set",
-    doneBody: ar ? "لا يوجد تمرير لا نهائي هنا. عد لاحقاً لمجموعة صغيرة جديدة أو راجع التعارف الحالي." : "There is no endless feed here. Come back for another small set or review your current introductions.",
+    doneTitle: ar ? "لا توجد ملفات أخرى الآن" : "No more profiles right now",
+    doneBody: ar ? "لا يوجد تمرير لا نهائي هنا. عندما تتوفر ملفات مناسبة جديدة ستظهر في مجموعة صغيرة، ويمكنك في الوقت الحالي مراجعة التعارف الحالي." : "There is no endless feed here. New suitable profiles will appear in a small set when available; for now you can review any current introductions.",
     introductions: ar ? "التعارف" : "Introductions",
     previewTitle: ar ? "الاكتشاف غير متاح في هذه المعاينة بعد" : "Discover isn’t available in this preview yet",
     previewBody: ar ? "يمكنك الآن مراجعة ملفك وأولويات الزواج، وسيظهر الاكتشاف عندما يصبح متاحاً لحسابك." : "You can still review your profile and Marriage priorities. Discover will appear when it is available for your account.",
