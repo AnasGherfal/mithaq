@@ -5,7 +5,9 @@ import type { MobileLocale } from "@/i18n";
 import {
   isConnectionSpaceFeatureUnavailable,
   listMyConnectionSpaces,
+  setMyCurrentConnectionSpace,
   type ConnectionSpace,
+  type ConnectionSpaceState,
 } from "@/lib/connection-spaces";
 import { colors, radius } from "@/theme";
 
@@ -17,17 +19,20 @@ type Props = {
 export function ConnectionSpaceSwitcher({ locale, fallbackSpace = "marriage" }: Props) {
   const rtl = locale === "ar";
   const [current, setCurrent] = useState<ConnectionSpace>(fallbackSpace);
+  const [spaces, setSpaces] = useState<ConnectionSpaceState[]>([]);
   const [loading, setLoading] = useState(true);
+  const [switching, setSwitching] = useState<ConnectionSpace | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const spaces = await listMyConnectionSpaces();
-      setCurrent(spaces.find((item) => item.isCurrent)?.space ?? fallbackSpace);
+      const values = await listMyConnectionSpaces();
+      setSpaces(values);
+      setCurrent(values.find((item) => item.isCurrent)?.space ?? fallbackSpace);
     } catch (error) {
       if (!(__DEV__ && isConnectionSpaceFeatureUnavailable(error))) {
-        // The space selector is navigation chrome, so keep the screen usable if
-        // the optional space lookup fails. /spaces still performs authoritative checks.
+        // Keep navigation usable when the optional lookup is temporarily unavailable.
       }
+      setSpaces([]);
       setCurrent(fallbackSpace);
     } finally {
       setLoading(false);
@@ -38,110 +43,153 @@ export function ConnectionSpaceSwitcher({ locale, fallbackSpace = "marriage" }: 
     void load();
   }, [load]);
 
-  const friendship = current === "friendship";
-  const label = friendship
-    ? rtl
-      ? "الأصدقاء"
-      : "Friends"
-    : rtl
-      ? "الزواج"
-      : "Marriage";
-  const context = friendship
-    ? rtl
-      ? "مساحة الأصدقاء"
-      : "Friends space"
-    : rtl
-      ? "مساحة الزواج"
-      : "Marriage space";
+  async function switchSpace(space: ConnectionSpace) {
+    if (switching || current === space) return;
+
+    const membership = spaces.find((item) => item.space === space);
+    if (membership && membership.membershipState !== "active") {
+      router.push({ pathname: "/spaces", params: { locale } });
+      return;
+    }
+
+    setSwitching(space);
+    try {
+      if (membership?.membershipState === "active") {
+        await setMyCurrentConnectionSpace(space);
+      }
+      setCurrent(space);
+      router.replace({
+        pathname: space === "friendship" ? "/friendship" : "/status",
+        params: { locale },
+      });
+    } catch {
+      router.push({ pathname: "/spaces", params: { locale } });
+    } finally {
+      setSwitching(null);
+    }
+  }
+
+  const marriageLabel = rtl ? "الزواج" : "Marriage";
+  const friendsLabel = rtl ? "الأصدقاء" : "Friends";
+  const contextLabel = rtl ? "المساحة الحالية" : "Current space";
 
   return (
+    <View style={[styles.wrapper, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+      <Text style={[styles.context, { writingDirection: rtl ? "rtl" : "ltr" }]}>{contextLabel}</Text>
+      <View
+        style={[styles.segmented, { flexDirection: rtl ? "row-reverse" : "row" }]}
+        accessibilityRole="tablist"
+      >
+        <SpaceOption
+          label={marriageLabel}
+          selected={current === "marriage"}
+          tone="marriage"
+          busy={loading || switching === "marriage"}
+          disabled={Boolean(switching) || current === "marriage"}
+          onPress={() => void switchSpace("marriage")}
+        />
+        <SpaceOption
+          label={friendsLabel}
+          selected={current === "friendship"}
+          tone="friendship"
+          busy={loading || switching === "friendship"}
+          disabled={Boolean(switching) || current === "friendship"}
+          onPress={() => void switchSpace("friendship")}
+        />
+      </View>
+    </View>
+  );
+}
+
+function SpaceOption({
+  label,
+  selected,
+  tone,
+  busy,
+  disabled,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  tone: "marriage" | "friendship";
+  busy: boolean;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={rtl ? `تبديل المساحة، الحالية ${label}` : `Switch space, currently ${label}`}
-      onPress={() => router.push({ pathname: "/spaces", params: { locale } })}
+      accessibilityRole="tab"
+      accessibilityState={{ selected, disabled }}
+      accessibilityLabel={label}
+      disabled={disabled}
+      onPress={onPress}
       style={({ pressed }) => [
-        styles.button,
-        friendship ? styles.buttonFriendship : styles.buttonMarriage,
-        { flexDirection: rtl ? "row-reverse" : "row" },
-        pressed ? styles.pressed : null,
+        styles.option,
+        selected
+          ? tone === "friendship"
+            ? styles.optionFriendshipSelected
+            : styles.optionMarriageSelected
+          : null,
+        pressed && !disabled ? styles.pressed : null,
       ]}
     >
-      <View style={[styles.mark, friendship ? styles.markFriendship : styles.markMarriage]}>
-        {friendship ? (
-          <>
-            <View style={[styles.friendHead, styles.friendHeadOne]} />
-            <View style={[styles.friendHead, styles.friendHeadTwo]} />
-          </>
-        ) : (
-          <>
-            <View style={[styles.ring, styles.ringOne]} />
-            <View style={[styles.ring, styles.ringTwo]} />
-          </>
-        )}
-      </View>
-      <View style={[styles.copy, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
-        <Text style={[styles.context, { writingDirection: rtl ? "rtl" : "ltr" }]}>{context}</Text>
-        <Text style={[styles.label, { writingDirection: rtl ? "rtl" : "ltr" }]}>{label}</Text>
-      </View>
-      {loading ? (
-        <ActivityIndicator color={friendship ? colors.accent : colors.primary} size="small" />
+      {busy && !selected ? (
+        <ActivityIndicator color={tone === "friendship" ? colors.accent : colors.primary} size="small" />
       ) : (
-        <Text style={styles.chevron}>⌄</Text>
+        <View
+          style={[
+            styles.dot,
+            tone === "friendship" ? styles.dotFriendship : styles.dotMarriage,
+            !selected ? styles.dotMuted : null,
+          ]}
+        />
       )}
+      <Text
+        style={[
+          styles.label,
+          selected
+            ? tone === "friendship"
+              ? styles.labelFriendshipSelected
+              : styles.labelMarriageSelected
+            : null,
+        ]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    minHeight: 48,
-    alignItems: "center",
-    gap: 10,
+  wrapper: { gap: 4 },
+  context: { color: colors.muted, fontSize: 8, lineHeight: 11, fontWeight: "700" },
+  segmented: {
+    minHeight: 42,
     borderRadius: radius.pill,
     borderWidth: 1,
-    paddingHorizontal: 11,
-    paddingVertical: 7,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    padding: 3,
+    gap: 3,
   },
-  buttonMarriage: {
-    backgroundColor: colors.primaryWash,
-    borderColor: colors.primarySoft,
-  },
-  buttonFriendship: {
-    backgroundColor: colors.accentWash,
-    borderColor: colors.accentSoft,
-  },
-  mark: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  option: {
+    minWidth: 76,
+    minHeight: 34,
+    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
+    gap: 6,
   },
-  markMarriage: { backgroundColor: colors.surfaceRaised },
-  markFriendship: { backgroundColor: colors.surfaceRaised },
-  ring: {
-    position: "absolute",
-    width: 10,
-    height: 14,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-  },
-  ringOne: { left: 7, transform: [{ rotate: "-20deg" }] },
-  ringTwo: { right: 7, transform: [{ rotate: "20deg" }] },
-  friendHead: {
-    position: "absolute",
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: colors.accent,
-  },
-  friendHeadOne: { left: 7, top: 8 },
-  friendHeadTwo: { right: 7, top: 8 },
-  copy: { minWidth: 74 },
-  context: { color: colors.muted, fontSize: 8, lineHeight: 11, fontWeight: "700" },
-  label: { color: colors.foreground, fontSize: 12, lineHeight: 17, fontWeight: "900" },
-  chevron: { color: colors.muted, fontSize: 17, lineHeight: 18, marginTop: -3 },
-  pressed: { opacity: 0.7, transform: [{ scale: 0.985 }] },
+  optionMarriageSelected: { backgroundColor: colors.primaryWash },
+  optionFriendshipSelected: { backgroundColor: colors.accentWash },
+  dot: { width: 7, height: 7, borderRadius: 4 },
+  dotMarriage: { backgroundColor: colors.primary },
+  dotFriendship: { backgroundColor: colors.accent },
+  dotMuted: { opacity: 0.35 },
+  label: { color: colors.muted, fontSize: 11, lineHeight: 16, fontWeight: "700" },
+  labelMarriageSelected: { color: colors.primary, fontWeight: "900" },
+  labelFriendshipSelected: { color: colors.accent, fontWeight: "900" },
+  pressed: { opacity: 0.62, transform: [{ scale: 0.985 }] },
 });
