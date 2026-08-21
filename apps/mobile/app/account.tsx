@@ -18,11 +18,11 @@ type AccountSnapshot = {
 };
 
 type AccountPath =
-  | "/spaces"
   | "/profile"
   | "/photos"
   | "/questionnaire"
   | "/marriage-priorities"
+  | "/profile-visibility"
   | "/privacy"
   | "/safety"
   | "/security";
@@ -43,24 +43,23 @@ export default function AccountScreen() {
   const copy = rtl
     ? {
         title: "حسابي",
-        body: "ملفك وتفضيلاتك وخصوصيتك في مكان واحد واضح.",
+        body: "ملف الزواج وخصوصيتك وأمان حسابك في مكان واحد.",
         member: "عضو ميثاق",
-        ready: "الملف جاهز للتعارف",
-        incomplete: "الملف يحتاج إلى إكمال",
+        ready: "ملف الزواج جاهز",
+        incomplete: "ملف الزواج يحتاج إلى إكمال",
         deletion: "طلب حذف الحساب قيد المعالجة",
-        spacesTitle: "مساحات ميثاق",
-        spaces: "الزواج والأصدقاء",
-        spacesBody: "استخدم مساحة واحدة أو الاثنين، مع ملف ونشاط ومحادثات منفصلة لكل مساحة.",
-        membership: "عضوية الزواج",
+        marriage: "الزواج",
         profile: "ملفي الخاص",
-        profileBody: "معلوماتك التي يظهر منها فقط ما تسمح به داخل التعارف.",
+        profileBody: "الاسم الظاهر والنبذة والتفاصيل التي تختار مشاركتها.",
         photos: "صوري الخاصة",
-        photosBody: "الصورة الأساسية والصور الإضافية وحالة مراجعة كل صورة.",
-        preferences: "التفضيلات",
-        preferencesBody: "حدودك الأساسية وما تبحث عنه في شريك الحياة.",
+        photosBody: "الصور اختيارية ولا تظهر في الاكتشاف المجهول.",
+        preferences: "تفضيلات الزواج",
+        preferencesBody: "العمر والمكان والحالة الاجتماعية وحدودك الأساسية.",
         priorities: "أولويات الحياة الزوجية",
-        prioritiesBody: "السكن والأطفال والعمل وحفل الزواج — اختيارات عملية يمكنك تعديلها متى شئت.",
-        trust: "الخصوصية والثقة",
+        prioritiesBody: "السكن والأطفال والعمل وتوقعات حفل الزواج.",
+        visibility: "الخصوصية ومن لا يظهر لك",
+        visibilityBody: "درع العائلة، تفاصيل الظهور، وما نتحقق منه فعلاً.",
+        trust: "الخصوصية والأمان",
         privacy: "الخصوصية والموافقات",
         privacyBody: "الموافقات والتحديثات الاختيارية وطلب حذف الحساب.",
         safety: "مركز السلامة",
@@ -79,24 +78,23 @@ export default function AccountScreen() {
       }
     : {
         title: "Account",
-        body: "Your profile, preferences, privacy, and security in one clear place.",
+        body: "Your Marriage profile, privacy, and account security in one place.",
         member: "Mithaq member",
-        ready: "Profile ready for introductions",
-        incomplete: "Profile setup is not complete",
+        ready: "Marriage profile ready",
+        incomplete: "Marriage profile needs completion",
         deletion: "Account deletion is being processed",
-        spacesTitle: "Mithaq spaces",
-        spaces: "Marriage & Friends",
-        spacesBody: "Use one or both, with a separate profile, activity, and conversations for each space.",
-        membership: "Marriage membership",
+        marriage: "Marriage",
         profile: "Private profile",
-        profileBody: "The details Mithaq selectively reveals inside an eligible introduction.",
+        profileBody: "Your display name, introduction, and details you choose to share.",
         photos: "Private photos",
-        photosBody: "Your primary portrait, supporting photos, and each review state.",
-        preferences: "Preferences",
-        preferencesBody: "Your important boundaries and what you seek in a life partner.",
+        photosBody: "Photos are optional and are never shown in anonymous Discover.",
+        preferences: "Marriage preferences",
+        preferencesBody: "Age, location, marital-status choices, and essential boundaries.",
         priorities: "Marriage life priorities",
-        prioritiesBody: "Home, children, work, and wedding expectations — practical choices you can update anytime.",
-        trust: "Privacy & trust",
+        prioritiesBody: "Housing, children, work, and wedding expectations.",
+        visibility: "Privacy & people shield",
+        visibilityBody: "Family Shield, detail visibility, and what Mithaq has actually verified.",
+        trust: "Privacy & security",
         privacy: "Privacy & consent",
         privacyBody: "Consent history, optional updates, and account deletion.",
         safety: "Safety Center",
@@ -223,34 +221,14 @@ export default function AccountScreen() {
         />
       ) : (
         <View style={styles.page}>
-          <View
-            style={[
-              styles.identity,
-              { flexDirection: rtl ? "row-reverse" : "row" },
-            ]}
-          >
+          <View style={[styles.identity, { flexDirection: rtl ? "row-reverse" : "row" }]}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{initial}</Text>
             </View>
-            <View
-              style={[
-                styles.identityCopy,
-                { alignItems: rtl ? "flex-end" : "flex-start" },
-              ]}
-            >
-              <Text style={[styles.name, { textAlign, writingDirection }]}>
-                {displayName}
-              </Text>
-              <Text style={[styles.phone, { textAlign, writingDirection }]}>
-                {maskPhone(account.phone)}
-              </Text>
-              <View
-                style={[
-                  styles.statusPill,
-                  account.deletionPending ? styles.statusPillWarning : null,
-                  { alignSelf: rtl ? "flex-end" : "flex-start" },
-                ]}
-              >
+            <View style={[styles.identityCopy, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+              <Text style={[styles.name, { textAlign, writingDirection }]}>{displayName}</Text>
+              <Text style={[styles.phone, { textAlign, writingDirection }]}>{maskPhone(account.phone)}</Text>
+              <View style={[styles.statusPill, account.deletionPending ? styles.statusPillWarning : null]}>
                 <View style={styles.statusDot} />
                 <Text style={[styles.statusText, { writingDirection }]}>{status}</Text>
               </View>
@@ -258,105 +236,31 @@ export default function AccountScreen() {
           </View>
 
           {message ? (
-            <Text
-              accessibilityRole="alert"
-              style={[styles.message, { textAlign, writingDirection }]}
-            >
+            <Text accessibilityRole="alert" style={[styles.message, { textAlign, writingDirection }]}>
               {message}
             </Text>
           ) : null}
 
-          <SettingsGroup title={copy.spacesTitle} rtl={rtl}>
-            <SettingsRow
-              rtl={rtl}
-              icon="introductions"
-              title={copy.spaces}
-              body={copy.spacesBody}
-              onPress={() => open("/spaces")}
-              last
-            />
-          </SettingsGroup>
-
-          <SettingsGroup title={copy.membership} rtl={rtl}>
-            <SettingsRow
-              rtl={rtl}
-              icon="account"
-              title={copy.profile}
-              body={copy.profileBody}
-              onPress={() => open("/profile")}
-            />
-            <SettingsRow
-              rtl={rtl}
-              icon="photo"
-              title={copy.photos}
-              body={copy.photosBody}
-              onPress={() => open("/photos")}
-            />
-            <SettingsRow
-              rtl={rtl}
-              icon="sliders"
-              title={copy.preferences}
-              body={copy.preferencesBody}
-              onPress={() => open("/questionnaire")}
-            />
-            <SettingsRow
-              rtl={rtl}
-              icon="activity"
-              title={copy.priorities}
-              body={copy.prioritiesBody}
-              onPress={() => open("/marriage-priorities")}
-              last
-            />
+          <SettingsGroup title={copy.marriage} rtl={rtl}>
+            <SettingsRow rtl={rtl} icon="account" title={copy.profile} body={copy.profileBody} onPress={() => open("/profile")} />
+            <SettingsRow rtl={rtl} icon="photo" title={copy.photos} body={copy.photosBody} onPress={() => open("/photos")} />
+            <SettingsRow rtl={rtl} icon="sliders" title={copy.preferences} body={copy.preferencesBody} onPress={() => open("/questionnaire")} />
+            <SettingsRow rtl={rtl} icon="sliders" title={copy.priorities} body={copy.prioritiesBody} onPress={() => open("/marriage-priorities")} />
+            <SettingsRow rtl={rtl} icon="privacy" title={copy.visibility} body={copy.visibilityBody} onPress={() => open("/profile-visibility")} last />
           </SettingsGroup>
 
           <SettingsGroup title={copy.trust} rtl={rtl}>
-            <SettingsRow
-              rtl={rtl}
-              icon="privacy"
-              title={copy.privacy}
-              body={copy.privacyBody}
-              onPress={() => open("/privacy")}
-            />
-            <SettingsRow
-              rtl={rtl}
-              icon="shield"
-              title={copy.safety}
-              body={copy.safetyBody}
-              onPress={() => open("/safety")}
-            />
-            <SettingsRow
-              rtl={rtl}
-              icon="privacy"
-              title={copy.security}
-              body={copy.securityBody}
-              onPress={() => open("/security")}
-              last
-            />
+            <SettingsRow rtl={rtl} icon="privacy" title={copy.privacy} body={copy.privacyBody} onPress={() => open("/privacy")} />
+            <SettingsRow rtl={rtl} icon="shield" title={copy.safety} body={copy.safetyBody} onPress={() => open("/safety")} />
+            <SettingsRow rtl={rtl} icon="privacy" title={copy.security} body={copy.securityBody} onPress={() => open("/security")} last />
           </SettingsGroup>
 
           <SettingsGroup title={copy.app} rtl={rtl}>
-            <SettingsRow
-              rtl={rtl}
-              icon="language"
-              title={copy.language}
-              body={copy.languageBody}
-              onPress={() => void switchLanguage()}
-              loading={languageSaving}
-              last
-            />
+            <SettingsRow rtl={rtl} icon="language" title={copy.language} body={copy.languageBody} onPress={() => void switchLanguage()} loading={languageSaving} last />
           </SettingsGroup>
 
           <View style={styles.signOutGroup}>
-            <SettingsRow
-              rtl={rtl}
-              icon="logout"
-              title={copy.signOut}
-              body={copy.signOutBody}
-              onPress={() => void signOut()}
-              loading={signingOut}
-              danger
-              last
-            />
+            <SettingsRow rtl={rtl} icon="logout" title={copy.signOut} body={copy.signOutBody} onPress={() => void signOut()} loading={signingOut} danger last />
           </View>
         </View>
       )}
@@ -364,89 +268,32 @@ export default function AccountScreen() {
   );
 }
 
-function SettingsGroup({
-  title,
-  rtl,
-  children,
-}: {
-  title: string;
-  rtl: boolean;
-  children: React.ReactNode;
-}) {
+function SettingsGroup({ title, rtl, children }: { title: string; rtl: boolean; children: React.ReactNode }) {
   return (
     <View style={styles.groupWrap}>
-      <Text
-        style={[
-          styles.groupTitle,
-          {
-            textAlign: rtl ? "right" : "left",
-            writingDirection: rtl ? "rtl" : "ltr",
-          },
-        ]}
-      >
-        {title}
-      </Text>
+      <Text style={[styles.groupTitle, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>{title}</Text>
       <View style={styles.group}>{children}</View>
     </View>
   );
 }
 
-function SettingsRow({
-  rtl,
-  icon,
-  title,
-  body,
-  onPress,
-  last = false,
-  danger = false,
-  loading = false,
-}: {
-  rtl: boolean;
-  icon: AppIconName;
-  title: string;
-  body?: string;
-  onPress: () => void;
-  last?: boolean;
-  danger?: boolean;
-  loading?: boolean;
-}) {
+function SettingsRow({ rtl, icon, title, body, onPress, last = false, danger = false, loading = false }: { rtl: boolean; icon: AppIconName; title: string; body?: string; onPress: () => void; last?: boolean; danger?: boolean; loading?: boolean }) {
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
-
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ busy: loading, disabled: loading }}
       disabled={loading}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.row,
-        !last ? styles.rowDivider : null,
-        { flexDirection: rtl ? "row-reverse" : "row" },
-        pressed && !loading ? styles.rowPressed : null,
-        loading ? styles.rowLoading : null,
-      ]}
+      style={({ pressed }) => [styles.row, !last ? styles.rowDivider : null, { flexDirection: rtl ? "row-reverse" : "row" }, pressed && !loading ? styles.rowPressed : null, loading ? styles.rowLoading : null]}
     >
       <View style={[styles.rowIcon, danger ? styles.rowIconDanger : null]}>
-        {loading ? (
-          <ActivityIndicator size="small" color={danger ? colors.danger : colors.primary} />
-        ) : (
-          <AppIcon name={icon} active={!danger} size={20} rtl={rtl} />
-        )}
+        {loading ? <ActivityIndicator size="small" color={danger ? colors.danger : colors.primary} /> : <AppIcon name={icon} active={!danger} size={20} rtl={rtl} />}
       </View>
       <View style={[styles.rowCopy, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
-        <Text
-          style={[
-            styles.rowTitle,
-            danger ? styles.rowTitleDanger : null,
-            { textAlign, writingDirection },
-          ]}
-        >
-          {title}
-        </Text>
-        {body ? (
-          <Text style={[styles.rowBody, { textAlign, writingDirection }]}>{body}</Text>
-        ) : null}
+        <Text style={[styles.rowTitle, danger ? styles.rowTitleDanger : null, { textAlign, writingDirection }]}>{title}</Text>
+        {body ? <Text style={[styles.rowBody, { textAlign, writingDirection }]}>{body}</Text> : null}
       </View>
       {!danger ? <AppIcon name="chevron" size={15} rtl={rtl} /> : null}
     </Pressable>
@@ -463,135 +310,29 @@ function maskPhone(phone: string | null) {
 const styles = StyleSheet.create({
   loadingState: { minHeight: 320, alignItems: "center", justifyContent: "center" },
   page: { width: "100%", gap: 24 },
-  identity: {
-    width: "100%",
-    alignItems: "center",
-    gap: 15,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceRaised,
-    paddingHorizontal: 18,
-    paddingVertical: 19,
-    ...shadows.card,
-  },
-  avatar: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primaryStrong,
-  },
-  avatarText: {
-    color: colors.white,
-    fontSize: 25,
-    lineHeight: 35,
-    fontWeight: "800",
-    letterSpacing: 0,
-  },
+  identity: { width: "100%", alignItems: "center", gap: 15, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, paddingHorizontal: 18, paddingVertical: 19, ...shadows.card },
+  avatar: { width: 62, height: 62, borderRadius: 31, alignItems: "center", justifyContent: "center", backgroundColor: colors.primaryStrong },
+  avatarText: { color: colors.white, fontSize: 25, lineHeight: 35, fontWeight: "800" },
   identityCopy: { flex: 1, minWidth: 0 },
-  name: {
-    width: "100%",
-    color: colors.foreground,
-    fontSize: 20,
-    lineHeight: 31,
-    fontWeight: "800",
-    letterSpacing: 0,
-  },
-  phone: {
-    width: "100%",
-    color: colors.muted,
-    fontSize: 12,
-    lineHeight: 19,
-    marginTop: 1,
-  },
-  statusPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primaryWash,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    marginTop: 8,
-  },
+  name: { width: "100%", color: colors.foreground, fontSize: 20, lineHeight: 31, fontWeight: "800" },
+  phone: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 1 },
+  statusPill: { flexDirection: "row", alignItems: "center", gap: 7, borderRadius: radius.pill, backgroundColor: colors.primaryWash, paddingHorizontal: 10, paddingVertical: 7, marginTop: 8 },
   statusPillWarning: { backgroundColor: colors.goldSoft },
   statusDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.gold },
   statusText: { color: colors.primary, fontSize: 10, lineHeight: 15, fontWeight: "800" },
-  message: {
-    width: "100%",
-    color: colors.danger,
-    fontSize: 13,
-    lineHeight: 21,
-    fontWeight: "700",
-  },
+  message: { width: "100%", color: colors.danger, fontSize: 13, lineHeight: 21, fontWeight: "700" },
   groupWrap: { width: "100%" },
-  groupTitle: {
-    width: "100%",
-    color: colors.muted,
-    fontSize: 11,
-    lineHeight: 18,
-    fontWeight: "800",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 8,
-  },
-  group: {
-    width: "100%",
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceRaised,
-    overflow: "hidden",
-    ...shadows.card,
-  },
-  row: {
-    width: "100%",
-    minHeight: 78,
-    alignItems: "center",
-    gap: 13,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-  },
-  rowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  rowIcon: {
-    width: 39,
-    height: 39,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primaryWash,
-  },
-  rowIconDanger: { backgroundColor: colors.accentWash },
-  rowCopy: { flex: 1, minWidth: 0 },
-  rowTitle: {
-    width: "100%",
-    color: colors.foreground,
-    fontSize: 14,
-    lineHeight: 22,
-    fontWeight: "800",
-  },
-  rowTitleDanger: { color: colors.danger },
-  rowBody: {
-    width: "100%",
-    color: colors.muted,
-    fontSize: 11,
-    lineHeight: 18,
-    marginTop: 2,
-  },
-  signOutGroup: {
-    width: "100%",
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.accentSoft,
-    backgroundColor: colors.surfaceRaised,
-    overflow: "hidden",
-    marginBottom: 6,
-  },
+  groupTitle: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, fontWeight: "800", marginBottom: 8 },
+  group: { width: "100%", borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, overflow: "hidden" },
+  row: { minHeight: 72, alignItems: "center", gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
+  rowDivider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   rowPressed: { backgroundColor: colors.surfaceMuted },
-  rowLoading: { opacity: 0.66 },
+  rowLoading: { opacity: 0.7 },
+  rowIcon: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: colors.primaryWash },
+  rowIconDanger: { backgroundColor: "rgba(180,35,63,0.08)" },
+  rowCopy: { flex: 1, minWidth: 0 },
+  rowTitle: { width: "100%", color: colors.foreground, fontSize: 14, lineHeight: 21, fontWeight: "800" },
+  rowTitleDanger: { color: colors.danger },
+  rowBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 2 },
+  signOutGroup: { width: "100%", borderRadius: radius.lg, borderWidth: 1, borderColor: "rgba(180,35,63,0.16)", overflow: "hidden", backgroundColor: colors.surfaceRaised },
 });
