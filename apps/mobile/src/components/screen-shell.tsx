@@ -1,8 +1,9 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import { useLocalSearchParams, usePathname } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,7 +15,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { ConnectionSpaceSwitcher } from "@/components/connection-space-switcher";
 import { FriendshipTabBar } from "@/components/friendship-tab-bar";
 import { MemberTabBar } from "@/components/member-tab-bar";
-import { colors, spacing } from "@/theme";
+import { colors, radius, spacing } from "@/theme";
 
 type BrandVariant = "compact" | "full" | "none";
 
@@ -60,6 +61,16 @@ export function ScreenShell({ eyebrow, title, body, footer, bottomBar, rtl = fal
         </View>
       ) : null}
 
+      {__DEV__ && pathname !== "/dev-test" ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push({ pathname: "/dev-test", params: { locale } })}
+          style={({ pressed }) => [styles.devPill, { alignSelf: rtl ? "flex-end" : "flex-start" }, pressed ? styles.pressed : null]}
+        >
+          <Text style={[styles.devPillText, { writingDirection }]}>{rtl ? "مختبر التجربة" : "Test Lab"}</Text>
+        </Pressable>
+      ) : null}
+
       <View style={[styles.hero, memberMode ? styles.heroMember : null, brandVariant === "full" ? styles.heroAfterFullBrand : null, { alignItems: horizontalAlignment, alignSelf: "stretch" }]}> 
         {eyebrow ? <Text style={[styles.eyebrow, rtl ? styles.eyebrowArabic : null, { textAlign, writingDirection }]}>{eyebrow}</Text> : null}
         <Text accessibilityRole="header" style={[styles.title, compact ? styles.titleCompact : null, rtl ? styles.titleArabic : null, compact && rtl ? styles.titleArabicCompact : null, memberMode ? styles.titleMember : null, memberMode && rtl ? styles.titleMemberArabic : null, { textAlign, writingDirection }]}>{title}</Text>
@@ -90,9 +101,12 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 24 }, scrollContentWithBar: { paddingBottom: 16 },
   fixedContent: { flex: 1, alignItems: "stretch", paddingHorizontal: 24, paddingTop: 6, paddingBottom: 8 }, fixedContentWithBar: { paddingBottom: 8 }, scrollContentCompact: { paddingHorizontal: 18 },
   navRow: { width: "100%", minHeight: 50, justifyContent: "center" }, navRowWithSpace: { minHeight: 58, alignItems: "center", justifyContent: "space-between", gap: 12 }, navRowFull: { minHeight: 152, paddingTop: 8 },
+  devPill: { marginTop: 6, borderRadius: radius.pill, backgroundColor: colors.goldSoft, paddingHorizontal: 10, paddingVertical: 6 },
+  devPillText: { color: colors.gold, fontSize: 9, lineHeight: 13, fontWeight: "900" },
   hero: { flexGrow: 0, paddingTop: 38, width: "100%", maxWidth: 560 }, heroMember: { paddingTop: 12 }, heroAfterFullBrand: { paddingTop: 22 },
   eyebrow: { width: "100%", color: colors.primary, fontSize: 12, lineHeight: 18, fontWeight: "800", letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 12 }, eyebrowArabic: { fontSize: 14, lineHeight: 24, letterSpacing: 0, textTransform: "none" },
   title: { width: "100%", color: colors.foreground, fontSize: 42, lineHeight: 50, fontWeight: "800", letterSpacing: -1.5 }, titleCompact: { fontSize: 36, lineHeight: 43, letterSpacing: -1 }, titleArabic: { fontSize: 39, lineHeight: 60, letterSpacing: 0, fontWeight: "700" }, titleArabicCompact: { fontSize: 34, lineHeight: 54, letterSpacing: 0 }, titleMember: { fontSize: 28, lineHeight: 35, letterSpacing: -0.35 }, titleMemberArabic: { fontSize: 30, lineHeight: 46, letterSpacing: 0, fontWeight: "700" },
   body: { width: "100%", color: colors.muted, fontSize: 16, lineHeight: 27, marginTop: 14, maxWidth: 520 }, bodyArabic: { fontSize: 17, lineHeight: 32, letterSpacing: 0 }, bodyMember: { fontSize: 14, lineHeight: 23, marginTop: 8 },
   content: { marginTop: 32, width: "100%", alignSelf: "stretch" }, contentMember: { marginTop: 14, flex: 1, minHeight: 0 }, footer: { marginTop: "auto", paddingTop: spacing.xl }, bottomBar: { backgroundColor: colors.surfaceRaised },
+  pressed: { opacity: 0.6 },
 });
