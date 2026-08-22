@@ -147,11 +147,11 @@ export async function syncPushRegistrationIfEnabled() {
   const settings = await getPushNotificationSettings();
   if (!settings.pushEnabled) return;
 
+  // Background/session sync must never prompt for permission and must never
+  // change the account-wide preference just because this particular device
+  // has not granted notification access.
   const permission = await Notifications.getPermissionsAsync();
-  if (!permission.granted) {
-    await setPushNotificationSettings(false, settings.previewMode).catch(() => undefined);
-    return;
-  }
+  if (!permission.granted) return;
 
   try {
     await ensureAndroidChannel();
