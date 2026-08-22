@@ -17,6 +17,7 @@ import { colors, radius, shadows } from "@/theme";
 
 type DemoMode = "discover" | "introduction" | "privacy" | "photos";
 type DemoDecision = "interested" | "skip" | null;
+type IntroductionStage = "offered" | "waiting" | "mutual" | "declined";
 
 type DemoProfile = {
   open: boolean;
@@ -58,7 +59,7 @@ const profiles: DemoProfile[] = [
     city: "Tripoli",
     marital: "Never married",
     children: "No",
-    reasons: ["Same city", "Similar view on children"],
+    reasons: ["Same city", "Similar view on children", "Living expectations"],
     realPersonVerified: true,
     age18PlusVerified: true,
     identityVerified: true,
@@ -81,6 +82,8 @@ const profiles: DemoProfile[] = [
   },
 ];
 
+const introductionProfile = profiles[1]!;
+
 export default function DevTestScreen() {
   if (!__DEV__) return null;
   return <DevTestContent />;
@@ -95,12 +98,18 @@ function DevTestContent() {
   const [mode, setMode] = useState<DemoMode>("discover");
   const [index, setIndex] = useState(0);
   const [decision, setDecision] = useState<DemoDecision>(null);
+  const [introStage, setIntroStage] = useState<IntroductionStage>("offered");
   const [shielded, setShielded] = useState(false);
   const [photoRevealConfirm, setPhotoRevealConfirm] = useState(false);
   const [photoRevealed, setPhotoRevealed] = useState(false);
+
   const cardX = useRef(new Animated.Value(0)).current;
   const cardOpacity = useRef(new Animated.Value(1)).current;
   const cardScale = useRef(new Animated.Value(1)).current;
+  const introX = useRef(new Animated.Value(0)).current;
+  const introOpacity = useRef(new Animated.Value(1)).current;
+  const introScale = useRef(new Animated.Value(1)).current;
+
   const profile = profiles[index % profiles.length]!;
   const direction = rtl ? "rtl" : "ltr";
   const textAlign = rtl ? "right" : "left";
@@ -150,17 +159,67 @@ function DevTestContent() {
     });
   }
 
+  function resetIntroduction() {
+    setIntroStage("offered");
+    setPhotoRevealConfirm(false);
+    setPhotoRevealed(false);
+    introX.setValue(0);
+    introOpacity.setValue(1);
+    introScale.setValue(1);
+  }
+
+  function chooseIntroduction(accept: boolean) {
+    if (introStage !== "offered") return;
+    if (accept) {
+      setIntroStage("waiting");
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(introX, {
+            toValue: 24,
+            duration: 180,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(introScale, { toValue: 1.018, duration: 180, useNativeDriver: true }),
+        ]),
+        Animated.spring(introX, {
+          toValue: 0,
+          damping: 15,
+          stiffness: 220,
+          mass: 0.7,
+          useNativeDriver: true,
+        }),
+        Animated.spring(introScale, {
+          toValue: 1,
+          damping: 16,
+          stiffness: 220,
+          mass: 0.7,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      return;
+    }
+
+    setIntroStage("declined");
+    Animated.parallel([
+      Animated.timing(introX, {
+        toValue: -Math.min(Math.max(width, 320) * 0.55, 250),
+        duration: 260,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(introOpacity, { toValue: 0.15, duration: 235, useNativeDriver: true }),
+      Animated.timing(introScale, { toValue: 0.98, duration: 235, useNativeDriver: true }),
+    ]).start();
+  }
+
   return (
     <ScreenShell
       eyebrow={copy.eyebrow}
       title={copy.title}
       body={copy.body}
       rtl={rtl}
-      footer={
-        <PrimaryButton tone="quiet" onPress={() => router.back()}>
-          {copy.back}
-        </PrimaryButton>
-      }
+      footer={<PrimaryButton tone="quiet" onPress={() => router.back()}>{copy.back}</PrimaryButton>}
     >
       <View style={styles.stack}>
         <View style={styles.warning}>
@@ -206,100 +265,152 @@ function DevTestContent() {
                 </View>
               ) : null}
 
-              {profile.open ? (
-                <View>
-                  <View style={styles.openPortrait}>
-                    <Text style={styles.openInitial}>{profile.name?.charAt(0) ?? "م"}</Text>
-                    <Text style={styles.openPhotoNote}>{copy.openPhotoPlaceholder}</Text>
-                    <View style={styles.openPill}>
-                      <Text style={styles.openPillText}>{copy.openPill}</Text>
-                    </View>
-                  </View>
-                  <Text style={[styles.openName, { textAlign, writingDirection: direction }]}>{profile.name}</Text>
-                  <Text style={[styles.openMeta, { textAlign, writingDirection: direction }]}>{profile.age} · {profile.city}</Text>
-                  {profile.about ? (
-                    <Text style={[styles.about, { textAlign, writingDirection: direction }]}>{profile.about}</Text>
-                  ) : null}
-                </View>
-              ) : (
-                <View style={styles.anonymousHero}>
-                  <Text style={styles.lock}>◌</Text>
-                  <Text style={[styles.anonymousTitle, { textAlign, writingDirection: direction }]}>{copy.anonymousTitle}</Text>
-                  <Text style={[styles.anonymousBody, { textAlign, writingDirection: direction }]}>{copy.anonymousBody}</Text>
-                </View>
-              )}
-
-              {hasTrust ? (
-                <View style={styles.trustCard}>
-                  <Text style={[styles.trustTitle, { textAlign, writingDirection: direction }]}>{copy.trustTitle}</Text>
-                  <TrustBadges
-                    locale={locale}
-                    realPersonVerified={profile.realPersonVerified}
-                    age18PlusVerified={profile.age18PlusVerified}
-                    identityVerified={profile.identityVerified}
-                  />
-                </View>
-              ) : null}
-
-              <View style={styles.details}>
-                <Row rtl={rtl} label={copy.age} value={profile.age} />
-                <Row rtl={rtl} label={copy.city} value={profile.city} />
-                <Row rtl={rtl} label={copy.marital} value={locale === "ar" ? localizeMarital(profile.marital) : profile.marital} />
-                <Row rtl={rtl} label={copy.children} value={locale === "ar" ? (profile.children === "Yes" ? "نعم" : "لا") : profile.children} />
-                {profile.open && profile.occupation ? <Row rtl={rtl} label={copy.work} value={profile.occupation} /> : null}
-                {profile.open && profile.education ? <Row rtl={rtl} label={copy.education} value={profile.education} /> : null}
-                {profile.open && profile.origin ? <Row rtl={rtl} label={copy.origin} value={profile.origin} /> : null}
-              </View>
-
-              <View style={styles.whyCard}>
-                <Text style={[styles.whyTitle, { textAlign, writingDirection: direction }]}>{copy.whyTitle}</Text>
-                <View style={[styles.chips, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-                  {profile.reasons.map((reason) => (
-                    <View key={reason} style={styles.reasonChip}>
-                      <Text style={styles.reasonChipText}>{copy.reason(reason)}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
+              <DemoProfileCard profile={profile} copy={copy} locale={locale} rtl={rtl} />
             </Animated.View>
 
             <Text style={[styles.prompt, { textAlign, writingDirection: direction }]}>{copy.decisionPrompt}</Text>
             <View style={styles.decisionRow}>
-              <DemoDecisionButton kind="skip" title={copy.notForMe} body={copy.moveQuietly} disabled={Boolean(decision)} onPress={() => choose("skip")} />
-              <DemoDecisionButton kind="interested" title={copy.interested} body={copy.savedPrivately} disabled={Boolean(decision)} onPress={() => choose("interested")} />
+              <DemoDecisionButton
+                kind="skip"
+                title={copy.notForMe}
+                body={copy.moveQuietly}
+                disabled={Boolean(decision)}
+                onPress={() => choose("skip")}
+              />
+              <DemoDecisionButton
+                kind="interested"
+                title={copy.interested}
+                body={copy.savedPrivately}
+                disabled={Boolean(decision)}
+                onPress={() => choose("interested")}
+              />
             </View>
           </View>
         ) : null}
 
         {mode === "introduction" ? (
-          <View style={styles.card}>
+          <View style={styles.introStage}>
             <Text style={[styles.kicker, { textAlign, writingDirection: direction }]}>{copy.introductionKicker}</Text>
-            <Text style={[styles.name, { textAlign, writingDirection: direction }]}>{copy.mutualTitle}</Text>
-            <Text style={[styles.body, { textAlign, writingDirection: direction }]}>{copy.mutualBody}</Text>
-            <View style={styles.trustCard}>
-              <TrustBadges locale={locale} realPersonVerified age18PlusVerified identityVerified={false} />
-            </View>
-            <View style={styles.privateCard}>
-              <Text style={[styles.privateTitle, { textAlign, writingDirection: direction }]}>{copy.revealTitle}</Text>
-              <Text style={[styles.privateBody, { textAlign, writingDirection: direction }]}>{photoRevealed ? copy.revealedBody : copy.revealBody}</Text>
-              {!photoRevealed ? (
-                <View style={styles.actions}>
-                  {photoRevealConfirm ? <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.revealWarning}</Text> : null}
-                  <PrimaryButton onPress={() => {
-                    if (!photoRevealConfirm) setPhotoRevealConfirm(true);
-                    else {
-                      setPhotoRevealed(true);
-                      setPhotoRevealConfirm(false);
-                    }
-                  }}>{photoRevealConfirm ? copy.confirmReveal : copy.revealButton}</PrimaryButton>
-                  {photoRevealConfirm ? <PrimaryButton tone="quiet" onPress={() => setPhotoRevealConfirm(false)}>{copy.cancel}</PrimaryButton> : null}
+            {introStage === "declined" ? (
+              <View style={styles.closedCard}>
+                <Text style={[styles.closedTitle, { textAlign, writingDirection: direction }]}>{copy.introDeclinedTitle}</Text>
+                <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.introDeclinedBody}</Text>
+                <PrimaryButton tone="quiet" onPress={resetIntroduction}>{copy.tryAgain}</PrimaryButton>
+              </View>
+            ) : (
+              <Animated.View
+                style={[
+                  styles.card,
+                  {
+                    opacity: introOpacity,
+                    transform: [{ translateX: introX }, { scale: introScale }],
+                  },
+                ]}
+              >
+                <View style={styles.openPortrait}>
+                  <Text style={styles.openInitial}>M</Text>
+                  <Text style={styles.openPhotoNote}>{copy.openPhotoPlaceholder}</Text>
+                  <View style={styles.openPill}>
+                    <Text style={styles.openPillText}>{copy.openPill}</Text>
+                  </View>
                 </View>
-              ) : null}
-            </View>
-            <View style={styles.privateCard}>
-              <Text style={[styles.privateTitle, { textAlign, writingDirection: direction }]}>{copy.chatReady}</Text>
-              <Text style={[styles.privateBody, { textAlign, writingDirection: direction }]}>{copy.chatReadyBody}</Text>
-            </View>
+                <Text style={[styles.openName, { textAlign, writingDirection: direction }]}>Maya</Text>
+                <Text style={[styles.openMeta, { textAlign, writingDirection: direction }]}>25–29 · Tripoli</Text>
+                <View style={styles.trustCard}>
+                  <TrustBadges locale={locale} realPersonVerified age18PlusVerified identityVerified />
+                </View>
+                <Text style={[styles.about, { textAlign, writingDirection: direction }]}>{introductionProfile.about}</Text>
+                <View style={styles.details}>
+                  <Row rtl={rtl} label={copy.marital} value={locale === "ar" ? "لم يسبق له/لها الزواج" : "Never married"} />
+                  <Row rtl={rtl} label={copy.children} value={locale === "ar" ? "لا" : "No"} />
+                  <Row rtl={rtl} label={copy.work} value={introductionProfile.occupation ?? ""} />
+                  <Row rtl={rtl} label={copy.education} value={introductionProfile.education ?? ""} />
+                </View>
+                <View style={styles.whyCard}>
+                  <Text style={[styles.whyTitle, { textAlign, writingDirection: direction }]}>{copy.introWhy}</Text>
+                  <View style={[styles.chips, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+                    {introductionProfile.reasons.map((reason) => (
+                      <View key={reason} style={styles.reasonChip}>
+                        <Text style={styles.reasonChipText}>{copy.reason(reason)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.oneSidedPrivate}</Text>
+                </View>
+
+                {introStage === "offered" ? (
+                  <>
+                    <Text style={[styles.prompt, { textAlign, writingDirection: direction }]}>{copy.introDecisionPrompt}</Text>
+                    <View style={styles.decisionRow}>
+                      <DemoDecisionButton
+                        kind="skip"
+                        title={copy.notForMe}
+                        body={copy.closeQuietly}
+                        disabled={false}
+                        onPress={() => chooseIntroduction(false)}
+                      />
+                      <DemoDecisionButton
+                        kind="interested"
+                        title={copy.continueIntro}
+                        body={copy.yesPrivate}
+                        disabled={false}
+                        onPress={() => chooseIntroduction(true)}
+                      />
+                    </View>
+                  </>
+                ) : null}
+
+                {introStage === "waiting" ? (
+                  <View style={styles.waitingCard}>
+                    <Text style={styles.waitingMark}>✓</Text>
+                    <Text style={[styles.waitingTitle, { textAlign, writingDirection: direction }]}>{copy.waitingTitle}</Text>
+                    <Text style={[styles.waitingBody, { textAlign, writingDirection: direction }]}>{copy.waitingBody}</Text>
+                    <PrimaryButton onPress={() => setIntroStage("mutual")}>{copy.simulateMutual}</PrimaryButton>
+                  </View>
+                ) : null}
+
+                {introStage === "mutual" ? (
+                  <>
+                    <View style={styles.successCard}>
+                      <Text style={[styles.success, { textAlign, writingDirection: direction }]}>{copy.mutualTitle}</Text>
+                      <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.mutualBody}</Text>
+                    </View>
+                    <View style={styles.privateCard}>
+                      <Text style={[styles.privateTitle, { textAlign, writingDirection: direction }]}>{copy.revealTitle}</Text>
+                      <Text style={[styles.privateBody, { textAlign, writingDirection: direction }]}>
+                        {photoRevealed ? copy.revealedBody : copy.revealBody}
+                      </Text>
+                      {!photoRevealed ? (
+                        <View style={styles.actions}>
+                          {photoRevealConfirm ? (
+                            <Text style={[styles.note, { textAlign, writingDirection: direction }]}>{copy.revealWarning}</Text>
+                          ) : null}
+                          <PrimaryButton
+                            onPress={() => {
+                              if (!photoRevealConfirm) setPhotoRevealConfirm(true);
+                              else {
+                                setPhotoRevealed(true);
+                                setPhotoRevealConfirm(false);
+                              }
+                            }}
+                          >
+                            {photoRevealConfirm ? copy.confirmReveal : copy.revealButton}
+                          </PrimaryButton>
+                          {photoRevealConfirm ? (
+                            <PrimaryButton tone="quiet" onPress={() => setPhotoRevealConfirm(false)}>{copy.cancel}</PrimaryButton>
+                          ) : null}
+                        </View>
+                      ) : null}
+                    </View>
+                    <View style={styles.privateCard}>
+                      <Text style={[styles.privateTitle, { textAlign, writingDirection: direction }]}>{copy.chatReady}</Text>
+                      <Text style={[styles.privateBody, { textAlign, writingDirection: direction }]}>{copy.chatReadyBody}</Text>
+                    </View>
+                    <PrimaryButton tone="quiet" onPress={resetIntroduction}>{copy.resetIntro}</PrimaryButton>
+                  </>
+                ) : null}
+              </Animated.View>
+            )}
           </View>
         ) : null}
 
@@ -320,7 +431,9 @@ function DevTestContent() {
             ) : (
               <PrimaryButton onPress={() => setShielded(true)}>{copy.simulateShield}</PrimaryButton>
             )}
-            <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/profile-visibility", params: { locale } })}>{copy.openPrivacy}</PrimaryButton>
+            <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/profile-visibility", params: { locale } })}>
+              {copy.openPrivacy}
+            </PrimaryButton>
           </View>
         ) : null}
 
@@ -335,6 +448,79 @@ function DevTestContent() {
         ) : null}
       </View>
     </ScreenShell>
+  );
+}
+
+function DemoProfileCard({
+  profile,
+  copy,
+  locale,
+  rtl,
+}: {
+  profile: DemoProfile;
+  copy: ReturnType<typeof testCopy>;
+  locale: MobileLocale;
+  rtl: boolean;
+}) {
+  const direction = rtl ? "rtl" : "ltr";
+  const textAlign = rtl ? "right" : "left";
+  const hasTrust = profile.realPersonVerified || profile.age18PlusVerified || profile.identityVerified;
+  return (
+    <>
+      {profile.open ? (
+        <View>
+          <View style={styles.openPortrait}>
+            <Text style={styles.openInitial}>{profile.name?.charAt(0) ?? "م"}</Text>
+            <Text style={styles.openPhotoNote}>{copy.openPhotoPlaceholder}</Text>
+            <View style={styles.openPill}>
+              <Text style={styles.openPillText}>{copy.openPill}</Text>
+            </View>
+          </View>
+          <Text style={[styles.openName, { textAlign, writingDirection: direction }]}>{profile.name}</Text>
+          <Text style={[styles.openMeta, { textAlign, writingDirection: direction }]}>{profile.age} · {profile.city}</Text>
+          {profile.about ? <Text style={[styles.about, { textAlign, writingDirection: direction }]}>{profile.about}</Text> : null}
+        </View>
+      ) : (
+        <View style={styles.anonymousHero}>
+          <Text style={styles.lock}>◌</Text>
+          <Text style={[styles.anonymousTitle, { textAlign, writingDirection: direction }]}>{copy.anonymousTitle}</Text>
+          <Text style={[styles.anonymousBody, { textAlign, writingDirection: direction }]}>{copy.anonymousBody}</Text>
+        </View>
+      )}
+
+      {hasTrust ? (
+        <View style={styles.trustCard}>
+          <Text style={[styles.trustTitle, { textAlign, writingDirection: direction }]}>{copy.trustTitle}</Text>
+          <TrustBadges
+            locale={locale}
+            realPersonVerified={profile.realPersonVerified}
+            age18PlusVerified={profile.age18PlusVerified}
+            identityVerified={profile.identityVerified}
+          />
+        </View>
+      ) : null}
+
+      <View style={styles.details}>
+        <Row rtl={rtl} label={copy.age} value={profile.age} />
+        <Row rtl={rtl} label={copy.city} value={profile.city} />
+        <Row rtl={rtl} label={copy.marital} value={locale === "ar" ? localizeMarital(profile.marital) : profile.marital} />
+        <Row rtl={rtl} label={copy.children} value={locale === "ar" ? (profile.children === "Yes" ? "نعم" : "لا") : profile.children} />
+        {profile.open && profile.occupation ? <Row rtl={rtl} label={copy.work} value={profile.occupation} /> : null}
+        {profile.open && profile.education ? <Row rtl={rtl} label={copy.education} value={profile.education} /> : null}
+        {profile.open && profile.origin ? <Row rtl={rtl} label={copy.origin} value={profile.origin} /> : null}
+      </View>
+
+      <View style={styles.whyCard}>
+        <Text style={[styles.whyTitle, { textAlign, writingDirection: direction }]}>{copy.whyTitle}</Text>
+        <View style={[styles.chips, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+          {profile.reasons.map((reason) => (
+            <View key={reason} style={styles.reasonChip}>
+              <Text style={styles.reasonChipText}>{copy.reason(reason)}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </>
   );
 }
 
@@ -363,7 +549,9 @@ function DemoDecisionButton({
         disabled ? styles.decisionDisabled : null,
       ]}
     >
-      <Text style={[styles.decisionArrow, kind === "interested" ? styles.interestedText : styles.skipText]}>{kind === "interested" ? "→" : "←"}</Text>
+      <Text style={[styles.decisionArrow, kind === "interested" ? styles.interestedText : styles.skipText]}>
+        {kind === "interested" ? "→" : "←"}
+      </Text>
       <Text style={[styles.decisionTitle, kind === "interested" ? styles.interestedText : styles.skipText]}>{title}</Text>
       <Text style={[styles.decisionBody, kind === "interested" ? styles.interestedBodyText : styles.skipBodyText]}>{body}</Text>
     </Pressable>
@@ -401,15 +589,20 @@ function testCopy(locale: MobileLocale) {
   return {
     eyebrow: ar ? "مختبر تجربة الزواج" : "MARRIAGE UX TEST LAB",
     title: ar ? "جرّب رحلة ميثاق بدون حساب ثانٍ" : "Test Mithaq without a second account",
-    body: ar ? "معاينات محلية لتجربة الحركة والملفات المفتوحة والخصوصية والتعارف." : "Local previews for testing motion, open profiles, privacy, and introductions.",
+    body: ar ? "معاينات محلية للاكتشاف والتعارف والخصوصية والصور." : "Local previews for Discover, introductions, privacy, and photos.",
     back: ar ? "رجوع" : "Back",
     devOnly: ar ? "للتطوير فقط" : "Development only",
     devOnlyBody: ar ? "هذه بيانات تجريبية وليست أعضاء حقيقيين ولا تظهر في نسخة الإنتاج." : "These are sample profiles, not real members, and this screen does not ship in production.",
-    tabs: { discover: ar ? "الاكتشاف" : "Discover", introduction: ar ? "التعارف" : "Introduction", privacy: ar ? "الخصوصية" : "Privacy", photos: ar ? "الصور" : "Photos" },
-    discoverKicker: ar ? "اختبر حركة القرار" : "TEST THE DECISION MOTION",
+    tabs: {
+      discover: ar ? "الاكتشاف" : "Discover",
+      introduction: ar ? "التعارف" : "Introduction",
+      privacy: ar ? "الخصوصية" : "Privacy",
+      photos: ar ? "الصور" : "Photos",
+    },
+    discoverKicker: ar ? "اختبر حركة القرار" : "TEST THE DISCOVER DECISION MOTION",
     anonymousTitle: ar ? "خصوصية أولاً" : "Private-first profile",
-    anonymousBody: ar ? "لا اسم ولا صورة أو نبذة هنا لأن هذا العضو اختار الخصوصية في البداية." : "No name, photo, or bio appears here because this member chose privacy first.",
-    openPill: ar ? "ملف مفتوح" : "Open profile",
+    anonymousBody: ar ? "لا اسم ولا صورة أو نبذة لأن هذا العضو اختار الخصوصية في البداية." : "No name, photo, or bio appears because this member chose privacy first.",
+    openPill: ar ? "ملف مفتوح باختيار صاحبه" : "Open by member choice",
     openPhotoPlaceholder: ar ? "مكان الصورة المعتمدة" : "Approved photo appears here",
     trustTitle: ar ? "موثّق من ميثاق" : "Verified by Mithaq",
     age: ar ? "العمر" : "Age",
@@ -428,9 +621,21 @@ function testCopy(locale: MobileLocale) {
     savedPrivately: ar ? "يمين · اهتمام خاص" : "Right · private interest",
     interestedStamp: ar ? "مهتم  →" : "INTERESTED  →",
     skipStamp: ar ? "←  غير مناسب" : "←  NOT FOR ME",
-    introductionKicker: ar ? "بعد القبول المتبادل" : "AFTER MUTUAL ACCEPTANCE",
-    mutualTitle: ar ? "الاهتمام متبادل" : "Interest is mutual",
-    mutualBody: ar ? "هذا مثال محلي للمرحلة التي يمكن فيها كشف المزيد بشكل متحكم به." : "This local preview represents the controlled stage where more can be revealed.",
+    introductionKicker: ar ? "اختبر قرار التعارف" : "TEST THE INTRODUCTION DECISION",
+    introWhy: ar ? "لماذا هذا التعارف؟" : "Why this introduction?",
+    oneSidedPrivate: ar ? "قبول أي طرف يبقى خاصاً حتى يصبح متبادلاً." : "Either person’s yes stays private until it becomes mutual.",
+    introDecisionPrompt: ar ? "هل تريد متابعة هذا التعارف؟" : "Do you want to continue this introduction?",
+    closeQuietly: ar ? "يسار · ينتهي بهدوء" : "Left · close quietly",
+    continueIntro: ar ? "أرغب بالمتابعة" : "I’d like to continue",
+    yesPrivate: ar ? "يمين · يبقى قبولك خاصاً" : "Right · your yes stays private",
+    waitingTitle: ar ? "تم حفظ رغبتك في المتابعة" : "Your choice to continue is saved",
+    waitingBody: ar ? "لا تعرف قرار الطرف الآخر إلا إذا أصبح القبول متبادلاً." : "You do not learn the other person’s decision unless acceptance becomes mutual.",
+    simulateMutual: ar ? "محاكاة قبول الطرف الآخر" : "Simulate the other person accepting",
+    introDeclinedTitle: ar ? "انتهى التعارف بهدوء" : "The introduction closed quietly",
+    introDeclinedBody: ar ? "لا يرسل ميثاق إشعاراً يقول للطرف الآخر إنك رفضته." : "Mithaq does not send the other person a rejection notification.",
+    tryAgain: ar ? "إعادة تجربة القرار" : "Try the decision again",
+    mutualTitle: ar ? "أصبح القبول متبادلاً" : "Acceptance is mutual",
+    mutualBody: ar ? "الآن فقط يفتح ميثاق الخطوة التالية والمحادثة الخاصة." : "Only now does Mithaq open the next stage and private conversation.",
     revealTitle: ar ? "كشف الصورة اختياري" : "Photo reveal is optional",
     revealBody: ar ? "يمكن إبقاء الصورة خاصة والاستمرار في المحادثة." : "The photo can stay private and the conversation can still continue.",
     revealedBody: ar ? "تم كشف الصورة لهذا التعارف في المعاينة." : "The photo is revealed for this preview introduction.",
@@ -440,6 +645,7 @@ function testCopy(locale: MobileLocale) {
     cancel: ar ? "إلغاء" : "Cancel",
     chatReady: ar ? "المحادثة لا تتطلب صورة" : "Chat does not require a photo",
     chatReadyBody: ar ? "يمكن للطرفين بدء محادثة خاصة سواء كشفا الصور أم لا." : "Both people can begin a private conversation whether or not they reveal photos.",
+    resetIntro: ar ? "إعادة رحلة التعارف" : "Reset introduction journey",
     privacyKicker: ar ? "اختبار درع العائلة" : "FAMILY SHIELD PREVIEW",
     familyScenario: ar ? "أخ أو قريب أو زميل" : "Sibling, relative, or coworker",
     familyScenarioBody: ar ? "أضف رقمه مسبقاً بدلاً من الانتظار حتى يظهر أحدكما للآخر." : "Add their number beforehand instead of waiting until either profile is exposed.",
@@ -468,6 +674,7 @@ const styles = StyleSheet.create({
   tabText: { color: colors.muted, fontSize: 9, fontWeight: "800" },
   tabTextActive: { color: colors.primaryStrong },
   discoverStage: { width: "100%", gap: 12 },
+  introStage: { width: "100%", gap: 12 },
   card: { width: "100%", borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, padding: 16, gap: 12, ...shadows.card },
   kicker: { color: colors.primary, fontSize: 10, fontWeight: "900" },
   anonymousHero: { width: "100%", alignItems: "center", borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 22, gap: 7 },
@@ -479,9 +686,9 @@ const styles = StyleSheet.create({
   openPhotoNote: { color: "rgba(255,255,255,0.68)", fontSize: 10, marginTop: 8 },
   openPill: { position: "absolute", top: 12, left: 12, borderRadius: radius.pill, backgroundColor: "rgba(23,36,59,0.82)", paddingHorizontal: 9, paddingVertical: 6 },
   openPillText: { color: colors.white, fontSize: 9, fontWeight: "900" },
-  openName: { width: "100%", color: colors.foreground, fontSize: 25, lineHeight: 34, fontWeight: "900", marginTop: 12 },
+  openName: { width: "100%", color: colors.foreground, fontSize: 25, lineHeight: 34, fontWeight: "900", marginTop: 3 },
   openMeta: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18 },
-  about: { width: "100%", color: colors.foreground, fontSize: 12, lineHeight: 20, marginTop: 8 },
+  about: { width: "100%", color: colors.foreground, fontSize: 12, lineHeight: 20 },
   trustCard: { width: "100%", borderRadius: radius.lg, borderWidth: 1, borderColor: colors.primarySoft, backgroundColor: colors.surfaceRaised, padding: 12, gap: 8 },
   trustTitle: { color: colors.primaryStrong, fontSize: 11, fontWeight: "900" },
   details: { width: "100%", borderTopWidth: 1, borderTopColor: colors.border },
@@ -521,5 +728,11 @@ const styles = StyleSheet.create({
   actions: { gap: 8 },
   successCard: { borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 14, gap: 5 },
   success: { color: colors.primaryStrong, fontSize: 12, lineHeight: 19, fontWeight: "800" },
+  waitingCard: { borderRadius: radius.lg, backgroundColor: colors.primary, padding: 15, gap: 7 },
+  waitingMark: { color: colors.white, fontSize: 23, fontWeight: "900" },
+  waitingTitle: { color: colors.white, fontSize: 14, lineHeight: 22, fontWeight: "900" },
+  waitingBody: { color: "rgba(255,255,255,0.78)", fontSize: 10, lineHeight: 17 },
+  closedCard: { borderRadius: radius.xl, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surfaceRaised, padding: 18, gap: 10 },
+  closedTitle: { color: colors.foreground, fontSize: 17, lineHeight: 26, fontWeight: "900" },
   note: { color: colors.muted, fontSize: 10, lineHeight: 17 },
 });
