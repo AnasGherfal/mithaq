@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { BrandLogo } from "@/components/brand-logo";
 import { PrimaryButton } from "@/components/primary-button";
+import { NotificationCoordinator } from "@/notifications/notification-coordinator";
 import { BiometricGate } from "@/security/biometric-gate";
 import {
   PrivateMemberCaptureGuard,
@@ -17,6 +18,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <PrivateMemberCaptureGuard />
+      <NotificationCoordinator />
       <StatusBar style="dark" />
       <BiometricGate>
         <Stack
