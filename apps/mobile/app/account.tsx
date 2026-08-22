@@ -5,6 +5,10 @@ import { AppIcon, type AppIconName } from "@/components/app-icon";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
 import type { MobileLocale } from "@/i18n";
+import {
+  clearVisibleNotifications,
+  unregisterCurrentPushDevice,
+} from "@/lib/push-notifications";
 import { supabase } from "@/lib/supabase";
 import { setBiometricLockEnabled } from "@/security/biometric";
 import { colors, radius, shadows } from "@/theme";
@@ -26,6 +30,7 @@ type AccountPath =
   | "/trusted-contacts"
   | "/privacy"
   | "/safety"
+  | "/notification-privacy"
   | "/security"
   | "/dev-family-handoff";
 
@@ -46,16 +51,16 @@ export default function AccountScreen() {
     ? {
         title: "حسابي", body: "ملف الزواج وخصوصيتك وأمان حسابك في مكان واحد.", member: "عضو ميثاق", ready: "ملف الزواج جاهز", incomplete: "ملف الزواج يحتاج إلى إكمال", deletion: "طلب حذف الحساب قيد المعالجة",
         marriage: "الزواج", profile: "ملفي الخاص", profileBody: "الاسم الظاهر والنبذة والتفاصيل التي تختار مشاركتها.", photos: "صوري الخاصة", photosBody: "الصور اختيارية ولا تظهر في الاكتشاف المجهول.", preferences: "تفضيلات الزواج", preferencesBody: "العمر والمكان والحالة الاجتماعية وحدودك الأساسية.", priorities: "أولويات الحياة الزوجية", prioritiesBody: "السكن والأطفال والعمل وتوقعات حفل الزواج.", visibility: "الخصوصية ومن لا يظهر لك", visibilityBody: "درع العائلة، تفاصيل الظهور، وما نتحقق منه فعلاً.", trustedContacts: "دائرة الثقة", trustedContactsBody: "احفظ حتى ثلاثة أشخاص قد تختار إشراك أحدهم بعد قبول متبادل.",
-        trust: "الخصوصية والأمان", privacy: "الخصوصية والموافقات", privacyBody: "الموافقات والتحديثات الاختيارية وطلب حذف الحساب.", safety: "مركز السلامة", safetyBody: "البلاغات والحظر وضوابط حماية التعارف.", security: "أمان الجهاز والحساب", securityBody: "القفل البيومتري والجلسات المسجلة على أجهزة أخرى.",
+        trust: "الخصوصية والأمان", privacy: "الخصوصية والموافقات", privacyBody: "الموافقات والتحديثات الاختيارية وطلب حذف الحساب.", safety: "مركز السلامة", safetyBody: "البلاغات والحظر وضوابط حماية التعارف.", notifications: "الإشعارات", notificationsBody: "تنبيهات محايدة على شاشة القفل افتراضياً، وأنت تختار إن كان مسموحاً بإظهار تفاصيل أكثر.", security: "أمان الجهاز والحساب", securityBody: "القفل البيومتري والجلسات المسجلة على أجهزة أخرى.",
         development: "للتطوير فقط", familyPreview: "معاينة التسليم العائلي", familyPreviewBody: "جرّب مشاركة جهات الاتصال والصورة بعد إشراك العائلة بدون حساب ثانٍ أو أرقام حقيقية.",
-        app: "التطبيق", language: "اللغة", languageBody: "العربية · اضغط للتبديل إلى English", signOut: "تسجيل الخروج", signOutBody: "إنهاء الجلسة المحفوظة على هذا الجهاز.", loadErrorTitle: "تعذر تحميل حسابك", loadErrorBody: "تحقق من اتصالك ثم حاول مرة أخرى.", retry: "إعادة المحاولة", languageError: "تعذر حفظ اللغة الآن. حاول مرة أخرى.",
+        app: "التطبيق", language: "اللغة", languageBody: "العربية · اضغط للتبديل إلى English", signOut: "تسجيل الخروج", signOutBody: "إنهاء الجلسة المحفوظة على هذا الجهاز وإيقاف تنبيهاته الخاصة بالحساب.", loadErrorTitle: "تعذر تحميل حسابك", loadErrorBody: "تحقق من اتصالك ثم حاول مرة أخرى.", retry: "إعادة المحاولة", languageError: "تعذر حفظ اللغة الآن. حاول مرة أخرى.",
       }
     : {
         title: "Account", body: "Your Marriage profile, privacy, and account security in one place.", member: "Mithaq member", ready: "Marriage profile ready", incomplete: "Marriage profile needs completion", deletion: "Account deletion is being processed",
         marriage: "Marriage", profile: "Private profile", profileBody: "Your display name, introduction, and details you choose to share.", photos: "Private photos", photosBody: "Photos are optional and are never shown in anonymous Discover.", preferences: "Marriage preferences", preferencesBody: "Age, location, marital-status choices, and essential boundaries.", priorities: "Marriage life priorities", prioritiesBody: "Housing, children, work, and wedding expectations.", visibility: "Privacy & people shield", visibilityBody: "Family Shield, detail visibility, and what Mithaq has actually verified.", trustedContacts: "Trusted contacts", trustedContactsBody: "Save up to three people you may choose to involve after mutual acceptance.",
-        trust: "Privacy & security", privacy: "Privacy & consent", privacyBody: "Consent history, optional updates, and account deletion.", safety: "Safety Center", safetyBody: "Reports, blocks, and controls that protect introductions.", security: "Device & account security", securityBody: "Biometric protection and sessions on other devices.",
+        trust: "Privacy & security", privacy: "Privacy & consent", privacyBody: "Consent history, optional updates, and account deletion.", safety: "Safety Center", safetyBody: "Reports, blocks, and controls that protect introductions.", notifications: "Notifications", notificationsBody: "Neutral lock-screen updates by default. You decide whether more detail is allowed.", security: "Device & account security", securityBody: "Biometric protection and sessions on other devices.",
         development: "Development only", familyPreview: "Family handoff preview", familyPreviewBody: "Test contact sharing and the after-family photo stage without a second account or real phone numbers.",
-        app: "App", language: "Language", languageBody: "English · tap to switch to العربية", signOut: "Sign out", signOutBody: "End the saved session on this device.", loadErrorTitle: "We couldn’t load your account", loadErrorBody: "Check your connection, then try again.", retry: "Try again", languageError: "We couldn’t save the language right now. Try again.",
+        app: "App", language: "Language", languageBody: "English · tap to switch to العربية", signOut: "Sign out", signOutBody: "End the saved session on this device and unregister its private account alerts.", loadErrorTitle: "We couldn’t load your account", loadErrorBody: "Check your connection, then try again.", retry: "Try again", languageError: "We couldn’t save the language right now. Try again.",
       };
 
   const load = useCallback(async () => {
@@ -88,7 +93,14 @@ export default function AccountScreen() {
 
   async function signOut() {
     if (signingOut) return;
-    setSigningOut(true); await setBiometricLockEnabled(false); await supabase.auth.signOut({ scope: "local" }); router.replace("/");
+    setSigningOut(true);
+    await Promise.all([
+      setBiometricLockEnabled(false),
+      unregisterCurrentPushDevice().catch(() => false),
+      clearVisibleNotifications(),
+    ]);
+    await supabase.auth.signOut({ scope: "local" });
+    router.replace("/");
   }
 
   const displayName = account?.displayName?.trim() || copy.member;
@@ -126,6 +138,7 @@ export default function AccountScreen() {
           <SettingsGroup title={copy.trust} rtl={rtl}>
             <SettingsRow rtl={rtl} icon="privacy" title={copy.privacy} body={copy.privacyBody} onPress={() => open("/privacy")} />
             <SettingsRow rtl={rtl} icon="shield" title={copy.safety} body={copy.safetyBody} onPress={() => open("/safety")} />
+            <SettingsRow rtl={rtl} icon="activity" title={copy.notifications} body={copy.notificationsBody} onPress={() => open("/notification-privacy")} />
             <SettingsRow rtl={rtl} icon="privacy" title={copy.security} body={copy.securityBody} onPress={() => open("/security")} last />
           </SettingsGroup>
 
