@@ -114,6 +114,22 @@ export function ScreenShell({
         </Pressable>
       ) : null}
 
+      {__DEV__ && pathname === "/dev-test" ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push({ pathname: "/dev-conversation", params: { locale } })}
+          style={({ pressed }) => [
+            styles.devPill,
+            { alignSelf: rtl ? "flex-end" : "flex-start" },
+            pressed ? styles.pressed : null,
+          ]}
+        >
+          <Text style={[styles.devPillText, { writingDirection }]}>
+            {rtl ? "معاينة المحادثة" : "Conversation preview"}
+          </Text>
+        </Pressable>
+      ) : null}
+
       <View
         style={[
           styles.hero,
