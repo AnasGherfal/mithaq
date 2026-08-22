@@ -56,8 +56,7 @@ export function useSensitiveScreenProtection(key: string, enabled = true) {
 
 /**
  * Central route guard for screens that can contain another member's identity,
- * photo, or private conversation. Discover is protected too because members
- * can now explicitly choose an open profile from the first stage.
+ * photo, private conversation, or deliberately shared trusted-contact data.
  */
 export function PrivateMemberCaptureGuard() {
   const pathname = usePathname();
@@ -65,6 +64,7 @@ export function PrivateMemberCaptureGuard() {
     pathname === "/marriage-discover" ||
     pathname === "/introductions" ||
     pathname === "/introduction-handoff" ||
+    pathname === "/trusted-contacts" ||
     pathname === "/conversation";
 
   useSensitiveScreenProtection(PRIVATE_MEMBER_SCREEN_KEY, protectedRoute);
