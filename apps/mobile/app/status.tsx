@@ -30,7 +30,7 @@ type NextStep = {
     | "/questionnaire"
     | "/consent"
     | "/profile"
-    | "/introductions"
+    | "/marriage-discover"
     | "/privacy";
 };
 
@@ -276,7 +276,7 @@ export default function StatusScreen() {
               <View style={styles.flowLine} />
               <FlowStep
                 icon="introductions"
-                label={rtl ? "تعارف" : "Introduction"}
+                label={rtl ? "اهتمام خاص" : "Private interest"}
                 rtl={rtl}
                 tone="rose"
               />
@@ -292,8 +292,8 @@ export default function StatusScreen() {
               style={[styles.howBody, { textAlign, writingDirection }]}
             >
               {rtl
-                ? "يقرر الطرفان بشكل خاص، ولا تبدأ المحادثة إلا بعد القبول المتبادل."
-                : "Both people decide privately, and chat opens only after mutual acceptance."}
+                ? "راجع مجموعة صغيرة ومحدودة، واختر اهتمامك بشكل خاص، ولا تبدأ المحادثة إلا بعد القبول المتبادل."
+                : "Review a small finite set, express interest privately, and chat only after mutual acceptance."}
             </Text>
           </View>
         </View>
@@ -343,20 +343,20 @@ function resolveNextStep(
     return {
       title: rtl ? "أكمل ملفك الخاص" : "Complete your private profile",
       body: rtl
-        ? "أضف التفاصيل التي نكشفها فقط عند وجود تعارف مناسب."
-        : "Add the details Mithaq reveals only when there is a suitable introduction.",
+        ? "أضف التفاصيل التي نكشفها فقط وفق طريقة الظهور التي تختارها. الصورة ليست مطلوبة."
+        : "Add the details Mithaq reveals according to the presentation you choose. A photo is not required.",
       action: rtl ? "إكمال الملف" : "Complete profile",
       pathname: "/profile",
     };
   }
 
   return {
-    title: rtl ? "أنت جاهز للتعارف" : "You’re ready for introductions",
+    title: rtl ? "ملفك جاهز للاكتشاف" : "Your profile is ready for Discover",
     body: rtl
-      ? "لا تحتاج إلى التصفح أو السحب. يظهر لك تعارف خاص عندما نجد توافقاً مناسباً."
-      : "No browsing or swiping. A private introduction appears when Mithaq finds a suitable fit.",
-    action: rtl ? "عرض التعارفات" : "View introductions",
-    pathname: "/introductions",
+      ? "لا توجد ملفات عامة ولا سحب لا نهائي. راجع مجموعة صغيرة ومحدودة؛ يبقى خيار «خصوصية أولاً» مجهولاً، بينما يظهر الملف المفتوح كما اختاره صاحبه."
+      : "No public profiles or endless swiping. Review a small finite set: Private-first members stay anonymous, while Open profiles appear as their owners chose.",
+    action: rtl ? "فتح الاكتشاف" : "Open Discover",
+    pathname: "/marriage-discover",
   };
 }
 
