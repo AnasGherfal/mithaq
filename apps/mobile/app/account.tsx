@@ -23,6 +23,7 @@ type AccountPath =
   | "/questionnaire"
   | "/marriage-priorities"
   | "/profile-visibility"
+  | "/trusted-contacts"
   | "/privacy"
   | "/safety"
   | "/security";
@@ -59,6 +60,8 @@ export default function AccountScreen() {
         prioritiesBody: "السكن والأطفال والعمل وتوقعات حفل الزواج.",
         visibility: "الخصوصية ومن لا يظهر لك",
         visibilityBody: "درع العائلة، تفاصيل الظهور، وما نتحقق منه فعلاً.",
+        trustedContacts: "دائرة الثقة",
+        trustedContactsBody: "احفظ حتى ثلاثة أشخاص قد تختار إشراك أحدهم بعد قبول متبادل.",
         trust: "الخصوصية والأمان",
         privacy: "الخصوصية والموافقات",
         privacyBody: "الموافقات والتحديثات الاختيارية وطلب حذف الحساب.",
@@ -94,6 +97,8 @@ export default function AccountScreen() {
         prioritiesBody: "Housing, children, work, and wedding expectations.",
         visibility: "Privacy & people shield",
         visibilityBody: "Family Shield, detail visibility, and what Mithaq has actually verified.",
+        trustedContacts: "Trusted contacts",
+        trustedContactsBody: "Save up to three people you may choose to involve after mutual acceptance.",
         trust: "Privacy & security",
         privacy: "Privacy & consent",
         privacyBody: "Consent history, optional updates, and account deletion.",
@@ -246,7 +251,8 @@ export default function AccountScreen() {
             <SettingsRow rtl={rtl} icon="photo" title={copy.photos} body={copy.photosBody} onPress={() => open("/photos")} />
             <SettingsRow rtl={rtl} icon="sliders" title={copy.preferences} body={copy.preferencesBody} onPress={() => open("/questionnaire")} />
             <SettingsRow rtl={rtl} icon="sliders" title={copy.priorities} body={copy.prioritiesBody} onPress={() => open("/marriage-priorities")} />
-            <SettingsRow rtl={rtl} icon="privacy" title={copy.visibility} body={copy.visibilityBody} onPress={() => open("/profile-visibility")} last />
+            <SettingsRow rtl={rtl} icon="privacy" title={copy.visibility} body={copy.visibilityBody} onPress={() => open("/profile-visibility")} />
+            <SettingsRow rtl={rtl} icon="account" title={copy.trustedContacts} body={copy.trustedContactsBody} onPress={() => open("/trusted-contacts")} last />
           </SettingsGroup>
 
           <SettingsGroup title={copy.trust} rtl={rtl}>
