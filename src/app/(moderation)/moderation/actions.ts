@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type ModerationKind = "profile" | "photo" | "report";
+type ReportIntent = "triaged" | "investigating" | "actioned" | "dismissed" | "closed";
+type EnforcementIntent = "restrict" | "suspend" | "ban" | "restore";
 type ModerationAccessRow = {
   moderation_role: string;
   can_review: boolean;
@@ -12,7 +14,6 @@ type ModerationAccessRow = {
 };
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const kindSet = new Set<ModerationKind>(["profile", "photo", "report"]);
 const profileIntents = {
   approve: "approved",
   changes: "needs_changes",
@@ -23,14 +24,14 @@ const photoIntents = {
   changes: "needs_changes",
   reject: "rejected",
 } as const;
-const reportIntents = new Set([
+const reportIntents: ReportIntent[] = [
   "triaged",
   "investigating",
   "actioned",
   "dismissed",
   "closed",
-] as const);
-const enforcementIntents = new Set(["restrict", "suspend", "ban", "restore"] as const);
+];
+const enforcementIntents: EnforcementIntent[] = ["restrict", "suspend", "ban", "restore"];
 
 function value(formData: FormData, key: string) {
   const entry = formData.get(key);
@@ -39,6 +40,30 @@ function value(formData: FormData, key: string) {
 
 function isUuid(valueToCheck: string) {
   return uuidPattern.test(valueToCheck);
+}
+
+function isModerationKind(valueToCheck: string): valueToCheck is ModerationKind {
+  return valueToCheck === "profile" || valueToCheck === "photo" || valueToCheck === "report";
+}
+
+function isReportIntent(valueToCheck: string): valueToCheck is ReportIntent {
+  return reportIntents.some((intent) => intent === valueToCheck);
+}
+
+function isEnforcementIntent(valueToCheck: string): valueToCheck is EnforcementIntent {
+  return enforcementIntents.some((intent) => intent === valueToCheck);
+}
+
+function isModerationAccessRow(valueToCheck: unknown): valueToCheck is ModerationAccessRow {
+  if (typeof valueToCheck !== "object" || valueToCheck === null || Array.isArray(valueToCheck)) {
+    return false;
+  }
+  const row = valueToCheck as Record<string, unknown>;
+  return (
+    typeof row.moderation_role === "string" &&
+    typeof row.can_review === "boolean" &&
+    typeof row.can_enforce === "boolean"
+  );
 }
 
 function safeReason(formData: FormData) {
@@ -58,7 +83,7 @@ function safeReviewAfter(formData: FormData) {
 
 function selectedRoute(kind: string, itemId: string, notice: string) {
   const params = new URLSearchParams();
-  if (kindSet.has(kind as ModerationKind) && isUuid(itemId)) {
+  if (isModerationKind(kind) && isUuid(itemId)) {
     params.set("kind", kind);
     params.set("id", itemId);
   }
@@ -77,19 +102,11 @@ async function requireModerationAccess() {
 
   const { data, error } = await supabase.rpc("get_my_moderation_access");
   const first = Array.isArray(data) ? data[0] : null;
-  if (error || !first || typeof first !== "object") redirect("/moderation/login");
-
-  const row = first as ModerationAccessRow;
-  if (
-    typeof row.moderation_role !== "string" ||
-    typeof row.can_review !== "boolean" ||
-    typeof row.can_enforce !== "boolean" ||
-    !row.can_review
-  ) {
+  if (error || !isModerationAccessRow(first) || !first.can_review) {
     redirect("/moderation/login");
   }
 
-  return { supabase, access: row };
+  return { supabase, access: first };
 }
 
 export async function moderateCaseAction(formData: FormData) {
@@ -101,7 +118,7 @@ export async function moderateCaseAction(formData: FormData) {
   const reviewAfter = safeReviewAfter(formData);
 
   if (
-    !kindSet.has(kind as ModerationKind) ||
+    !isModerationKind(kind) ||
     !isUuid(itemId) ||
     !isUuid(targetUserId) ||
     reasonCode === undefined ||
@@ -111,39 +128,39 @@ export async function moderateCaseAction(formData: FormData) {
   }
 
   const { supabase, access } = await requireModerationAccess();
-  let error: { message?: string } | null = null;
+  let failed = false;
 
   if (kind === "profile" && intent in profileIntents) {
     const state = profileIntents[intent as keyof typeof profileIntents];
-    const result = await supabase.rpc("moderate_profile_case", {
+    const { error } = await supabase.rpc("moderate_profile_case", {
       p_user_id: targetUserId,
       p_state: state,
       p_reason_code: reasonCode,
       p_review_after: reviewAfter,
     });
-    error = result.error;
+    failed = Boolean(error);
   } else if (kind === "photo" && intent in photoIntents) {
     const state = photoIntents[intent as keyof typeof photoIntents];
-    const result = await supabase.rpc("moderate_photo_case", {
+    const { error } = await supabase.rpc("moderate_photo_case", {
       p_photo_id: itemId,
       p_state: state,
       p_reason_code: reasonCode,
       p_review_after: reviewAfter,
     });
-    error = result.error;
-  } else if (kind === "report" && reportIntents.has(intent as never)) {
+    failed = Boolean(error);
+  } else if (kind === "report" && isReportIntent(intent)) {
     if (!access.can_enforce) redirect(selectedRoute(kind, itemId, "forbidden"));
-    const result = await supabase.rpc("moderate_report_case", {
+    const { error } = await supabase.rpc("moderate_report_case", {
       p_report_id: itemId,
       p_to_status: intent,
       p_reason_code: reasonCode,
     });
-    error = result.error;
+    failed = Boolean(error);
   } else {
     redirect(selectedRoute(kind, itemId, "invalid_action"));
   }
 
-  if (error) redirect(selectedRoute(kind, itemId, "action_failed"));
+  if (failed) redirect(selectedRoute(kind, itemId, "action_failed"));
 
   revalidatePath("/moderation");
   redirect(selectedRoute(kind, itemId, "saved"));
@@ -158,10 +175,10 @@ export async function enforceMemberAction(formData: FormData) {
   const reviewAfter = safeReviewAfter(formData);
 
   if (
-    !kindSet.has(kind as ModerationKind) ||
+    !isModerationKind(kind) ||
     !isUuid(itemId) ||
     !isUuid(targetUserId) ||
-    !enforcementIntents.has(intent as never) ||
+    !isEnforcementIntent(intent) ||
     reasonCode === undefined ||
     reviewAfter === undefined ||
     (intent !== "restore" && !reasonCode)
