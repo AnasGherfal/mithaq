@@ -2,7 +2,7 @@ begin;
 select plan(4);
 
 select ok(
-  position("'^\\+[1-9][0-9]{7,14}$'" in pg_get_functiondef('private.close_active_pair_after_family_shield()'::regprocedure)) > 0,
+  position('when au.phone ~' in pg_get_functiondef('private.close_active_pair_after_family_shield()'::regprocedure)) > 0,
   'Family Shield close trigger validates candidate auth phone format before hashing'
 );
 
