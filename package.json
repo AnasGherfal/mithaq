@@ -25,6 +25,7 @@
     "release:contract:check": "node scripts/validate-release-contract.mjs",
     "release:metadata:check": "node scripts/validate-release-metadata.mjs",
     "release:store:check": "node scripts/validate-store-readiness.mjs",
+    "release:native:check": "node scripts/validate-store-readiness.mjs --require-eas-project",
     "release:preflight:staging": "node scripts/validate-staging-preflight.mjs staging",
     "release:preflight:production": "node scripts/validate-staging-preflight.mjs production",
     "release:verify:staging": "node scripts/verify-hosted-release.mjs staging",
