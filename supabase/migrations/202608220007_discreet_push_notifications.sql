@@ -300,11 +300,12 @@ begin
     raise exception 'push notifications are not enabled';
   end if;
 
-  -- A physical installation must never keep another account's token mapping
-  -- after sign-out or account switching.
   delete from private.member_push_devices device
   where device.expo_push_token = v_token
-    and device.user_id <> v_user_id;
+    and (
+      device.user_id <> v_user_id
+      or device.installation_id <> v_installation_id
+    );
 
   insert into private.member_push_devices (
     user_id,
@@ -412,7 +413,7 @@ returns table (
 language plpgsql
 security definer
 set search_path = public, private
-as $$;
+as $$
 begin
   if not private.push_worker_token_matches(p_worker_token) then
     raise exception 'push worker unauthorized';
@@ -457,6 +458,14 @@ begin
   where delivery.status = 'processing'
     and delivery.claimed_at < clock_timestamp() - interval '10 minutes'
     and delivery.attempts < 5;
+
+  update private.member_push_deliveries delivery
+  set status = 'failed',
+      claimed_at = null,
+      last_error_code = 'claim_exhausted'
+  where delivery.status = 'processing'
+    and delivery.claimed_at < clock_timestamp() - interval '10 minutes'
+    and delivery.attempts >= 5;
 
   return query
   with candidates as (
