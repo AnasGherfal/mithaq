@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
@@ -284,7 +284,7 @@ function PreviewChoice({
   body: string;
   warning?: string;
   onPress: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
