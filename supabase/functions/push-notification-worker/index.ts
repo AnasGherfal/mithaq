@@ -73,6 +73,7 @@ function buildPushMessage(row: ClaimedDelivery) {
       route: pushRoute(row.notification_kind),
       introductionId: row.introduction_id,
       notificationKind: row.notification_kind,
+      locale: ar ? "ar" : "en",
     },
   };
 }
