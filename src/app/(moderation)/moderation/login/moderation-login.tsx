@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -110,7 +110,7 @@ export function ModerationLogin() {
         ) : (
           <form className="space-y-4" onSubmit={verifyCode}>
             <p className="rounded-2xl bg-[#EEF5F2] px-4 py-3 text-sm text-[#0F4D3F]">
-              Code sent to {phone.trim()}.
+              Code sent to {maskPhone(phone)}.
             </p>
             <label className="block text-sm font-medium text-[#12241F]">
               6-digit code
@@ -152,4 +152,10 @@ export function ModerationLogin() {
       </section>
     </main>
   );
+}
+
+function maskPhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length < 4) return "••••";
+  return `+${digits.slice(0, Math.min(3, digits.length - 2))} •••• ${digits.slice(-2)}`;
 }
