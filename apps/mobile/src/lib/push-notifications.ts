@@ -1,4 +1,4 @@
-import Constants, { ExecutionEnvironment } from "expo-constants";
+import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
@@ -51,9 +51,7 @@ function projectId() {
 
 export function remotePushRuntimeStatus() {
   if (!currentPlatform()) return "unsupported_platform" as const;
-  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
-    return "development_build_required" as const;
-  }
+  if (Constants.expoGoConfig) return "development_build_required" as const;
   if (!projectId()) return "project_not_configured" as const;
   return "available" as const;
 }
