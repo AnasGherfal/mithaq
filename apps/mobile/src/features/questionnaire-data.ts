@@ -2,6 +2,16 @@ import { supabase } from "@/lib/supabase";
 
 export type MaritalStatus = "never_married" | "married" | "divorced" | "widowed";
 export type YesNoDepends = "yes" | "no" | "depends";
+export type PhotoPrivacyPreference =
+  | "none"
+  | "after_mutual_interest"
+  | "explicit_approval"
+  | "after_family_involvement";
+
+type StoredPhotoPrivacyPreference =
+  | PhotoPrivacyPreference
+  | "discovery_visible"
+  | "blurred";
 
 export type QuestionnaireDraft = {
   gender: "woman" | "man";
@@ -23,13 +33,7 @@ export type QuestionnaireDraft = {
   relocationWillingness: YesNoDepends;
   preferredCountries: string[];
   willingIdentityVerification: boolean;
-  photoPrivacyPreference:
-    | "discovery_visible"
-    | "none"
-    | "blurred"
-    | "after_mutual_interest"
-    | "explicit_approval"
-    | "after_family_involvement";
+  photoPrivacyPreference: PhotoPrivacyPreference;
   familyInvolvementPreference: "early" | "after_initial_interest" | "later" | "unsure";
 };
 
@@ -137,7 +141,9 @@ export async function loadQuestionnaire(): Promise<QuestionnaireDraft | null> {
     relocationWillingness: preferences.relocation_willingness as YesNoDepends,
     preferredCountries: (countriesResult.data ?? []).map((row) => row.country_code),
     willingIdentityVerification: preferences.willing_identity_verification,
-    photoPrivacyPreference: preferences.photo_privacy_preference as QuestionnaireDraft["photoPrivacyPreference"],
+    photoPrivacyPreference: normalizePhotoPrivacyPreference(
+      preferences.photo_privacy_preference as StoredPhotoPrivacyPreference | null,
+    ),
     familyInvolvementPreference:
       preferences.family_involvement_preference as QuestionnaireDraft["familyInvolvementPreference"],
   };
@@ -240,4 +246,15 @@ export async function saveQuestionnaire(value: QuestionnaireDraft) {
     ok: true as const,
     wasSubmitted: existingApplication?.status === "submitted",
   };
+}
+
+function normalizePhotoPrivacyPreference(
+  value: StoredPhotoPrivacyPreference | null,
+): PhotoPrivacyPreference {
+  if (value === "after_mutual_interest" || value === "explicit_approval" || value === "after_family_involvement" || value === "none") {
+    return value;
+  }
+  if (value === "discovery_visible") return "after_mutual_interest";
+  if (value === "blurred") return "explicit_approval";
+  return "none";
 }
