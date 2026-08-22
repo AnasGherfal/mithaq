@@ -5,11 +5,6 @@ const photoBucket = "member-profile-photos";
 const signedUrlSeconds = 120;
 
 type RequestBody = { photoId?: unknown };
-type ModerationAccess = {
-  moderation_role?: unknown;
-  can_review?: unknown;
-  can_enforce?: unknown;
-};
 
 function respond(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
@@ -19,6 +14,17 @@ function isUuid(value: unknown): value is string {
   return (
     typeof value === "string" &&
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  );
+}
+
+function canReview(value: unknown) {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  const first = value[0];
+  return (
+    typeof first === "object" &&
+    first !== null &&
+    "can_review" in first &&
+    first.can_review === true
   );
 }
 
@@ -65,11 +71,7 @@ Deno.serve(async (request) => {
   const { data: accessRows, error: accessError } = await memberClient.rpc(
     "get_my_moderation_access",
   );
-  const access = Array.isArray(accessRows)
-    ? (accessRows[0] as ModerationAccess | undefined)
-    : undefined;
-
-  if (accessError || access?.can_review !== true) {
+  if (accessError || !canReview(accessRows)) {
     return respond({ error: "not_found" }, 404);
   }
 
@@ -79,8 +81,9 @@ Deno.serve(async (request) => {
 
   const { data: photo, error: photoError } = await admin
     .from("member_profile_photos")
-    .select("storage_path")
+    .select("storage_path, review_state")
     .eq("id", body.photoId)
+    .in("review_state", ["pending", "needs_changes"])
     .maybeSingle();
 
   if (photoError || !photo?.storage_path) {
