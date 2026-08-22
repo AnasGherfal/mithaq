@@ -56,7 +56,8 @@ export function useSensitiveScreenProtection(key: string, enabled = true) {
 
 /**
  * Central route guard for screens that can contain another member's identity,
- * photo, private conversation, or deliberately shared trusted-contact data.
+ * photo, private conversation, deliberately shared trusted-contact data, or a
+ * private safety report tied to another member/introduction.
  */
 export function PrivateMemberCaptureGuard() {
   const pathname = usePathname();
@@ -65,7 +66,9 @@ export function PrivateMemberCaptureGuard() {
     pathname === "/introductions" ||
     pathname === "/introduction-handoff" ||
     pathname === "/trusted-contacts" ||
-    pathname === "/conversation";
+    pathname === "/conversation" ||
+    pathname === "/introduction-safety" ||
+    pathname === "/report-member";
 
   useSensitiveScreenProtection(PRIVATE_MEMBER_SCREEN_KEY, protectedRoute);
   return null;
