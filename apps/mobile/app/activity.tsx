@@ -1,28 +1,47 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { AppIcon, type AppIconName } from "@/components/app-icon";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
+import {
+  MarriageActivityTimeline,
+  type MarriageActivityItem,
+  type MarriageActivityKind,
+} from "@/features/marriage-activity";
 import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
-type NotificationKind =
-  | "introduction_offered"
-  | "introduction_mutually_accepted"
-  | "message_received";
-
-type NotificationRow = {
-  notification_id: string;
-  notification_kind: NotificationKind;
-  introduction_id: string;
-  created_at: string;
-  is_read: boolean;
-};
-
 const PAGE_SIZE = 50;
+
+const activityKinds: MarriageActivityKind[] = [
+  "interest_saved",
+  "introduction_offered",
+  "my_choice_saved",
+  "mutual_acceptance",
+  "conversation_started",
+  "message_received",
+  "my_photo_shared",
+  "photo_shared_with_me",
+  "my_trusted_contact_shared",
+  "trusted_contact_shared_with_me",
+  "introduction_closed_by_me",
+  "introduction_closed",
+  "introduction_expired",
+  "conversation_ended_by_me",
+  "conversation_closed",
+];
+
+const introductionStatuses = [
+  "offered",
+  "mutually_accepted",
+  "declined",
+  "expired",
+  "cancelled",
+  "closed",
+] as const;
 
 export default function ActivityScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
@@ -33,19 +52,13 @@ export default function ActivityScreen() {
   const copy = useMemo(() => activityCopy(locale), [locale]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [items, setItems] = useState<NotificationRow[]>([]);
+  const [items, setItems] = useState<MarriageActivityItem[]>([]);
   const [hasOlder, setHasOlder] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [olderError, setOlderError] = useState<string | null>(null);
 
-  const markVisibleRead = useCallback(async (rows: NotificationRow[]) => {
-    const newest = rows[0];
-    if (!newest) return;
-
-    await supabase.rpc("mark_my_notifications_read_v2", {
-      p_through_created_at: newest.created_at,
-      p_through_notification_id: newest.notification_id,
-    });
+  const markAlertsRead = useCallback(async () => {
+    await supabase.rpc("mark_my_notifications_read", { p_through: null });
   }, []);
 
   const load = useCallback(async () => {
@@ -65,9 +78,9 @@ export default function ActivityScreen() {
       return;
     }
 
-    const { data, error } = await supabase.rpc("list_my_notifications_v2", {
-      p_before_created_at: null,
-      p_before_notification_id: null,
+    const { data, error } = await supabase.rpc("list_my_marriage_activity", {
+      p_before_occurred_at: null,
+      p_before_activity_id: null,
       p_limit: PAGE_SIZE,
     });
 
@@ -77,12 +90,12 @@ export default function ActivityScreen() {
       return;
     }
 
-    const rows = (data ?? []) as NotificationRow[];
+    const rows = normalizeActivityRows(data);
     setItems(rows);
     setHasOlder(rows.length === PAGE_SIZE);
     setLoading(false);
-    void markVisibleRead(rows);
-  }, [locale, markVisibleRead]);
+    void markAlertsRead();
+  }, [locale, markAlertsRead]);
 
   useEffect(() => {
     void load();
@@ -96,9 +109,9 @@ export default function ActivityScreen() {
     setLoadingOlder(true);
     setOlderError(null);
 
-    const { data, error } = await supabase.rpc("list_my_notifications_v2", {
-      p_before_created_at: oldest.created_at,
-      p_before_notification_id: oldest.notification_id,
+    const { data, error } = await supabase.rpc("list_my_marriage_activity", {
+      p_before_occurred_at: oldest.occurredAt,
+      p_before_activity_id: oldest.activityId,
       p_limit: PAGE_SIZE,
     });
 
@@ -109,23 +122,56 @@ export default function ActivityScreen() {
       return;
     }
 
-    const rows = (data ?? []) as NotificationRow[];
+    const rows = normalizeActivityRows(data);
     setItems((current) => {
-      const existing = new Set(current.map((item) => item.notification_id));
-      return [...current, ...rows.filter((item) => !existing.has(item.notification_id))];
+      const existing = new Set(current.map((item) => item.activityId));
+      return [...current, ...rows.filter((item) => !existing.has(item.activityId))];
     });
     setHasOlder(rows.length === PAGE_SIZE);
-    void markVisibleRead(rows);
   }
 
-  function openItem(item: NotificationRow) {
+  function openItem(item: MarriageActivityItem) {
+    if (item.kind === "interest_saved") {
+      router.push({ pathname: "/marriage-discover", params: { locale } });
+      return;
+    }
+
+    if (!item.introductionId) {
+      router.push({ pathname: "/introductions", params: { locale } });
+      return;
+    }
+
     if (
-      item.notification_kind === "message_received" ||
-      item.notification_kind === "introduction_mutually_accepted"
+      item.kind === "my_trusted_contact_shared" ||
+      item.kind === "trusted_contact_shared_with_me"
+    ) {
+      router.push({
+        pathname: "/trusted-contacts",
+        params: { locale, introductionId: item.introductionId },
+      });
+      return;
+    }
+
+    if (
+      item.introductionStatus === "mutually_accepted" &&
+      (item.kind === "mutual_acceptance" ||
+        item.kind === "my_photo_shared" ||
+        item.kind === "photo_shared_with_me")
+    ) {
+      router.push({
+        pathname: "/introduction-handoff",
+        params: { locale, introductionId: item.introductionId },
+      });
+      return;
+    }
+
+    if (
+      item.introductionStatus === "mutually_accepted" &&
+      (item.kind === "conversation_started" || item.kind === "message_received")
     ) {
       router.push({
         pathname: "/conversation",
-        params: { locale, introductionId: item.introduction_id },
+        params: { locale, introductionId: item.introductionId },
       });
       return;
     }
@@ -172,20 +218,7 @@ export default function ActivityScreen() {
             </Text>
           </View>
 
-          <Text style={[styles.sectionTitle, { textAlign, writingDirection }]}>{copy.recent}</Text>
-
-          <View style={styles.inbox}>
-            {items.map((item, index) => (
-              <ActivityRow
-                key={item.notification_id}
-                item={item}
-                rtl={rtl}
-                copy={copy}
-                last={index === items.length - 1}
-                onPress={() => openItem(item)}
-              />
-            ))}
-          </View>
+          <MarriageActivityTimeline items={items} locale={locale} onOpen={openItem} />
 
           {hasOlder ? (
             <PrimaryButton tone="quiet" loading={loadingOlder} onPress={() => void loadOlder()}>
@@ -204,140 +237,90 @@ export default function ActivityScreen() {
   );
 }
 
-function ActivityRow({
-  item,
-  rtl,
-  copy,
-  last,
-  onPress,
-}: {
-  item: NotificationRow;
-  rtl: boolean;
-  copy: ReturnType<typeof activityCopy>;
-  last: boolean;
-  onPress: () => void;
-}) {
-  const textAlign = rtl ? "right" : "left";
-  const writingDirection = rtl ? "rtl" : "ltr";
-  const presentation = activityPresentation(item.notification_kind, copy);
-  const date = new Date(item.created_at).toLocaleString(rtl ? "ar-LY" : "en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+function normalizeActivityRows(value: unknown): MarriageActivityItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry): MarriageActivityItem[] => {
+    if (!isRecord(entry)) return [];
+    if (
+      typeof entry.activity_id !== "string" ||
+      !isActivityKind(entry.activity_kind) ||
+      typeof entry.occurred_at !== "string"
+    ) {
+      return [];
+    }
+
+    const introductionId = typeof entry.introduction_id === "string" ? entry.introduction_id : null;
+    const introductionStatus = isIntroductionStatus(entry.introduction_status)
+      ? entry.introduction_status
+      : null;
+
+    return [
+      {
+        activityId: entry.activity_id,
+        kind: entry.activity_kind,
+        introductionId,
+        introductionStatus,
+        occurredAt: entry.occurred_at,
+        isUnread: entry.is_unread === true,
+      },
+    ];
   });
+}
 
+function isActivityKind(value: unknown): value is MarriageActivityKind {
+  return typeof value === "string" && activityKinds.includes(value as MarriageActivityKind);
+}
+
+function isIntroductionStatus(
+  value: unknown,
+): value is MarriageActivityItem["introductionStatus"] & string {
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.row,
-        !last ? styles.rowDivider : null,
-        !item.is_read ? styles.rowUnread : null,
-        { flexDirection: rtl ? "row-reverse" : "row" },
-        pressed ? styles.rowPressed : null,
-      ]}
-    >
-      <View style={[styles.rowIcon, presentation.emphasis ? styles.rowIconEmphasis : null]}>
-        <AppIcon name={presentation.icon} active size={20} />
-      </View>
-
-      <View style={[styles.rowCopy, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
-        <View
-          style={[
-            styles.rowTitleLine,
-            { flexDirection: rtl ? "row-reverse" : "row" },
-          ]}
-        >
-          <Text style={[styles.rowTitle, { textAlign, writingDirection }]}>{presentation.title}</Text>
-          {!item.is_read ? <View style={styles.unreadDot} /> : null}
-        </View>
-        <Text style={[styles.rowBody, { textAlign, writingDirection }]}>{presentation.body}</Text>
-        <Text style={[styles.rowDate, { textAlign, writingDirection }]}>{date}</Text>
-      </View>
-
-      <AppIcon name="chevron" size={15} rtl={rtl} />
-    </Pressable>
+    typeof value === "string" &&
+    introductionStatuses.includes(value as (typeof introductionStatuses)[number])
   );
 }
 
-function activityPresentation(kind: NotificationKind, copy: ReturnType<typeof activityCopy>) {
-  if (kind === "message_received") {
-    return {
-      icon: "chat" as AppIconName,
-      title: copy.messageTitle,
-      body: copy.messageBody,
-      emphasis: false,
-    };
-  }
-
-  if (kind === "introduction_mutually_accepted") {
-    return {
-      icon: "introductions" as AppIconName,
-      title: copy.mutualTitle,
-      body: copy.mutualBody,
-      emphasis: true,
-    };
-  }
-
-  return {
-    icon: "introductions" as AppIconName,
-    title: copy.introductionTitle,
-    body: copy.introductionBody,
-    emphasis: false,
-  };
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function activityCopy(locale: MobileLocale) {
   if (locale === "ar") {
     return {
       title: "النشاط",
-      body: "التعارفات والقبول المتبادل والرسائل المهمة، من دون كشف محتوى حساس في القائمة.",
+      body: "رحلة تعارفك الخاصة مرتبة من الاهتمام الأول إلى التواصل ودائرة الثقة.",
       loading: "جارٍ تحميل النشاط",
-      errorTitle: "تعذر تحميل النشاط",
+      errorTitle: "تعذر تحميل رحلة النشاط",
       errorBody: "لم نغيّر أي بيانات. تحقق من اتصالك وحاول مرة أخرى.",
       retry: "إعادة المحاولة",
-      emptyTitle: "لا يوجد نشاط جديد",
-      emptyBody: "يظهر هنا التعارف الجديد والقبول المتبادل ووصول رسالة خاصة.",
-      privacyBody: "لا نعرض نص الرسالة أو رقم الهاتف أو هوية الطرف الآخر في قائمة النشاط.",
-      recent: "الأحدث",
-      introductionTitle: "تعارف خاص جديد",
-      introductionBody: "راجع التعارف والمعلومات التي سُمح بمشاركتها معك.",
-      mutualTitle: "الاهتمام متبادل",
-      mutualBody: "أصبح الانتقال إلى التواصل الخاص متاحاً لهذا التعارف.",
-      messageTitle: "رسالة جديدة",
-      messageBody: "وصلت رسالة داخل تعارف تم قبوله من الطرفين.",
-      loadEarlier: "عرض نشاط أقدم",
+      emptyTitle: "رحلتك ستظهر هنا",
+      emptyBody: "عندما تحفظ اهتماماً أو يبدأ تعارف خاص، سترى المراحل المهمة هنا بترتيب واضح.",
+      privacyBody:
+        "هذا سجل خاص بك. لا نعرض نص الرسائل أو أرقام الهواتف أو هوية الطرف الآخر هنا، ولا نكشف قراره الخاص قبل القبول المتبادل.",
+      loadEarlier: "عرض مراحل أقدم",
       olderError: "تعذر تحميل النشاط الأقدم. حاول مرة أخرى.",
     };
   }
 
   return {
     title: "Activity",
-    body: "Important introductions, mutual interest, and messages without exposing sensitive content in the list.",
+    body: "Your private introduction journey, from first interest to conversation and Trusted Circle.",
     loading: "Loading activity",
-    errorTitle: "We couldn’t load activity",
+    errorTitle: "We couldn’t load your activity journey",
     errorBody: "No data was changed. Check your connection and try again.",
     retry: "Try again",
-    emptyTitle: "No new activity",
-    emptyBody: "New introductions, mutual interest, and private messages will appear here.",
-    privacyBody: "Activity never displays message text, phone numbers, or the other person’s identity.",
-    recent: "Recent",
-    introductionTitle: "New private introduction",
-    introductionBody: "Review the introduction and the details permitted for you.",
-    mutualTitle: "Interest is mutual",
-    mutualBody: "The protected communication handoff is now available for this introduction.",
-    messageTitle: "New message",
-    messageBody: "A message arrived inside a mutually accepted introduction.",
-    loadEarlier: "Show earlier activity",
+    emptyTitle: "Your journey will appear here",
+    emptyBody: "When you save interest or enter a private introduction, the important stages will appear here in order.",
+    privacyBody:
+      "This timeline is private to you. It never shows message text, phone numbers, the other person’s identity, or their private decision before mutual acceptance.",
+    loadEarlier: "Show earlier stages",
     olderError: "We couldn’t load earlier activity. Try again.",
   };
 }
 
 const styles = StyleSheet.create({
   loadingState: { minHeight: 320, alignItems: "center", justifyContent: "center" },
-  page: { width: "100%", gap: 16 },
+  page: { width: "100%", gap: 18 },
   privacyNote: {
     width: "100%",
     alignItems: "center",
@@ -356,81 +339,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceRaised,
   },
   privacyText: { flex: 1, color: colors.muted, fontSize: 11, lineHeight: 19 },
-  sectionTitle: {
-    width: "100%",
-    color: colors.muted,
-    fontSize: 12,
-    lineHeight: 20,
-    fontWeight: "800",
-    paddingHorizontal: 4,
-  },
-  inbox: {
-    width: "100%",
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceRaised,
-    overflow: "hidden",
-  },
-  row: {
-    width: "100%",
-    minHeight: 96,
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-  },
-  rowDivider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  rowUnread: { backgroundColor: colors.primaryWash },
-  rowPressed: { opacity: 0.62 },
-  rowIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceMuted,
-  },
-  rowIconEmphasis: { backgroundColor: colors.goldSoft },
-  rowCopy: { flex: 1, minWidth: 0 },
-  rowTitleLine: { width: "100%", alignItems: "center", gap: 8 },
-  rowTitle: {
-    flex: 1,
-    color: colors.foreground,
-    fontSize: 14,
-    lineHeight: 22,
-    fontWeight: "800",
-  },
-  unreadDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.primary },
-  rowBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 2 },
-  rowDate: { width: "100%", color: colors.mutedSoft, fontSize: 10, lineHeight: 16, marginTop: 5 },
   emptyState: {
     width: "100%",
-    minHeight: 340,
+    minHeight: 350,
     justifyContent: "center",
     borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceRaised,
-    paddingHorizontal: 24,
-    paddingVertical: 28,
+    padding: 24,
   },
   emptyIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.primaryWash,
   },
-  emptyTitle: {
-    width: "100%",
-    color: colors.foreground,
-    fontSize: 22,
-    lineHeight: 35,
-    fontWeight: "800",
-    marginTop: 18,
-  },
+  emptyTitle: { width: "100%", color: colors.foreground, fontSize: 20, lineHeight: 31, fontWeight: "800", marginTop: 16 },
   emptyBody: { width: "100%", color: colors.muted, fontSize: 14, lineHeight: 25, marginTop: 7 },
   error: { width: "100%", color: colors.danger, fontSize: 12, lineHeight: 19 },
 });
