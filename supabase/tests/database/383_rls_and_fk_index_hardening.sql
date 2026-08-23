@@ -52,11 +52,19 @@ select is(
     from pg_policies
     where schemaname = 'public'
       and (
-        coalesce(qual, '') ~ 'auth\\.uid\\(\\)'
-        or coalesce(with_check, '') ~ 'auth\\.uid\\(\\)'
+        position('auth.uid()' in coalesce(qual, '')) > 0
+        or position('auth.uid()' in coalesce(with_check, '')) > 0
       )
-      and coalesce(qual, '') !~ '\\( SELECT auth\\.uid\\(\\)'
-      and coalesce(with_check, '') !~ '\\( SELECT auth\\.uid\\(\\)'
+      and (
+        (
+          position('auth.uid()' in coalesce(qual, '')) > 0
+          and position('( SELECT auth.uid()' in coalesce(qual, '')) = 0
+        )
+        or (
+          position('auth.uid()' in coalesce(with_check, '')) > 0
+          and position('( SELECT auth.uid()' in coalesce(with_check, '')) = 0
+        )
+      )
   ),
   0,
   'public RLS policies no longer re-evaluate auth.uid() per row'
