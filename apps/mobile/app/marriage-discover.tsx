@@ -13,12 +13,14 @@ import {
 } from "react-native";
 import { AppIcon } from "@/components/app-icon";
 import { PrimaryButton } from "@/components/primary-button";
+import { RecognizedPersonAction } from "@/components/recognized-person-action";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
 import { TrustBadges } from "@/components/trust-badges";
 import type { MobileLocale } from "@/i18n";
 import {
   getMarriageDiscoveryPhoto,
+  hideMarriageDiscoveryMember,
   isMarriageDiscoveryProfilePending,
   isMarriageDiscoveryUnavailable,
   listMarriageDiscovery,
@@ -54,6 +56,7 @@ export default function MarriageDiscoverScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [recognitionConfirm, setRecognitionConfirm] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,6 +64,7 @@ export default function MarriageDiscoverScreen() {
     setFeaturePending(false);
     setProfilePending(false);
     setMessage(null);
+    setRecognitionConfirm(false);
     try {
       const { data, error } = await supabase.auth.getSession();
       if (error) throw error;
@@ -94,6 +98,7 @@ export default function MarriageDiscoverScreen() {
     let active = true;
     setPhotoUri(null);
     setPhotoLoading(false);
+    setRecognitionConfirm(false);
 
     if (!current?.photoId || current.photoDisplayMode === "hidden") {
       return () => {
@@ -116,7 +121,7 @@ export default function MarriageDiscoverScreen() {
   }, [current?.photoDisplayMode, current?.photoId, current?.userId]);
 
   async function act(action: Exclude<Decision, null>) {
-    if (!current || acting) return;
+    if (!current || acting || recognitionConfirm) return;
     setActing(true);
     setDecision(action);
     setMessage(null);
@@ -133,6 +138,27 @@ export default function MarriageDiscoverScreen() {
     } catch {
       setDecision(null);
       setMessage(copy.actionError);
+      animateEntry(0, cardX, cardOpacity, cardScale);
+    } finally {
+      setActing(false);
+    }
+  }
+
+  async function confirmRecognizedHide() {
+    if (!current || !openProfile || acting || !recognitionConfirm) return;
+    setActing(true);
+    setMessage(null);
+
+    try {
+      await hideMarriageDiscoveryMember(current.userId);
+      await animateExit(0, width, cardX, cardOpacity, cardScale);
+      setIndex((value) => value + 1);
+      setRecognitionConfirm(false);
+      setDecision(null);
+      setMessage(copy.recognizedSaved);
+      animateNeutralEntry(cardX, cardOpacity, cardScale);
+    } catch {
+      setMessage(copy.recognizedError);
       animateEntry(0, cardX, cardOpacity, cardScale);
     } finally {
       setActing(false);
@@ -332,7 +358,7 @@ export default function MarriageDiscoverScreen() {
               kind="skip"
               title={copy.notForMe}
               body={copy.notForMeBody}
-              disabled={acting}
+              disabled={acting || recognitionConfirm}
               loading={acting && decision === "skipped"}
               onPress={() => void act("skipped")}
             />
@@ -340,11 +366,25 @@ export default function MarriageDiscoverScreen() {
               kind="interested"
               title={copy.interested}
               body={copy.interestedBody}
-              disabled={acting}
+              disabled={acting || recognitionConfirm}
               loading={acting && decision === "noticed"}
               onPress={() => void act("noticed")}
             />
           </View>
+
+          {openProfile ? (
+            <RecognizedPersonAction
+              locale={locale}
+              confirming={recognitionConfirm}
+              loading={acting && recognitionConfirm}
+              onBegin={() => {
+                setRecognitionConfirm(true);
+                setMessage(null);
+              }}
+              onCancel={() => setRecognitionConfirm(false)}
+              onConfirm={() => void confirmRecognizedHide()}
+            />
+          ) : null}
 
           {message ? (
             <Text accessibilityLiveRegion="polite" style={[styles.message, { textAlign, writingDirection }]}>
@@ -548,6 +588,31 @@ function animateEntry(
   ]).start();
 }
 
+function animateNeutralEntry(
+  x: Animated.Value,
+  opacity: Animated.Value,
+  scale: Animated.Value,
+) {
+  x.setValue(0);
+  opacity.setValue(0.15);
+  scale.setValue(0.975);
+  Animated.parallel([
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }),
+    Animated.spring(scale, {
+      toValue: 1,
+      damping: 18,
+      stiffness: 190,
+      mass: 0.75,
+      useNativeDriver: true,
+    }),
+  ]).start();
+}
+
 function marriageCopy(locale: MobileLocale) {
   const ar = locale === "ar";
   const statusLabels: Record<string, string> = ar
@@ -642,6 +707,12 @@ function marriageCopy(locale: MobileLocale) {
     skipStamp: ar ? "←  غير مناسب" : "←  NOT FOR ME",
     noticedSaved: ar ? "تم حفظ اهتمامك بشكل خاص." : "Your interest was saved privately.",
     skippedSaved: ar ? "تم الانتقال إلى الشخص التالي." : "Moved quietly to the next person.",
+    recognizedSaved: ar
+      ? "تم إخفاؤكما عن بعضكما بشكل خاص. لم نخبر الشخص الآخر بسبب ذلك."
+      : "You will no longer be shown to each other. Mithaq did not tell the other person why.",
+    recognizedError: ar
+      ? "تعذر حفظ هذا الخيار الآن. لم يتم إخفاء الشخص. حاول مرة أخرى."
+      : "We couldn’t save this privacy choice. The person was not hidden. Try again.",
     actionError: ar
       ? "تعذر حفظ اختيارك الآن. لم نغيّر البطاقة. حاول مرة أخرى."
       : "We couldn’t save that choice. The card was not changed. Try again.",
