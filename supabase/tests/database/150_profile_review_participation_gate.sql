@@ -108,7 +108,7 @@ insert into public.waitlist_applications (
   (
     '15151515-aaaa-4aaa-8aaa-151515151511',
     '15151515-1515-4515-8515-151515151511',
-    'submitted',
+    'invited',
     'man',
     2,
     'LY',
@@ -121,7 +121,7 @@ insert into public.waitlist_applications (
   (
     '15151515-bbbb-4bbb-8bbb-151515151512',
     '15151515-1515-4515-8515-151515151512',
-    'submitted',
+    'invited',
     'woman',
     2,
     'LY',
@@ -178,12 +178,50 @@ insert into public.member_profiles (
     now()
   );
 
+insert into public.member_connection_spaces (
+  user_id,
+  space,
+  membership_state,
+  is_current
+) values
+  ('15151515-1515-4515-8515-151515151511', 'marriage', 'active', true),
+  ('15151515-1515-4515-8515-151515151512', 'marriage', 'active', true)
+on conflict (user_id, space) do update
+set membership_state = 'active'::public.connection_space_membership_state,
+    is_current = true,
+    updated_at = now();
+
+insert into private.marriage_practical_priorities (
+  user_id,
+  living_arrangement,
+  children_plan,
+  work_after_marriage,
+  wedding_style,
+  completed_at
+) values
+  (
+    '15151515-1515-4515-8515-151515151511',
+    'independent_home',
+    'want_children',
+    'open_to_discuss',
+    'moderate',
+    now()
+  ),
+  (
+    '15151515-1515-4515-8515-151515151512',
+    'independent_home',
+    'want_children',
+    'open_to_discuss',
+    'moderate',
+    now()
+  );
+
 set local role service_role;
 
 select is(
   private.member_can_participate('15151515-1515-4515-8515-151515151511'),
   false,
-  'a completed member remains ineligible until profile review is approved'
+  'a completed invited member remains ineligible until profile review is approved'
 );
 
 select is(
@@ -195,7 +233,7 @@ select is(
     now() + interval '30 days'
   ),
   true,
-  'a trusted reviewer can approve a submitted completed profile'
+  'a trusted reviewer can approve an invited completed profile'
 );
 
 select is(
@@ -221,7 +259,7 @@ select is(
 select is(
   private.member_can_participate('15151515-1515-4515-8515-151515151511'),
   true,
-  'approved profile plus clear safety state makes the member participation-eligible'
+  'approved profile plus invitation, Marriage setup, and clear safety makes the member participation-eligible'
 );
 
 select is(
@@ -279,7 +317,7 @@ select is(
 select is(
   private.member_can_participate('15151515-1515-4515-8515-151515151511'),
   true,
-  'clearing the safety restriction restores participation when every other gate is satisfied'
+  'clearing the safety restriction restores participation when every other beta gate is satisfied'
 );
 
 reset role;
@@ -341,7 +379,7 @@ select is(
 select is(
   private.member_can_participate('15151515-1515-4515-8515-151515151511'),
   true,
-  're-approval restores participation eligibility'
+  're-approval restores participation eligibility when the other beta gates remain satisfied'
 );
 
 select is(
@@ -359,7 +397,7 @@ select is(
 select is(
   private.member_can_participate('15151515-1515-4515-8515-151515151512'),
   false,
-  'a needs-changes profile cannot participate'
+  'a needs-changes profile cannot participate even when the other beta gates are complete'
 );
 
 select throws_ok(
