@@ -34,14 +34,7 @@ const activityKinds: MarriageActivityKind[] = [
   "conversation_closed",
 ];
 
-const introductionStatuses = [
-  "offered",
-  "mutually_accepted",
-  "declined",
-  "expired",
-  "cancelled",
-  "closed",
-] as const;
+const introductionStatuses = ["offered", "mutually_accepted", "declined", "expired", "cancelled", "closed"] as const;
 
 export default function ActivityScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
@@ -141,10 +134,7 @@ export default function ActivityScreen() {
       return;
     }
 
-    if (
-      item.kind === "my_trusted_contact_shared" ||
-      item.kind === "trusted_contact_shared_with_me"
-    ) {
+    if (item.kind === "my_trusted_contact_shared" || item.kind === "trusted_contact_shared_with_me") {
       router.push({
         pathname: "/trusted-contacts",
         params: { locale, introductionId: item.introductionId },
@@ -154,9 +144,7 @@ export default function ActivityScreen() {
 
     if (
       item.introductionStatus === "mutually_accepted" &&
-      (item.kind === "mutual_acceptance" ||
-        item.kind === "my_photo_shared" ||
-        item.kind === "photo_shared_with_me")
+      (item.kind === "mutual_acceptance" || item.kind === "my_photo_shared" || item.kind === "photo_shared_with_me")
     ) {
       router.push({
         pathname: "/introduction-handoff",
@@ -204,18 +192,11 @@ export default function ActivityScreen() {
         </View>
       ) : (
         <View style={styles.page}>
-          <View
-            style={[
-              styles.privacyNote,
-              { flexDirection: rtl ? "row-reverse" : "row" },
-            ]}
-          >
+          <View style={[styles.privacyNote, { flexDirection: rtl ? "row-reverse" : "row" }]}>
             <View style={styles.privacyIcon}>
               <AppIcon name="privacy" active size={18} />
             </View>
-            <Text style={[styles.privacyText, { textAlign, writingDirection }]}>
-              {copy.privacyBody}
-            </Text>
+            <Text style={[styles.privacyText, { textAlign, writingDirection }]}>{copy.privacyBody}</Text>
           </View>
 
           <MarriageActivityTimeline items={items} locale={locale} onOpen={openItem} />
@@ -250,9 +231,7 @@ function normalizeActivityRows(value: unknown): MarriageActivityItem[] {
     }
 
     const introductionId = typeof entry.introduction_id === "string" ? entry.introduction_id : null;
-    const introductionStatus = isIntroductionStatus(entry.introduction_status)
-      ? entry.introduction_status
-      : null;
+    const introductionStatus = isIntroductionStatus(entry.introduction_status) ? entry.introduction_status : null;
 
     return [
       {
@@ -271,13 +250,8 @@ function isActivityKind(value: unknown): value is MarriageActivityKind {
   return typeof value === "string" && activityKinds.includes(value as MarriageActivityKind);
 }
 
-function isIntroductionStatus(
-  value: unknown,
-): value is MarriageActivityItem["introductionStatus"] & string {
-  return (
-    typeof value === "string" &&
-    introductionStatuses.includes(value as (typeof introductionStatuses)[number])
-  );
+function isIntroductionStatus(value: unknown): value is MarriageActivityItem["introductionStatus"] & string {
+  return typeof value === "string" && introductionStatuses.includes(value as (typeof introductionStatuses)[number]);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -310,7 +284,8 @@ function activityCopy(locale: MobileLocale) {
     errorBody: "No data was changed. Check your connection and try again.",
     retry: "Try again",
     emptyTitle: "Your journey will appear here",
-    emptyBody: "When you save interest or enter a private introduction, the important stages will appear here in order.",
+    emptyBody:
+      "When you save interest or enter a private introduction, the important stages will appear here in order.",
     privacyBody:
       "This timeline is private to you. It never shows message text, phone numbers, the other person’s identity, or their private decision before mutual acceptance.",
     loadEarlier: "Show earlier stages",
@@ -357,7 +332,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.primaryWash,
   },
-  emptyTitle: { width: "100%", color: colors.foreground, fontSize: 20, lineHeight: 31, fontWeight: "800", marginTop: 16 },
+  emptyTitle: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 20,
+    lineHeight: 31,
+    fontWeight: "800",
+    marginTop: 16,
+  },
   emptyBody: { width: "100%", color: colors.muted, fontSize: 14, lineHeight: 25, marginTop: 7 },
   error: { width: "100%", color: colors.danger, fontSize: 12, lineHeight: 19 },
 });

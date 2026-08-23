@@ -90,8 +90,7 @@ export default function MarriageDiscoverScreen() {
   const current = profiles[index] ?? null;
   const openProfile = Boolean(current?.displayName);
   const hasVerifiedTrust = Boolean(
-    current &&
-      (current.realPersonVerified || current.age18PlusVerified || current.identityVerified),
+    current && (current.realPersonVerified || current.age18PlusVerified || current.identityVerified),
   );
 
   useEffect(() => {
@@ -241,11 +240,7 @@ export default function MarriageDiscoverScreen() {
               styles.card,
               {
                 opacity: cardOpacity,
-                transform: [
-                  { translateX: cardX },
-                  { rotate: rotation },
-                  { scale: cardScale },
-                ],
+                transform: [{ translateX: cardX }, { rotate: rotation }, { scale: cardScale }],
               },
             ]}
           >
@@ -282,12 +277,8 @@ export default function MarriageDiscoverScreen() {
                 <View style={styles.anonymousIcon}>
                   <AppIcon name="privacy" active size={27} />
                 </View>
-                <Text style={[styles.anonymousTitle, { textAlign, writingDirection }]}>
-                  {copy.anonymousTitle}
-                </Text>
-                <Text style={[styles.anonymousBody, { textAlign, writingDirection }]}>
-                  {copy.anonymousBody}
-                </Text>
+                <Text style={[styles.anonymousTitle, { textAlign, writingDirection }]}>{copy.anonymousTitle}</Text>
+                <Text style={[styles.anonymousBody, { textAlign, writingDirection }]}>{copy.anonymousBody}</Text>
               </View>
             )}
 
@@ -493,12 +484,7 @@ function DecisionButton({
           <Text style={[styles.decisionTitle, kind === "interested" ? styles.interestedText : styles.skipText]}>
             {title}
           </Text>
-          <Text
-            style={[
-              styles.decisionBody,
-              kind === "interested" ? styles.interestedBodyText : styles.skipBodyText,
-            ]}
-          >
+          <Text style={[styles.decisionBody, kind === "interested" ? styles.interestedBodyText : styles.skipBodyText]}>
             {body}
           </Text>
         </>
@@ -556,12 +542,7 @@ function animateExit(
   });
 }
 
-function animateEntry(
-  fromDirection: number,
-  x: Animated.Value,
-  opacity: Animated.Value,
-  scale: Animated.Value,
-) {
+function animateEntry(fromDirection: number, x: Animated.Value, opacity: Animated.Value, scale: Animated.Value) {
   x.setValue(fromDirection * 42);
   opacity.setValue(fromDirection === 0 ? 1 : 0.25);
   scale.setValue(fromDirection === 0 ? 1 : 0.975);
@@ -588,11 +569,7 @@ function animateEntry(
   ]).start();
 }
 
-function animateNeutralEntry(
-  x: Animated.Value,
-  opacity: Animated.Value,
-  scale: Animated.Value,
-) {
+function animateNeutralEntry(x: Animated.Value, opacity: Animated.Value, scale: Animated.Value) {
   x.setValue(0);
   opacity.setValue(0.15);
   scale.setValue(0.975);
@@ -856,13 +833,32 @@ const styles = StyleSheet.create({
   whyTitle: { width: "100%", color: colors.primaryStrong, fontSize: 14, lineHeight: 22, fontWeight: "900" },
   whyBody: { width: "100%", color: colors.foreground, fontSize: 11, lineHeight: 19 },
   reasonWrap: { width: "100%", gap: 7, flexWrap: "wrap" },
-  reasonChip: { borderRadius: radius.pill, backgroundColor: colors.surfaceRaised, paddingHorizontal: 10, paddingVertical: 7 },
+  reasonChip: {
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceRaised,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
   reasonText: { color: colors.primary, fontSize: 9, lineHeight: 13, fontWeight: "800" },
   noScore: { width: "100%", color: colors.muted, fontSize: 9, lineHeight: 15 },
-  privacyNote: { width: "100%", alignItems: "flex-start", gap: 8, borderRadius: radius.md, backgroundColor: colors.surfaceMuted, padding: 11 },
+  privacyNote: {
+    width: "100%",
+    alignItems: "flex-start",
+    gap: 8,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
+    padding: 11,
+  },
   privacyDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.primary, marginTop: 6 },
   privacyText: { flex: 1, color: colors.muted, fontSize: 10, lineHeight: 17 },
-  decisionPrompt: { width: "100%", color: colors.foreground, fontSize: 13, lineHeight: 20, fontWeight: "800", marginTop: 2 },
+  decisionPrompt: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: "800",
+    marginTop: 2,
+  },
   decisionRow: { width: "100%", flexDirection: "row", gap: 10 },
   decisionButton: {
     flex: 1,

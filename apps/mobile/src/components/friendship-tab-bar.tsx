@@ -39,13 +39,27 @@ export function FriendshipTabBar({ locale, active }: Props) {
               accessibilityState={{ selected, disabled: selected }}
               accessibilityLabel={label}
               disabled={selected}
-              onPress={() => router.replace({ pathname: tab.path, params: tab.key === "account" ? { locale, space: "friendship" } : { locale } })}
-              style={({ pressed }) => [styles.tab, selected ? styles.tabSelected : null, pressed && !selected ? styles.pressed : null]}
+              onPress={() =>
+                router.replace({
+                  pathname: tab.path,
+                  params: tab.key === "account" ? { locale, space: "friendship" } : { locale },
+                })
+              }
+              style={({ pressed }) => [
+                styles.tab,
+                selected ? styles.tabSelected : null,
+                pressed && !selected ? styles.pressed : null,
+              ]}
             >
               <View style={[styles.iconWrap, selected ? styles.iconWrapSelected : null]}>
                 <AppIcon name={tab.icon} active={selected} size={20} />
               </View>
-              <Text numberOfLines={1} style={[styles.label, rtl ? styles.labelArabic : null, selected ? styles.labelSelected : null]}>{label}</Text>
+              <Text
+                numberOfLines={1}
+                style={[styles.label, rtl ? styles.labelArabic : null, selected ? styles.labelSelected : null]}
+              >
+                {label}
+              </Text>
             </Pressable>
           );
         })}
@@ -55,9 +69,29 @@ export function FriendshipTabBar({ locale, active }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { backgroundColor: colors.surfaceRaised, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, ...shadows.navigation },
-  bar: { minHeight: 66, alignItems: "center", paddingHorizontal: 5, paddingTop: 7, paddingBottom: 5, backgroundColor: colors.surfaceRaised },
-  tab: { flex: 1, minWidth: 0, minHeight: 55, alignItems: "center", justifyContent: "center", gap: 3, borderRadius: 17 },
+  safeArea: {
+    backgroundColor: colors.surfaceRaised,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    ...shadows.navigation,
+  },
+  bar: {
+    minHeight: 66,
+    alignItems: "center",
+    paddingHorizontal: 5,
+    paddingTop: 7,
+    paddingBottom: 5,
+    backgroundColor: colors.surfaceRaised,
+  },
+  tab: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 55,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+    borderRadius: 17,
+  },
   tabSelected: { backgroundColor: colors.accentWash },
   iconWrap: { minWidth: 34, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   iconWrapSelected: { backgroundColor: colors.accentSoft },

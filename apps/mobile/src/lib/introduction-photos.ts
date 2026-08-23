@@ -18,9 +18,7 @@ type SignedIntroductionPhotoResponse = {
   expiresIn?: unknown;
 };
 
-export async function listIntroductionPhotoRefs(
-  introductionId: string,
-): Promise<IntroductionPhotoRef[]> {
+export async function listIntroductionPhotoRefs(introductionId: string): Promise<IntroductionPhotoRef[]> {
   const { data, error } = await supabase.rpc("list_introduction_photo_refs", {
     p_introduction_id: introductionId,
   });
@@ -39,16 +37,10 @@ export async function listIntroductionPhotoRefs(
     });
 }
 
-export async function getIntroductionPhotoUrl(
-  introductionId: string,
-  photoId: string,
-) {
-  const { data, error } = await supabase.functions.invoke(
-    "introduction-photo-url",
-    {
-      body: { introductionId, photoId },
-    },
-  );
+export async function getIntroductionPhotoUrl(introductionId: string, photoId: string) {
+  const { data, error } = await supabase.functions.invoke("introduction-photo-url", {
+    body: { introductionId, photoId },
+  });
 
   if (error) throw error;
 
@@ -58,11 +50,9 @@ export async function getIntroductionPhotoUrl(
   }
 
   return {
-    photoId:
-      typeof response.photoId === "string" ? response.photoId : photoId,
+    photoId: typeof response.photoId === "string" ? response.photoId : photoId,
     signedUrl: response.signedUrl,
-    expiresIn:
-      typeof response.expiresIn === "number" ? response.expiresIn : 90,
+    expiresIn: typeof response.expiresIn === "number" ? response.expiresIn : 90,
   };
 }
 

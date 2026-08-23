@@ -1,11 +1,5 @@
 import type { PropsWithChildren } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  type PressableProps,
-} from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } from "react-native";
 import { colors, radius, shadows } from "@/theme";
 
 type ButtonTone = "primary" | "quiet" | "warm";
@@ -28,8 +22,7 @@ export function PrimaryButton({
   ...props
 }: PrimaryButtonProps) {
   const inactive = disabled || loading;
-  const derivedAccessibilityLabel =
-    accessibilityLabel ?? (typeof children === "string" ? children : undefined);
+  const derivedAccessibilityLabel = accessibilityLabel ?? (typeof children === "string" ? children : undefined);
   const filled = tone !== "quiet";
 
   return (
@@ -44,11 +37,7 @@ export function PrimaryButton({
       disabled={inactive}
       style={(state) => [
         styles.base,
-        tone === "primary"
-          ? styles.primary
-          : tone === "warm"
-            ? styles.warm
-            : styles.quiet,
+        tone === "primary" ? styles.primary : tone === "warm" ? styles.warm : styles.quiet,
         state.pressed && !inactive ? styles.pressed : null,
         inactive ? styles.disabled : null,
         typeof style === "function" ? style(state) : style,
@@ -58,15 +47,7 @@ export function PrimaryButton({
       {loading ? (
         <ActivityIndicator color={filled ? colors.white : colors.primary} />
       ) : (
-        <Text
-          style={
-            tone === "primary"
-              ? styles.primaryText
-              : tone === "warm"
-                ? styles.warmText
-                : styles.quietText
-          }
-        >
+        <Text style={tone === "primary" ? styles.primaryText : tone === "warm" ? styles.warmText : styles.quietText}>
           {children}
         </Text>
       )}

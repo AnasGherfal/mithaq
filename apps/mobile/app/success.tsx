@@ -64,12 +64,8 @@ export default function SuccessScreen() {
           <View style={styles.confirmationIcon}>
             <AppIcon name="shield" active size={28} />
           </View>
-          <Text style={[styles.confirmationTitle, { textAlign, writingDirection }]}>
-            {copy.completeTitle}
-          </Text>
-          <Text style={[styles.confirmationBody, { textAlign, writingDirection }]}>
-            {copy.completeBody}
-          </Text>
+          <Text style={[styles.confirmationTitle, { textAlign, writingDirection }]}>{copy.completeTitle}</Text>
+          <Text style={[styles.confirmationBody, { textAlign, writingDirection }]}>{copy.completeBody}</Text>
 
           <View style={styles.assurances}>
             <Assurance rtl={rtl} text={copy.private} />

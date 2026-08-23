@@ -1,18 +1,10 @@
 import { supabase } from "@/lib/supabase";
 
-export type LivingArrangement =
-  | "independent_home"
-  | "with_family_initially"
-  | "with_family_long_term"
-  | "flexible";
+export type LivingArrangement = "independent_home" | "with_family_initially" | "with_family_long_term" | "flexible";
 
 export type ChildrenPlan = "want_children" | "do_not_want_children" | "unsure";
 
-export type WorkAfterMarriage =
-  | "both_work"
-  | "one_may_pause"
-  | "open_to_discuss"
-  | "no_preference";
+export type WorkAfterMarriage = "both_work" | "one_may_pause" | "open_to_discuss" | "no_preference";
 
 export type WeddingStyle = "simple" | "moderate" | "large" | "discuss_together";
 

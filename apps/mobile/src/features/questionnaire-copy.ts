@@ -6,11 +6,29 @@ export function questionnaireCopy(locale: MobileLocale) {
   return {
     eyebrow: ar ? "تفضيلاتك الخاصة" : "Private preferences",
     title: ar ? "دعنا نفهم ما يناسبك" : "Help us understand what fits you",
-    body: ar ? "إجاباتك خاصة وتُستخدم لتقييم التوافق فقط." : "Your answers stay private and are used only to evaluate compatibility.",
-    steps: ar ? ["الأساسيات", "المكان", "الزواج", "النطاق", "الخصوصية", "الأسرة"] : ["Basics", "Location", "Marriage", "Reach", "Privacy", "Family"],
+    body: ar
+      ? "إجاباتك خاصة وتُستخدم لتقييم التوافق فقط."
+      : "Your answers stay private and are used only to evaluate compatibility.",
+    steps: ar
+      ? ["الأساسيات", "المكان", "الزواج", "النطاق", "الخصوصية", "الأسرة"]
+      : ["Basics", "Location", "Marriage", "Reach", "Privacy", "Family"],
     stageTitles: ar
-      ? ["لنبدأ بالأساسيات", "أين تعيش اليوم؟", "ما الذي تبحث عنه؟", "أين يمكن أن يكون التعارف؟", "كيف تريد حماية هويتك؟", "كيف تفضّل إشراك الأسرة؟"]
-      : ["Let’s start with the basics", "Where do you live today?", "What are you looking for?", "Where could an introduction be?", "How do you want to protect your identity?", "How should family be involved?"],
+      ? [
+          "لنبدأ بالأساسيات",
+          "أين تعيش اليوم؟",
+          "ما الذي تبحث عنه؟",
+          "أين يمكن أن يكون التعارف؟",
+          "كيف تريد حماية هويتك؟",
+          "كيف تفضّل إشراك الأسرة؟",
+        ]
+      : [
+          "Let’s start with the basics",
+          "Where do you live today?",
+          "What are you looking for?",
+          "Where could an introduction be?",
+          "How do you want to protect your identity?",
+          "How should family be involved?",
+        ],
     stageBodies: ar
       ? [
           "اختر المعلومات الأساسية التي تساعد ميثاق على فهم ملفك.",
@@ -33,7 +51,9 @@ export function questionnaireCopy(locale: MobileLocale) {
     save: ar ? "حفظ والمتابعة" : "Save and continue",
     loading: ar ? "جارٍ تحميل إجاباتك الخاصة" : "Loading your private answers",
     loadErrorTitle: ar ? "تعذر تحميل إجاباتك بأمان" : "We could not load your answers safely",
-    loadErrorBody: ar ? "لم نعرض نموذجاً فارغاً حتى لا تستبدل إجابات محفوظة بالخطأ. تحقق من الاتصال ثم حاول مرة أخرى." : "We did not show a blank form because it could overwrite saved answers. Check your connection and try again.",
+    loadErrorBody: ar
+      ? "لم نعرض نموذجاً فارغاً حتى لا تستبدل إجابات محفوظة بالخطأ. تحقق من الاتصال ثم حاول مرة أخرى."
+      : "We did not show a blank form because it could overwrite saved answers. Check your connection and try again.",
     retry: ar ? "إعادة المحاولة" : "Try again",
     aboutYou: ar ? "عنك" : "About you",
     aboutYouBody: ar ? "معلومات أساسية تساعدنا على فهم ملفك." : "Basic details that help us understand your profile.",
@@ -56,7 +76,9 @@ export function questionnaireCopy(locale: MobileLocale) {
     children: ar ? "لدي أطفال" : "I have children",
     libyanAttestation: ar ? "أؤكد أنني ليبي/ليبية أو من أصل ليبي" : "I confirm I am Libyan or of Libyan origin",
     preferences: ar ? "ما تبحث عنه" : "What you are looking for",
-    preferencesBody: ar ? "هذه التفضيلات خاصة وتُستخدم لتقييم التوافق." : "These preferences stay private and support compatibility assessment.",
+    preferencesBody: ar
+      ? "هذه التفضيلات خاصة وتُستخدم لتقييم التوافق."
+      : "These preferences stay private and support compatibility assessment.",
     timeline: ar ? "الاستعداد للزواج" : "Marriage timeline",
     timelineValues: {
       within_6_months: ar ? "خلال 6 أشهر" : "Within 6 months",
@@ -75,7 +97,9 @@ export function questionnaireCopy(locale: MobileLocale) {
     countriesHelp: ar ? "اختياري — رموز مثل GB, CA" : "Optional — codes such as GB, CA",
     tri: { yes: ar ? "نعم" : "Yes", no: ar ? "لا" : "No", depends: ar ? "يعتمد" : "Depends" },
     privacyTitle: ar ? "الخصوصية والثقة" : "Privacy and trust",
-    privacyBody: ar ? "الظهور بخصوصية أولاً هو الأساس. هذه الخيارات تخص كشف الصورة لاحقاً فقط." : "Private-first visibility is the default. These choices only control staged photo reveal later.",
+    privacyBody: ar
+      ? "الظهور بخصوصية أولاً هو الأساس. هذه الخيارات تخص كشف الصورة لاحقاً فقط."
+      : "Private-first visibility is the default. These choices only control staged photo reveal later.",
     identity: ar ? "قد أرغب في تحقق إضافي مستقبلاً (اختياري)" : "I may want additional verification later (optional)",
     photo: ar ? "إذا أضفت صورة، متى يمكن كشفها؟" : "If I add a photo, when may it be revealed?",
     photoValues: {
@@ -96,7 +120,9 @@ export function questionnaireCopy(locale: MobileLocale) {
       ? "يمكنك استخدام ميثاق بدون رفع صورة. يبدأ حسابك بخيار «خصوصية أولاً». بعد إكمال الإعداد يمكنك اختيار «اعرض ملفي من البداية»؛ عندها يمكن أن تظهر صورة معتمدة في الاكتشاف. اختيارك هنا يحدد فقط طريقة كشف الصورة إذا بقيت على «خصوصية أولاً»."
       : "You can use Mithaq without uploading a photo. Your account starts Private first. After setup you can choose Open profile from the start; then an approved photo may appear in Discover. This choice only controls staged photo reveal while you stay Private first.",
     reviewTitle: ar ? "ملخص تفضيلاتك" : "Your preference summary",
-    reviewBody: ar ? "هذه ليست نتيجة توافق. إنها مراجعة لما سيستخدمه ميثاق عند البحث عن تعارف مناسب." : "This is not a compatibility score. It is a review of what Mithaq will use when looking for a suitable introduction.",
+    reviewBody: ar
+      ? "هذه ليست نتيجة توافق. إنها مراجعة لما سيستخدمه ميثاق عند البحث عن تعارف مناسب."
+      : "This is not a compatibility score. It is a review of what Mithaq will use when looking for a suitable introduction.",
     reviewAge: ar ? "العمر المناسب" : "Preferred age",
     reviewLocations: ar ? "نطاق البحث" : "Search reach",
     reviewPhoto: ar ? "كشف الصورة" : "Photo reveal",
@@ -105,15 +131,29 @@ export function questionnaireCopy(locale: MobileLocale) {
     locationLibya: ar ? "ليبيا" : "Libya",
     locationDiaspora: ar ? "خارج ليبيا" : "Diaspora",
     validation: {
-      country: ar ? "أدخل رمز دولة صحيحاً من حرفين، مثل LY أو GB." : "Enter a valid two-letter country code, such as LY or GB.",
+      country: ar
+        ? "أدخل رمز دولة صحيحاً من حرفين، مثل LY أو GB."
+        : "Enter a valid two-letter country code, such as LY or GB.",
       city: ar ? "أدخل مدينتك الحالية للمتابعة." : "Enter your current city to continue.",
-      libyan: ar ? "يلزم تأكيد الارتباط بليبيا للانضمام إلى ميثاق حالياً." : "Confirm your Libyan connection to continue with Mithaq at this stage.",
-      age: ar ? "راجع نطاق العمر المفضل وتأكد أن الحد الأدنى لا يتجاوز الحد الأعلى." : "Check the preferred age range and make sure the minimum does not exceed the maximum.",
+      libyan: ar
+        ? "يلزم تأكيد الارتباط بليبيا للانضمام إلى ميثاق حالياً."
+        : "Confirm your Libyan connection to continue with Mithaq at this stage.",
+      age: ar
+        ? "راجع نطاق العمر المفضل وتأكد أن الحد الأدنى لا يتجاوز الحد الأعلى."
+        : "Check the preferred age range and make sure the minimum does not exceed the maximum.",
       status: ar ? "اختر حالة اجتماعية مقبولة واحدة على الأقل." : "Choose at least one accepted marital status.",
-      location: ar ? "اختر الانفتاح على شخص في ليبيا أو في الخارج على الأقل." : "Choose at least one location option: Libya or diaspora.",
-      countries: ar ? "استخدم رموز دول من حرفين مفصولة بفواصل، مثل GB, CA." : "Use two-letter country codes separated by commas, such as GB, CA.",
-      unauthorized: ar ? "انتهت جلستك. سجّل الدخول من جديد للمتابعة." : "Your session ended. Sign in again to continue.",
-      database: ar ? "تعذر حفظ إجاباتك الآن. لم نعتبر التسجيل مكتملاً؛ حاول مرة أخرى." : "We could not save your answers right now. Registration was not marked complete; try again.",
+      location: ar
+        ? "اختر الانفتاح على شخص في ليبيا أو في الخارج على الأقل."
+        : "Choose at least one location option: Libya or diaspora.",
+      countries: ar
+        ? "استخدم رموز دول من حرفين مفصولة بفواصل، مثل GB, CA."
+        : "Use two-letter country codes separated by commas, such as GB, CA.",
+      unauthorized: ar
+        ? "انتهت جلستك. سجّل الدخول من جديد للمتابعة."
+        : "Your session ended. Sign in again to continue.",
+      database: ar
+        ? "تعذر حفظ إجاباتك الآن. لم نعتبر التسجيل مكتملاً؛ حاول مرة أخرى."
+        : "We could not save your answers right now. Registration was not marked complete; try again.",
     },
     error: ar ? "راجع إجاباتك وحاول مرة أخرى." : "Review your answers and try again.",
   };

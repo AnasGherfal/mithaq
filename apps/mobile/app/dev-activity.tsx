@@ -2,10 +2,7 @@ import { useMemo } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { ScreenShell } from "@/components/screen-shell";
-import {
-  MarriageActivityTimeline,
-  type MarriageActivityItem,
-} from "@/features/marriage-activity";
+import { MarriageActivityTimeline, type MarriageActivityItem } from "@/features/marriage-activity";
 import type { MobileLocale } from "@/i18n";
 import { colors, radius } from "@/theme";
 

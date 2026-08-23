@@ -3,15 +3,9 @@ import { supabase } from "@/lib/supabase";
 export type MaritalStatus = "never_married" | "married" | "divorced" | "widowed";
 export type YesNoDepends = "yes" | "no" | "depends";
 export type PhotoPrivacyPreference =
-  | "none"
-  | "after_mutual_interest"
-  | "explicit_approval"
-  | "after_family_involvement";
+  "none" | "after_mutual_interest" | "explicit_approval" | "after_family_involvement";
 
-type StoredPhotoPrivacyPreference =
-  | PhotoPrivacyPreference
-  | "discovery_visible"
-  | "blurred";
+type StoredPhotoPrivacyPreference = PhotoPrivacyPreference | "discovery_visible" | "blurred";
 
 export type QuestionnaireDraft = {
   gender: "woman" | "man";
@@ -248,10 +242,13 @@ export async function saveQuestionnaire(value: QuestionnaireDraft) {
   };
 }
 
-function normalizePhotoPrivacyPreference(
-  value: StoredPhotoPrivacyPreference | null,
-): PhotoPrivacyPreference {
-  if (value === "after_mutual_interest" || value === "explicit_approval" || value === "after_family_involvement" || value === "none") {
+function normalizePhotoPrivacyPreference(value: StoredPhotoPrivacyPreference | null): PhotoPrivacyPreference {
+  if (
+    value === "after_mutual_interest" ||
+    value === "explicit_approval" ||
+    value === "after_family_involvement" ||
+    value === "none"
+  ) {
     return value;
   }
   if (value === "discovery_visible") return "after_mutual_interest";

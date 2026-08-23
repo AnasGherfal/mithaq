@@ -17,9 +17,7 @@ export default function WelcomeScreen() {
   const rtl = locale === "ar";
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
-  const values = rtl
-    ? ["زواج جاد", "خصوصية", "اختيارك"]
-    : ["SERIOUS MARRIAGE", "PRIVATE", "YOUR CHOICE"];
+  const values = rtl ? ["زواج جاد", "خصوصية", "اختيارك"] : ["SERIOUS MARRIAGE", "PRIVATE", "YOUR CHOICE"];
 
   useEffect(() => {
     let active = true;
@@ -87,9 +85,7 @@ export default function WelcomeScreen() {
           Check your connection and retry. We will not start a new registration until your current session is resolved.
         </Text>
         <View style={styles.recoveryAction}>
-          <PrimaryButton onPress={() => setBootAttempt((value) => value + 1)}>
-            إعادة المحاولة · Try again
-          </PrimaryButton>
+          <PrimaryButton onPress={() => setBootAttempt((value) => value + 1)}>إعادة المحاولة · Try again</PrimaryButton>
         </View>
       </View>
     );
@@ -145,12 +141,39 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingState: { flex: 1, alignItems: "center", justifyContent: "center", gap: 18, backgroundColor: colors.background, paddingHorizontal: 28 },
+  loadingState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 18,
+    backgroundColor: colors.background,
+    paddingHorizontal: 28,
+  },
   loadingArabic: { color: colors.primary, fontSize: 15, lineHeight: 23, fontWeight: "800", marginTop: 2 },
   loadingEnglish: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: -14 },
-  recoveryState: { flex: 1, justifyContent: "center", backgroundColor: colors.background, paddingHorizontal: 28, paddingVertical: 40 },
-  recoveryEyebrow: { color: colors.gold, fontSize: 10, lineHeight: 15, letterSpacing: 1.4, fontWeight: "800", marginTop: 24 },
-  recoveryArabic: { color: colors.primary, fontSize: 28, lineHeight: 39, fontWeight: "900", textAlign: "right", marginTop: 12 },
+  recoveryState: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: colors.background,
+    paddingHorizontal: 28,
+    paddingVertical: 40,
+  },
+  recoveryEyebrow: {
+    color: colors.gold,
+    fontSize: 10,
+    lineHeight: 15,
+    letterSpacing: 1.4,
+    fontWeight: "800",
+    marginTop: 24,
+  },
+  recoveryArabic: {
+    color: colors.primary,
+    fontSize: 28,
+    lineHeight: 39,
+    fontWeight: "900",
+    textAlign: "right",
+    marginTop: 12,
+  },
   recoveryTitle: { color: colors.foreground, fontSize: 21, lineHeight: 29, fontWeight: "800", marginTop: 3 },
   recoveryBodyArabic: { color: colors.muted, fontSize: 14, lineHeight: 24, textAlign: "right", marginTop: 16 },
   recoveryBody: { color: colors.muted, fontSize: 13, lineHeight: 22, marginTop: 7 },

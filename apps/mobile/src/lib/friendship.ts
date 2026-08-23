@@ -10,13 +10,7 @@ export type FriendshipDiscoveryProfile = {
   sharedInterestCount: number;
 };
 
-export type FriendshipRequestStatus =
-  | "pending"
-  | "accepted"
-  | "declined"
-  | "withdrawn"
-  | "expired"
-  | "blocked";
+export type FriendshipRequestStatus = "pending" | "accepted" | "declined" | "withdrawn" | "expired" | "blocked";
 export type FriendshipRequestDirection = "incoming" | "outgoing";
 
 export type FriendshipRequest = {
@@ -167,7 +161,10 @@ export async function listMyFriendshipChats(): Promise<FriendshipChat[]> {
 }
 
 export async function respondToFriendshipRequest(requestId: string, accept: boolean) {
-  const { data, error } = await supabase.rpc("respond_to_friendship_request", { p_request_id: requestId, p_accept: accept });
+  const { data, error } = await supabase.rpc("respond_to_friendship_request", {
+    p_request_id: requestId,
+    p_accept: accept,
+  });
   if (error) throw error;
   return data as FriendshipRequestStatus;
 }

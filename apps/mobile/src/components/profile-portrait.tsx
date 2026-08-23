@@ -16,16 +16,9 @@ type IntroductionPhotoReference = {
   photoId: string;
 };
 
-const introductionPhotoPattern =
-  /^mithaq-introduction-photo:\/\/([0-9a-f-]{36})\/([0-9a-f-]{36})$/i;
+const introductionPhotoPattern = /^mithaq-introduction-photo:\/\/([0-9a-f-]{36})\/([0-9a-f-]{36})$/i;
 
-export function ProfilePortrait({
-  uri,
-  initials,
-  privacyLabel,
-  height = 260,
-  rtl = false,
-}: ProfilePortraitProps) {
+export function ProfilePortrait({ uri, initials, privacyLabel, height = 260, rtl = false }: ProfilePortraitProps) {
   const [resolvedUri, setResolvedUri] = useState<string | null>(null);
   const [resolving, setResolving] = useState(false);
 
@@ -89,7 +82,7 @@ export function ProfilePortrait({
               <Text style={styles.monogramText}>{initials || "م"}</Text>
             )}
           </View>
-          <Text style={[styles.fallbackTitle, { writingDirection: rtl ? "rtl" : "ltr" }]}> 
+          <Text style={[styles.fallbackTitle, { writingDirection: rtl ? "rtl" : "ltr" }]}>
             {resolving
               ? rtl
                 ? "جارٍ فتح الصورة الخاصة"
@@ -98,7 +91,7 @@ export function ProfilePortrait({
                 ? "صورة خاصة"
                 : "Private portrait"}
           </Text>
-          <Text style={[styles.fallbackBody, { writingDirection: rtl ? "rtl" : "ltr" }]}> 
+          <Text style={[styles.fallbackBody, { writingDirection: rtl ? "rtl" : "ltr" }]}>
             {rtl
               ? "تظهر الصور هنا فقط عندما يسمح بها ملف التعارف."
               : "Photos appear here only when the introduction permits them."}
@@ -123,9 +116,7 @@ export function ProfilePortrait({
   );
 }
 
-function parseIntroductionPhotoReference(
-  uri?: string | null,
-): IntroductionPhotoReference | null {
+function parseIntroductionPhotoReference(uri?: string | null): IntroductionPhotoReference | null {
   if (!uri) return null;
   const match = introductionPhotoPattern.exec(uri);
   if (!match?.[1] || !match[2]) return null;

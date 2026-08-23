@@ -1,14 +1,7 @@
 import { supabase } from "@/lib/supabase";
 
 export type TrustedContactRelationship =
-  | "father"
-  | "mother"
-  | "brother"
-  | "sister"
-  | "wali_guardian"
-  | "relative"
-  | "trusted_person"
-  | "other";
+  "father" | "mother" | "brother" | "sister" | "wali_guardian" | "relative" | "trusted_person" | "other";
 
 export type MarriageTrustedContact = {
   contactId: string;

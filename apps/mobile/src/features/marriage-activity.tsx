@@ -24,14 +24,7 @@ export type MarriageActivityItem = {
   activityId: string;
   kind: MarriageActivityKind;
   introductionId: string | null;
-  introductionStatus:
-    | "offered"
-    | "mutually_accepted"
-    | "declined"
-    | "expired"
-    | "cancelled"
-    | "closed"
-    | null;
+  introductionStatus: "offered" | "mutually_accepted" | "declined" | "expired" | "cancelled" | "closed" | null;
   occurredAt: string;
   isUnread: boolean;
 };
@@ -52,12 +45,7 @@ export function MarriageActivityTimeline({ items, locale, onOpen }: Props) {
     <View style={styles.timeline}>
       {groups.map((group) => (
         <View key={group.key} style={styles.dayGroup}>
-          <Text
-            style={[
-              styles.dayLabel,
-              { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" },
-            ]}
-          >
+          <Text style={[styles.dayLabel, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>
             {group.label}
           </Text>
           <View style={styles.dayItems}>
@@ -103,38 +91,18 @@ function TimelineRow({
       </View>
 
       <View style={[styles.card, item.isUnread ? styles.cardUnread : null]}>
-        <View
-          style={[
-            styles.titleRow,
-            { flexDirection: rtl ? "row-reverse" : "row" },
-          ]}
-        >
-          <Text
-            style={[
-              styles.title,
-              { textAlign: rtl ? "right" : "left", writingDirection: direction },
-            ]}
-          >
+        <View style={[styles.titleRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+          <Text style={[styles.title, { textAlign: rtl ? "right" : "left", writingDirection: direction }]}>
             {presentation.title}
           </Text>
           {item.isUnread ? <View style={styles.unreadDot} /> : null}
           <Text style={[styles.time, { writingDirection: direction }]}>{time}</Text>
         </View>
-        <Text
-          style={[
-            styles.body,
-            { textAlign: rtl ? "right" : "left", writingDirection: direction },
-          ]}
-        >
+        <Text style={[styles.body, { textAlign: rtl ? "right" : "left", writingDirection: direction }]}>
           {presentation.body}
         </Text>
         {onPress ? (
-          <Text
-            style={[
-              styles.openHint,
-              { textAlign: rtl ? "right" : "left", writingDirection: direction },
-            ]}
-          >
+          <Text style={[styles.openHint, { textAlign: rtl ? "right" : "left", writingDirection: direction }]}>
             {rtl ? "اضغط لعرض المرحلة" : "Tap to open this stage"}
           </Text>
         ) : null}
@@ -159,10 +127,7 @@ function TimelineRow({
 function activityPresentation(kind: MarriageActivityKind, locale: MobileLocale) {
   const ar = locale === "ar";
 
-  const values: Record<
-    MarriageActivityKind,
-    { icon: AppIconName; tone: Tone; title: string; body: string }
-  > = {
+  const values: Record<MarriageActivityKind, { icon: AppIconName; tone: Tone; title: string; body: string }> = {
     interest_saved: {
       icon: "sliders",
       tone: "teal",
@@ -271,9 +236,7 @@ function activityPresentation(kind: MarriageActivityKind, locale: MobileLocale) 
       icon: "chat",
       tone: "closed",
       title: ar ? "أنهيت المحادثة" : "You ended the conversation",
-      body: ar
-        ? "أُغلق التواصل الخاص لهذا التعارف."
-        : "Private communication for this introduction was closed.",
+      body: ar ? "أُغلق التواصل الخاص لهذا التعارف." : "Private communication for this introduction was closed.",
     },
     conversation_closed: {
       icon: "chat",

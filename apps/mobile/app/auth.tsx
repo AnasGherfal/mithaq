@@ -118,11 +118,7 @@ export default function AuthScreen() {
           <View style={styles.phoneDivider} />
           <TextInput
             accessibilityLabel={rtl ? "رقم الهاتف الليبي" : "Libyan mobile number"}
-            accessibilityHint={
-              rtl
-                ? "أدخل تسعة أرقام تبدأ بالرقم 9"
-                : "Enter nine digits beginning with 9"
-            }
+            accessibilityHint={rtl ? "أدخل تسعة أرقام تبدأ بالرقم 9" : "Enter nine digits beginning with 9"}
             autoComplete="tel"
             keyboardType="number-pad"
             value={localPhone}

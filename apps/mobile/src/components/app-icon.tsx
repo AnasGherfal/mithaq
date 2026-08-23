@@ -31,12 +31,7 @@ export function AppIcon({ name, active = false, size = 22, rtl = false }: Props)
   if (name === "home") {
     return (
       <View style={[styles.canvas, { width: size, height: size }]}>
-        <View
-          style={[
-            styles.homeRoof,
-            { borderColor: color, transform: [{ rotate: "45deg" }, { scale }] },
-          ]}
-        />
+        <View style={[styles.homeRoof, { borderColor: color, transform: [{ rotate: "45deg" }, { scale }] }]} />
         <View style={[styles.homeBody, { borderColor: color, transform: [{ scale }] }]} />
       </View>
     );
@@ -46,18 +41,10 @@ export function AppIcon({ name, active = false, size = 22, rtl = false }: Props)
     return (
       <View style={[styles.canvas, { width: size, height: size }]}>
         <View
-          style={[
-            styles.ring,
-            styles.ringLeft,
-            { borderColor: color, transform: [{ rotate: "-22deg" }, { scale }] },
-          ]}
+          style={[styles.ring, styles.ringLeft, { borderColor: color, transform: [{ rotate: "-22deg" }, { scale }] }]}
         />
         <View
-          style={[
-            styles.ring,
-            styles.ringRight,
-            { borderColor: color, transform: [{ rotate: "22deg" }, { scale }] },
-          ]}
+          style={[styles.ring, styles.ringRight, { borderColor: color, transform: [{ rotate: "22deg" }, { scale }] }]}
         />
       </View>
     );

@@ -76,10 +76,7 @@ export function ConnectionSpaceSwitcher({ locale, fallbackSpace = "marriage" }: 
   return (
     <View style={[styles.wrapper, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
       <Text style={[styles.context, { writingDirection: rtl ? "rtl" : "ltr" }]}>{contextLabel}</Text>
-      <View
-        style={[styles.segmented, { flexDirection: rtl ? "row-reverse" : "row" }]}
-        accessibilityRole="tablist"
-      >
+      <View style={[styles.segmented, { flexDirection: rtl ? "row-reverse" : "row" }]} accessibilityRole="tablist">
         <SpaceOption
           label={marriageLabel}
           selected={current === "marriage"}
@@ -125,11 +122,7 @@ function SpaceOption({
       onPress={onPress}
       style={({ pressed }) => [
         styles.option,
-        selected
-          ? tone === "friendship"
-            ? styles.optionFriendshipSelected
-            : styles.optionMarriageSelected
-          : null,
+        selected ? (tone === "friendship" ? styles.optionFriendshipSelected : styles.optionMarriageSelected) : null,
         pressed && !disabled ? styles.pressed : null,
       ]}
     >
@@ -147,11 +140,7 @@ function SpaceOption({
       <Text
         style={[
           styles.label,
-          selected
-            ? tone === "friendship"
-              ? styles.labelFriendshipSelected
-              : styles.labelMarriageSelected
-            : null,
+          selected ? (tone === "friendship" ? styles.labelFriendshipSelected : styles.labelMarriageSelected) : null,
         ]}
       >
         {label}

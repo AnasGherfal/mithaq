@@ -78,28 +78,17 @@ export default function ConsentScreen() {
       }
     >
       <View style={styles.page}>
-        <View
-          style={[
-            styles.privacyIntro,
-            { flexDirection: rtl ? "row-reverse" : "row" },
-          ]}
-        >
+        <View style={[styles.privacyIntro, { flexDirection: rtl ? "row-reverse" : "row" }]}>
           <View style={styles.privacyIcon}>
             <AppIcon name="privacy" active size={20} />
           </View>
           <View style={[styles.flex, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
-            <Text style={[styles.privacyTitle, { textAlign, writingDirection }]}>
-              {copy.privacyTitle}
-            </Text>
-            <Text style={[styles.privacyBody, { textAlign, writingDirection }]}>
-              {copy.privacyBody}
-            </Text>
+            <Text style={[styles.privacyTitle, { textAlign, writingDirection }]}>{copy.privacyTitle}</Text>
+            <Text style={[styles.privacyBody, { textAlign, writingDirection }]}>{copy.privacyBody}</Text>
           </View>
         </View>
 
-        <Text style={[styles.sectionLabel, { textAlign, writingDirection }]}>
-          {copy.requiredSection}
-        </Text>
+        <Text style={[styles.sectionLabel, { textAlign, writingDirection }]}>{copy.requiredSection}</Text>
         <ConsentChoice
           label={copy.required}
           badge={copy.requiredBadge}
@@ -112,9 +101,7 @@ export default function ConsentScreen() {
           disabled={saving}
         />
 
-        <Text style={[styles.sectionLabel, { textAlign, writingDirection }]}>
-          {copy.optionalSection}
-        </Text>
+        <Text style={[styles.sectionLabel, { textAlign, writingDirection }]}>{copy.optionalSection}</Text>
         <ConsentChoice
           label={copy.communications}
           badge={copy.optionalBadge}
@@ -128,9 +115,7 @@ export default function ConsentScreen() {
         />
 
         <View style={styles.nextSection}>
-          <Text style={[styles.nextTitle, { textAlign, writingDirection }]}>
-            {copy.nextTitle}
-          </Text>
+          <Text style={[styles.nextTitle, { textAlign, writingDirection }]}>{copy.nextTitle}</Text>
           <JourneyRow rtl={rtl} number="1" text={copy.nextOne} />
           <JourneyRow rtl={rtl} number="2" text={copy.nextTwo} />
           <JourneyRow rtl={rtl} number="3" text={copy.nextThree} last />
@@ -179,19 +164,11 @@ function ConsentChoice({
       ]}
     >
       <View style={[styles.mark, checked ? styles.markChecked : null]}>
-        <Text style={[styles.markText, checked ? styles.markTextChecked : null]}>
-          {checked ? "✓" : ""}
-        </Text>
+        <Text style={[styles.markText, checked ? styles.markTextChecked : null]}>{checked ? "✓" : ""}</Text>
       </View>
       <View style={[styles.flex, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
         <Text style={[styles.badge, { textAlign, writingDirection }]}>{badge}</Text>
-        <Text
-          style={[
-            styles.choiceText,
-            checked ? styles.choiceTextChecked : null,
-            { textAlign, writingDirection },
-          ]}
-        >
+        <Text style={[styles.choiceText, checked ? styles.choiceTextChecked : null, { textAlign, writingDirection }]}>
           {label}
         </Text>
       </View>
@@ -234,25 +211,21 @@ function consentCopy(locale: MobileLocale) {
       body: "الموافقة المطلوبة منفصلة بوضوح عن التحديثات الاختيارية.",
       back: "رجوع",
       privacyTitle: "بياناتك تبقى خاصة",
-      privacyBody:
-        "نحفظ نسخة وتاريخ كل موافقة. تأكيد الهاتف يثبت ملكية الرقم فقط ولا يعني توثيق الهوية.",
+      privacyBody: "نحفظ نسخة وتاريخ كل موافقة. تأكيد الهاتف يثبت ملكية الرقم فقط ولا يعني توثيق الهوية.",
       requiredSection: "مطلوب للمتابعة",
       optionalSection: "اختياري",
       requiredBadge: "مطلوب",
       optionalBadge: "اختياري ويمكن تغييره لاحقاً",
-      required:
-        "أوافق على شروط الاستخدام وسياسة الخصوصية ومعالجة بيانات التسجيل، وأؤكد أن عمري 18 سنة أو أكثر.",
+      required: "أوافق على شروط الاستخدام وسياسة الخصوصية ومعالجة بيانات التسجيل، وأؤكد أن عمري 18 سنة أو أكثر.",
       communications: "أرغب في تلقي تحديثات ميثاق المهمة المتعلقة بالإطلاق وحسابي.",
       nextTitle: "ماذا يحدث بعد التأكيد؟",
       nextOne: "نحفظ موافقتك وإجاباتك الخاصة بأمان.",
       nextTwo: "تنتقل إلى ملفك الخاص لإكمال ما يظهر في التعارف.",
       nextThree: "عندما يصبح ملفك مؤهلاً، يمكن لميثاق البحث عن تعارف مناسب.",
       submit: "تأكيد والمتابعة",
-      questionnaireError:
-        "لا يمكن إكمال التسجيل لأن الاستبيان غير مكتمل. ارجع وأكمل الإجابات المطلوبة.",
+      questionnaireError: "لا يمكن إكمال التسجيل لأن الاستبيان غير مكتمل. ارجع وأكمل الإجابات المطلوبة.",
       accountError: "لا يمكن إكمال التسجيل لأن الحساب غير نشط حالياً. راجع حالة حسابك للمتابعة.",
-      networkError:
-        "تعذر الاتصال لإكمال التسجيل. لم نحذف إجاباتك؛ تحقق من الشبكة ثم حاول مرة أخرى.",
+      networkError: "تعذر الاتصال لإكمال التسجيل. لم نحذف إجاباتك؛ تحقق من الشبكة ثم حاول مرة أخرى.",
       error: "تعذر إكمال التسجيل الآن. لم نفترض نجاح العملية؛ حاول مرة أخرى.",
     };
   }
@@ -269,8 +242,7 @@ function consentCopy(locale: MobileLocale) {
     optionalSection: "Optional",
     requiredBadge: "Required",
     optionalBadge: "Optional and changeable later",
-    required:
-      "I agree to the Terms, Privacy Policy, and registration data processing, and confirm I am 18 or older.",
+    required: "I agree to the Terms, Privacy Policy, and registration data processing, and confirm I am 18 or older.",
     communications: "I would like important Mithaq launch and account updates.",
     nextTitle: "What happens after confirmation?",
     nextOne: "Your consent and private answers are saved securely.",

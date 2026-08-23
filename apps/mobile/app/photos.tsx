@@ -206,7 +206,14 @@ export default function PhotosScreen() {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : loadError ? (
-        <StateCard rtl={rtl} tone="error" title={copy.loadErrorTitle} body={copy.loadErrorBody} actionLabel={copy.retry} onAction={() => void load()} />
+        <StateCard
+          rtl={rtl}
+          tone="error"
+          title={copy.loadErrorTitle}
+          body={copy.loadErrorBody}
+          actionLabel={copy.retry}
+          onAction={() => void load()}
+        />
       ) : (
         <View style={styles.stack}>
           <View style={styles.privacyCard}>
@@ -221,9 +228,14 @@ export default function PhotosScreen() {
             </View>
           ) : null}
 
-          {stage ? <Text style={[styles.progress, { textAlign, writingDirection: direction }]}>{copy.stage[stage]}</Text> : null}
+          {stage ? (
+            <Text style={[styles.progress, { textAlign, writingDirection: direction }]}>{copy.stage[stage]}</Text>
+          ) : null}
 
-          <PrimaryButton disabled={photos.length >= 5 || Boolean(stage) || Boolean(busyId)} onPress={() => void choosePhoto()}>
+          <PrimaryButton
+            disabled={photos.length >= 5 || Boolean(stage) || Boolean(busyId)}
+            onPress={() => void choosePhoto()}
+          >
             {photos.length >= 5 ? copy.full : copy.choose}
           </PrimaryButton>
 
@@ -246,11 +258,21 @@ export default function PhotosScreen() {
           <View style={styles.grid}>
             {photos.map((photo, index) => (
               <View key={photo.photoId} style={styles.photoCard}>
-                {photo.signedUrl ? <Image source={{ uri: photo.signedUrl }} style={styles.photo} resizeMode="cover" /> : <View style={[styles.photo, styles.placeholder]} />}
+                {photo.signedUrl ? (
+                  <Image source={{ uri: photo.signedUrl }} style={styles.photo} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.photo, styles.placeholder]} />
+                )}
                 <View style={styles.photoCopy}>
-                  <Text style={[styles.photoPosition, { textAlign, writingDirection: direction }]}>{copy.position(index + 1, photos.length)}</Text>
-                  <Text style={[styles.photoTitle, { textAlign, writingDirection: direction }]}>{photo.isPrimary ? copy.primary : copy.additional}</Text>
-                  <Text style={[styles.review, { textAlign, writingDirection: direction }]}>{copy.review[photo.reviewState]}</Text>
+                  <Text style={[styles.photoPosition, { textAlign, writingDirection: direction }]}>
+                    {copy.position(index + 1, photos.length)}
+                  </Text>
+                  <Text style={[styles.photoTitle, { textAlign, writingDirection: direction }]}>
+                    {photo.isPrimary ? copy.primary : copy.additional}
+                  </Text>
+                  <Text style={[styles.review, { textAlign, writingDirection: direction }]}>
+                    {copy.review[photo.reviewState]}
+                  </Text>
                 </View>
 
                 <View style={[styles.orderRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
@@ -266,15 +288,27 @@ export default function PhotosScreen() {
                   />
                 </View>
 
-                <PrimaryButton tone="quiet" disabled={Boolean(busyId) || Boolean(stage)} onPress={() => void choosePhoto(photo)}>
+                <PrimaryButton
+                  tone="quiet"
+                  disabled={Boolean(busyId) || Boolean(stage)}
+                  onPress={() => void choosePhoto(photo)}
+                >
                   {copy.replace}
                 </PrimaryButton>
                 {!photo.isPrimary ? (
-                  <PrimaryButton tone="quiet" disabled={Boolean(busyId) || Boolean(stage)} onPress={() => void makePrimary(photo)}>
+                  <PrimaryButton
+                    tone="quiet"
+                    disabled={Boolean(busyId) || Boolean(stage)}
+                    onPress={() => void makePrimary(photo)}
+                  >
                     {copy.makePrimary}
                   </PrimaryButton>
                 ) : null}
-                <Pressable disabled={Boolean(busyId) || Boolean(stage)} onPress={() => void remove(photo)} style={({ pressed }) => [styles.removeButton, pressed ? styles.pressed : null]}>
+                <Pressable
+                  disabled={Boolean(busyId) || Boolean(stage)}
+                  onPress={() => void remove(photo)}
+                  style={({ pressed }) => [styles.removeButton, pressed ? styles.pressed : null]}
+                >
                   <Text style={styles.removeText}>{copy.remove}</Text>
                 </Pressable>
               </View>
@@ -293,7 +327,11 @@ function SmallAction({ label, disabled, onPress }: { label: string; disabled: bo
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.smallAction, disabled ? styles.smallActionDisabled : null, pressed && !disabled ? styles.pressed : null]}
+      style={({ pressed }) => [
+        styles.smallAction,
+        disabled ? styles.smallActionDisabled : null,
+        pressed && !disabled ? styles.pressed : null,
+      ]}
     >
       <Text style={styles.smallActionText}>{label}</Text>
     </Pressable>
@@ -320,14 +358,22 @@ function photoCopy(locale: MobileLocale) {
       ? "خيار «خصوصية أولاً» لا يعرض صورك في الاكتشاف. وإذا اخترت لاحقاً ملفاً مفتوحاً، لا تظهر إلا صورة معتمدة. كل صورة جديدة أو بديلة تمر بالمراجعة."
       : "Private first does not show your photos in Discover. If you later choose an open profile, only an approved photo may appear. Every new or replacement photo goes through review.",
     previewTitle: ar ? "الحفظ غير متاح بعد في هذه المعاينة" : "Saving isn’t available yet in this preview",
-    previewBody: ar ? "لا يزال بإمكانك اختيار صورة من هاتفك ومعاينتها هنا. لن تغادر الصورة جهازك حتى يصبح الحفظ متاحاً." : "You can still choose a photo from your phone and preview it here. The image stays on your device until saving becomes available.",
+    previewBody: ar
+      ? "لا يزال بإمكانك اختيار صورة من هاتفك ومعاينتها هنا. لن تغادر الصورة جهازك حتى يصبح الحفظ متاحاً."
+      : "You can still choose a photo from your phone and preview it here. The image stays on your device until saving becomes available.",
     choose: ar ? "إضافة صورة اختيارية" : "Add an optional photo",
     full: ar ? "وصلت إلى خمس صور" : "Five-photo limit reached",
-    localOnly: ar ? "تم اختيار الصورة. هذه المعاينة موجودة على جهازك فقط." : "Photo selected. This preview is only on your device.",
+    localOnly: ar
+      ? "تم اختيار الصورة. هذه المعاينة موجودة على جهازك فقط."
+      : "Photo selected. This preview is only on your device.",
     saved: ar ? "تم حفظ الصورة وإرسالها للمراجعة." : "Photo saved and sent for review.",
     replaced: ar ? "تم استبدال الصورة وإعادتها للمراجعة." : "Photo replaced and sent back for review.",
-    saveError: ar ? "تعذر حفظ الصورة الآن. حاول مرة أخرى لاحقاً." : "We couldn’t save the photo right now. Try again later.",
-    tooSmall: ar ? "اختر صورة أوضح وأكبر قليلاً حتى نتمكن من تجهيزها بأمان." : "Choose a clearer, larger image so Mithaq can prepare it safely.",
+    saveError: ar
+      ? "تعذر حفظ الصورة الآن. حاول مرة أخرى لاحقاً."
+      : "We couldn’t save the photo right now. Try again later.",
+    tooSmall: ar
+      ? "اختر صورة أوضح وأكبر قليلاً حتى نتمكن من تجهيزها بأمان."
+      : "Choose a clearer, larger image so Mithaq can prepare it safely.",
     tooLarge: ar ? "حجم الصورة كبير جداً. اختر صورة أخرى." : "That image is too large. Choose another photo.",
     actionError: ar ? "تعذر حفظ التغيير الآن." : "We couldn’t save that change right now.",
     primarySaved: ar ? "تم تعيين الصورة الرئيسية." : "Primary photo updated.",
@@ -335,8 +381,11 @@ function photoCopy(locale: MobileLocale) {
     removed: ar ? "تمت إزالة الصورة." : "Photo removed.",
     previewLabel: ar ? "معاينة على جهازك" : "On-device preview",
     emptyTitle: ar ? "لا توجد صور — وهذا طبيعي" : "No photos — and that’s okay",
-    emptyBody: ar ? "يمكنك الاستمرار في ميثاق بهذه الحالة وإضافة صورة لاحقاً إذا أردت." : "You can continue using Mithaq exactly like this and add a photo later if you choose.",
-    position: (position: number, total: number) => ar ? `الصورة ${position} من ${total}` : `Photo ${position} of ${total}`,
+    emptyBody: ar
+      ? "يمكنك الاستمرار في ميثاق بهذه الحالة وإضافة صورة لاحقاً إذا أردت."
+      : "You can continue using Mithaq exactly like this and add a photo later if you choose.",
+    position: (position: number, total: number) =>
+      ar ? `الصورة ${position} من ${total}` : `Photo ${position} of ${total}`,
     primary: ar ? "الصورة الرئيسية" : "Primary photo",
     additional: ar ? "صورة إضافية" : "Additional photo",
     earlier: ar ? "تقديم" : "Move earlier",
@@ -347,7 +396,9 @@ function photoCopy(locale: MobileLocale) {
     back: ar ? "العودة إلى الحساب" : "Back to account",
     retry: ar ? "إعادة المحاولة" : "Try again",
     loadErrorTitle: ar ? "تعذر تحميل صورك" : "We couldn’t load your photos",
-    loadErrorBody: ar ? "لم نغيّر أي صورة. تحقق من الاتصال وحاول مرة أخرى." : "No photo was changed. Check your connection and try again.",
+    loadErrorBody: ar
+      ? "لم نغيّر أي صورة. تحقق من الاتصال وحاول مرة أخرى."
+      : "No photo was changed. Check your connection and try again.",
     stage: {
       preparing: ar ? "نجهّز الصورة…" : "Preparing photo…",
       uploading: ar ? "نحفظ الصورة بشكل آمن…" : "Saving photo securely…",
@@ -365,22 +416,50 @@ function photoCopy(locale: MobileLocale) {
 const styles = StyleSheet.create({
   loading: { minHeight: 320, alignItems: "center", justifyContent: "center" },
   stack: { width: "100%", gap: 14 },
-  privacyCard: { borderRadius: radius.xl, backgroundColor: colors.primaryWash, borderWidth: 1, borderColor: colors.primarySoft, padding: 16, gap: 5 },
+  privacyCard: {
+    borderRadius: radius.xl,
+    backgroundColor: colors.primaryWash,
+    borderWidth: 1,
+    borderColor: colors.primarySoft,
+    padding: 16,
+    gap: 5,
+  },
   privacyTitle: { color: colors.primaryStrong, fontSize: 15, fontWeight: "900" },
   privacyBody: { color: colors.muted, fontSize: 12, lineHeight: 20 },
   notice: { borderRadius: radius.lg, backgroundColor: colors.goldSoft, padding: 14, gap: 5 },
   noticeTitle: { color: colors.gold, fontSize: 13, fontWeight: "900" },
   noticeBody: { color: colors.muted, fontSize: 11, lineHeight: 18 },
   progress: { color: colors.primary, fontSize: 12, fontWeight: "800" },
-  previewCard: { borderRadius: radius.xl, overflow: "hidden", backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.border, ...shadows.card },
+  previewCard: {
+    borderRadius: radius.xl,
+    overflow: "hidden",
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.card,
+  },
   previewImage: { width: "100%", aspectRatio: 4 / 5 },
   previewLabel: { padding: 12, color: colors.primaryStrong, fontSize: 11, fontWeight: "800" },
   message: { color: colors.primaryStrong, fontSize: 12, lineHeight: 19, fontWeight: "800" },
-  emptyCard: { borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, padding: 15 },
+  emptyCard: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    padding: 15,
+  },
   emptyTitle: { color: colors.foreground, fontSize: 14, lineHeight: 21, fontWeight: "900" },
   emptyBody: { color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 4 },
   grid: { width: "100%", gap: 12 },
-  photoCard: { borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, padding: 12, gap: 10, ...shadows.card },
+  photoCard: {
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    padding: 12,
+    gap: 10,
+    ...shadows.card,
+  },
   photo: { width: "100%", aspectRatio: 4 / 5, borderRadius: radius.lg, backgroundColor: colors.surfaceMuted },
   placeholder: { borderWidth: 1, borderColor: colors.border },
   photoCopy: { gap: 2 },
@@ -388,9 +467,25 @@ const styles = StyleSheet.create({
   photoTitle: { color: colors.foreground, fontSize: 14, fontWeight: "900" },
   review: { color: colors.muted, fontSize: 11, lineHeight: 17 },
   orderRow: { width: "100%", gap: 8 },
-  smallAction: { flex: 1, minHeight: 40, alignItems: "center", justifyContent: "center", borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceMuted, paddingHorizontal: 8 },
+  smallAction: {
+    flex: 1,
+    minHeight: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
+    paddingHorizontal: 8,
+  },
   smallActionDisabled: { opacity: 0.35 },
-  smallActionText: { color: colors.primaryStrong, fontSize: 10, lineHeight: 15, fontWeight: "800", textAlign: "center" },
+  smallActionText: {
+    color: colors.primaryStrong,
+    fontSize: 10,
+    lineHeight: 15,
+    fontWeight: "800",
+    textAlign: "center",
+  },
   removeButton: { minHeight: 42, alignItems: "center", justifyContent: "center" },
   removeText: { color: colors.danger, fontSize: 12, fontWeight: "800" },
   pressed: { opacity: 0.55 },

@@ -22,21 +22,11 @@ import { hideRecognizedIntroductionMember } from "@/lib/recognized-pair-hide";
 import { supabase } from "@/lib/supabase";
 import { colors, radius, shadows } from "@/theme";
 
-type IntroductionStatus =
-  | "offered"
-  | "mutually_accepted"
-  | "declined"
-  | "expired"
-  | "cancelled"
-  | "closed";
+type IntroductionStatus = "offered" | "mutually_accepted" | "declined" | "expired" | "cancelled" | "closed";
 type IntroductionDecision = "pending" | "accepted" | "declined";
 type IntroductionPresentationMode = "open_profile" | "controlled_reveal";
 type IntroductionReason =
-  | "same_city"
-  | "living_arrangement"
-  | "children_plan"
-  | "work_after_marriage"
-  | "wedding_style";
+  "same_city" | "living_arrangement" | "children_plan" | "work_after_marriage" | "wedding_style";
 
 type IntroductionRow = {
   introduction_id: string;
@@ -105,10 +95,7 @@ export default function IntroductionsScreen() {
   const decisionScale = useRef(new Animated.Value(1)).current;
 
   const featured = useMemo(
-    () =>
-      items.find((item) => item.status === "offered" || item.status === "mutually_accepted") ??
-      items[0] ??
-      null,
+    () => items.find((item) => item.status === "offered" || item.status === "mutually_accepted") ?? items[0] ?? null,
     [items],
   );
   const history = useMemo(
@@ -157,9 +144,7 @@ export default function IntroductionsScreen() {
       setUnreadCounts(unreadMap);
 
       const first =
-        rows.find((item) => item.status === "offered" || item.status === "mutually_accepted") ??
-        rows[0] ??
-        null;
+        rows.find((item) => item.status === "offered" || item.status === "mutually_accepted") ?? rows[0] ?? null;
       if (first) {
         const firstPreview = await fetchPreview(first.introduction_id);
         setPreviewCache((current) => ({ ...current, [first.introduction_id]: firstPreview }));
@@ -283,14 +268,10 @@ export default function IntroductionsScreen() {
     const nextDecision: IntroductionDecision = accept ? "accepted" : "declined";
     const introductionId = selected.introduction_id;
 
-    setSelected((current) =>
-      current ? { ...current, status: nextStatus, my_decision: nextDecision } : current,
-    );
+    setSelected((current) => (current ? { ...current, status: nextStatus, my_decision: nextDecision } : current));
     setItems((current) =>
       current.map((item) =>
-        item.introduction_id === introductionId
-          ? { ...item, status: nextStatus, my_decision: nextDecision }
-          : item,
+        item.introduction_id === introductionId ? { ...item, status: nextStatus, my_decision: nextDecision } : item,
       ),
     );
     setDecisionFeedback(accept ? "accepted" : "declined");
@@ -318,9 +299,7 @@ export default function IntroductionsScreen() {
       await hideRecognizedIntroductionMember(introductionId);
       setItems((current) =>
         current.map((item) =>
-          item.introduction_id === introductionId
-            ? { ...item, status: "cancelled" as IntroductionStatus }
-            : item,
+          item.introduction_id === introductionId ? { ...item, status: "cancelled" as IntroductionStatus } : item,
         ),
       );
       setPreviewCache((current) => ({ ...current, [introductionId]: null }));
@@ -351,18 +330,14 @@ export default function IntroductionsScreen() {
   if (selected) {
     const preview = previewCache[selected.introduction_id] ?? null;
     const canRespond = selected.status === "offered" && selected.my_decision === "pending";
-    const canRecognize =
-      Boolean(preview) &&
-      (selected.status === "offered" || selected.status === "mutually_accepted");
+    const canRecognize = Boolean(preview) && (selected.status === "offered" || selected.status === "mutually_accepted");
     const initials = preview?.display_name?.trim().charAt(0) || "م";
     const location = [preview?.city, preview?.country_code].filter(Boolean).join(" · ");
     const hasTrust = Boolean(
-      preview &&
-        (preview.real_person_verified || preview.age_18_plus_verified || preview.identity_verified),
+      preview && (preview.real_person_verified || preview.age_18_plus_verified || preview.identity_verified),
     );
     const reasons = normalizeReasons(preview?.alignment_reasons);
-    const presentationMode =
-      preview?.presentation_mode === "open_profile" ? "open_profile" : "controlled_reveal";
+    const presentationMode = preview?.presentation_mode === "open_profile" ? "open_profile" : "controlled_reveal";
 
     return (
       <ScreenShell title={copy.detailTitle} rtl={rtl}>
@@ -408,9 +383,7 @@ export default function IntroductionsScreen() {
               <ProfilePortrait
                 height={portraitHeight}
                 initials={initials}
-                privacyLabel={
-                  presentationMode === "open_profile" ? copy.openPhotoLabel : copy.privatePhoto
-                }
+                privacyLabel={presentationMode === "open_profile" ? copy.openPhotoLabel : copy.privatePhoto}
                 rtl={rtl}
                 uri={preview.primary_photo_url}
               />
@@ -431,9 +404,7 @@ export default function IntroductionsScreen() {
                       age18PlusVerified={Boolean(preview.age_18_plus_verified)}
                       identityVerified={Boolean(preview.identity_verified)}
                     />
-                    <Text style={[styles.trustNote, { textAlign, writingDirection }]}>
-                      {copy.trustNote}
-                    </Text>
+                    <Text style={[styles.trustNote, { textAlign, writingDirection }]}>{copy.trustNote}</Text>
                   </View>
                 ) : null}
               </View>
@@ -476,12 +447,7 @@ export default function IntroductionsScreen() {
               </View>
             </>
           ) : (
-            <StateCard
-              body={copy.previewUnavailable}
-              rtl={rtl}
-              title={copy.previewUnavailableTitle}
-              tone="neutral"
-            />
+            <StateCard body={copy.previewUnavailable} rtl={rtl} title={copy.previewUnavailableTitle} tone="neutral" />
           )}
 
           <View style={[styles.privacyNote, { flexDirection: rtl ? "row-reverse" : "row" }]}>
@@ -587,12 +553,10 @@ export default function IntroductionsScreen() {
     );
   }
 
-  const featuredPreview = featured ? previewCache[featured.introduction_id] ?? null : null;
+  const featuredPreview = featured ? (previewCache[featured.introduction_id] ?? null) : null;
   const featuredHasTrust = Boolean(
     featuredPreview &&
-      (featuredPreview.real_person_verified ||
-        featuredPreview.age_18_plus_verified ||
-        featuredPreview.identity_verified),
+    (featuredPreview.real_person_verified || featuredPreview.age_18_plus_verified || featuredPreview.identity_verified),
   );
   const featuredReasons = normalizeReasons(featuredPreview?.alignment_reasons);
 
@@ -652,9 +616,7 @@ export default function IntroductionsScreen() {
               <View style={styles.featuredTopRow}>
                 <View
                   style={
-                    featuredPreview?.presentation_mode === "open_profile"
-                      ? styles.openModePill
-                      : styles.privateModePill
+                    featuredPreview?.presentation_mode === "open_profile" ? styles.openModePill : styles.privateModePill
                   }
                 >
                   <Text
@@ -664,9 +626,7 @@ export default function IntroductionsScreen() {
                         : styles.privateModeText
                     }
                   >
-                    {featuredPreview?.presentation_mode === "open_profile"
-                      ? copy.openProfile
-                      : copy.controlledReveal}
+                    {featuredPreview?.presentation_mode === "open_profile" ? copy.openProfile : copy.controlledReveal}
                   </Text>
                 </View>
               </View>
@@ -876,12 +836,7 @@ function StatusPill({
       ]}
     >
       <View style={styles.statusDot} />
-      <Text
-        style={[
-          styles.statusText,
-          { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" },
-        ]}
-      >
+      <Text style={[styles.statusText, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>
         {label}
       </Text>
     </View>
@@ -891,20 +846,10 @@ function StatusPill({
 function Fact({ rtl, label, value }: { rtl: boolean; label: string; value: string }) {
   return (
     <View style={[styles.fact, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
-      <Text
-        style={[
-          styles.factLabel,
-          { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" },
-        ]}
-      >
+      <Text style={[styles.factLabel, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>
         {label}
       </Text>
-      <Text
-        style={[
-          styles.factValue,
-          { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" },
-        ]}
-      >
+      <Text style={[styles.factValue, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>
         {value}
       </Text>
     </View>
@@ -1031,13 +976,17 @@ function introductionCopy(locale: MobileLocale) {
     reviewProfile: ar ? "مراجعة ملفي وتفضيلاتي" : "Review my profile and preferences",
     history: ar ? "التعارفات السابقة" : "Previous introductions",
     errorTitle: ar ? "تعذر تحميل التعارفات" : "We couldn’t load introductions",
-    errorBody: ar ? "لم يتم تغيير أي قرار. تحقق من اتصالك وحاول مرة أخرى." : "No decision was changed. Check your connection and try again.",
+    errorBody: ar
+      ? "لم يتم تغيير أي قرار. تحقق من اتصالك وحاول مرة أخرى."
+      : "No decision was changed. Check your connection and try again.",
     retry: ar ? "إعادة المحاولة" : "Try again",
     previewUnavailableTitle: ar ? "المعاينة غير متاحة" : "Preview unavailable",
     previewUnavailable: ar
       ? "قد يكون التعارف انتهى أو أُغلق بسبب الخصوصية أو الأهلية أو درع العائلة أو الحظر."
       : "The introduction may have ended or closed because of privacy, eligibility, Family Shield, or blocking.",
-    actionUnavailable: ar ? "تعذر حفظ قرارك الآن. لم نغيّر حالة التعارف." : "We couldn’t save your decision. The introduction state was not changed.",
+    actionUnavailable: ar
+      ? "تعذر حفظ قرارك الآن. لم نغيّر حالة التعارف."
+      : "We couldn’t save your decision. The introduction state was not changed.",
     member: ar ? "عضو ميثاق" : "Mithaq member",
     marital: ar ? "الحالة الاجتماعية" : "Marital status",
     children: ar ? "الأطفال" : "Children",
@@ -1111,12 +1060,26 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   privateModeText: { color: colors.primaryStrong, fontSize: 9, lineHeight: 13, fontWeight: "900" },
-  statusPill: { alignItems: "center", gap: 7, borderRadius: radius.pill, backgroundColor: colors.primaryWash, paddingHorizontal: 10, paddingVertical: 7 },
+  statusPill: {
+    alignItems: "center",
+    gap: 7,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primaryWash,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
   statusPillCompact: { paddingHorizontal: 8, paddingVertical: 5 },
   statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary },
   statusText: { color: colors.primaryStrong, fontSize: 9, lineHeight: 13, fontWeight: "800" },
   historySection: { width: "100%", marginTop: 26 },
-  historyTitle: { width: "100%", color: colors.foreground, fontSize: 15, lineHeight: 23, fontWeight: "800", marginBottom: 10 },
+  historyTitle: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 15,
+    lineHeight: 23,
+    fontWeight: "800",
+    marginBottom: 10,
+  },
   historyList: { width: "100%", gap: 8 },
   historyRow: {
     width: "100%",
@@ -1130,13 +1093,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     paddingVertical: 10,
   },
-  historyMark: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceMuted },
+  historyMark: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceMuted,
+  },
   historyName: { width: "100%", color: colors.foreground, fontSize: 13, lineHeight: 20, fontWeight: "800" },
   historyDate: { width: "100%", color: colors.muted, fontSize: 10, lineHeight: 15, marginTop: 2 },
-  unreadBadge: { minWidth: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.primary, paddingHorizontal: 6 },
+  unreadBadge: {
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+    paddingHorizontal: 6,
+  },
   unreadBadgeText: { color: colors.white, fontSize: 9, fontWeight: "900" },
   emptyState: { width: "100%", minHeight: 360, justifyContent: "center", gap: 8 },
-  emptyIcon: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", backgroundColor: colors.primaryWash, marginBottom: 7 },
+  emptyIcon: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primaryWash,
+    marginBottom: 7,
+  },
   emptyTitle: { width: "100%", color: colors.foreground, fontSize: 22, lineHeight: 33, fontWeight: "800" },
   emptyBody: { width: "100%", color: colors.muted, fontSize: 13, lineHeight: 22 },
   emptyAction: { width: "100%", marginTop: 10 },
@@ -1144,11 +1130,25 @@ const styles = StyleSheet.create({
   backButton: { minHeight: 42, alignItems: "center", gap: 7 },
   backText: { color: colors.primary, fontSize: 12, lineHeight: 18, fontWeight: "800" },
   identity: { width: "100%", gap: 5 },
-  detailName: { width: "100%", color: colors.foreground, fontSize: 28, lineHeight: 39, fontWeight: "900", marginTop: 4 },
+  detailName: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 28,
+    lineHeight: 39,
+    fontWeight: "900",
+    marginTop: 4,
+  },
   detailMeta: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 20 },
   trustBlock: { width: "100%", gap: 7, marginTop: 7 },
   trustNote: { width: "100%", color: colors.muted, fontSize: 9, lineHeight: 15 },
-  section: { width: "100%", borderRadius: radius.lg, backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.border, padding: 16 },
+  section: {
+    width: "100%",
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+  },
   whySection: {
     width: "100%",
     borderRadius: radius.xl,
@@ -1158,12 +1158,33 @@ const styles = StyleSheet.create({
     padding: 17,
   },
   sectionEyebrow: { width: "100%", color: colors.gold, fontSize: 9, lineHeight: 14, fontWeight: "900" },
-  sectionTitle: { width: "100%", color: colors.foreground, fontSize: 17, lineHeight: 26, fontWeight: "900", marginTop: 4 },
+  sectionTitle: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 17,
+    lineHeight: 26,
+    fontWeight: "900",
+    marginTop: 4,
+  },
   whyBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 19, marginTop: 6 },
   reasonChips: { width: "100%", flexWrap: "wrap", gap: 7, marginTop: 12 },
-  reasonChip: { borderRadius: radius.pill, backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.borderStrong, paddingHorizontal: 10, paddingVertical: 7 },
+  reasonChip: {
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
   reasonChipText: { color: colors.primaryStrong, fontSize: 10, lineHeight: 15, fontWeight: "800" },
-  reasonPrivacy: { width: "100%", color: colors.primaryStrong, fontSize: 10, lineHeight: 17, marginTop: 12, fontWeight: "700" },
+  reasonPrivacy: {
+    width: "100%",
+    color: colors.primaryStrong,
+    fontSize: 10,
+    lineHeight: 17,
+    marginTop: 12,
+    fontWeight: "700",
+  },
   reasonRow: { width: "100%", alignItems: "flex-start", gap: 8 },
   reasonRowCompact: { alignItems: "center" },
   checkMark: { color: colors.primary, fontSize: 11, lineHeight: 17, fontWeight: "900" },
@@ -1174,8 +1195,22 @@ const styles = StyleSheet.create({
   fact: { width: "100%", borderRadius: radius.md, backgroundColor: colors.surfaceMuted, padding: 13 },
   factLabel: { width: "100%", color: colors.muted, fontSize: 9, lineHeight: 14, fontWeight: "700" },
   factValue: { width: "100%", color: colors.foreground, fontSize: 12, lineHeight: 19, fontWeight: "800", marginTop: 3 },
-  privacyNote: { width: "100%", alignItems: "flex-start", gap: 11, borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 14 },
-  privacyIcon: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised },
+  privacyNote: {
+    width: "100%",
+    alignItems: "flex-start",
+    gap: 11,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primaryWash,
+    padding: 14,
+  },
+  privacyIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceRaised,
+  },
   privacyTitle: { width: "100%", color: colors.primaryStrong, fontSize: 12, lineHeight: 19, fontWeight: "900" },
   privacyBody: { width: "100%", color: colors.muted, fontSize: 10, lineHeight: 17, marginTop: 2 },
   decisionSection: { width: "100%", gap: 9, marginTop: 3 },
@@ -1183,7 +1218,14 @@ const styles = StyleSheet.create({
   decisionTitle: { width: "100%", color: colors.foreground, fontSize: 19, lineHeight: 29, fontWeight: "900" },
   decisionBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 19, marginBottom: 4 },
   decisionRow: { width: "100%", flexDirection: "row", gap: 10 },
-  decisionButton: { flex: 1, minHeight: 86, borderRadius: radius.lg, justifyContent: "center", paddingHorizontal: 13, paddingVertical: 12 },
+  decisionButton: {
+    flex: 1,
+    minHeight: 86,
+    borderRadius: radius.lg,
+    justifyContent: "center",
+    paddingHorizontal: 13,
+    paddingVertical: 12,
+  },
   declineButton: { backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.borderStrong },
   acceptButton: { backgroundColor: colors.primary, borderWidth: 1, borderColor: colors.primary, ...shadows.button },
   declineButtonTitle: { color: colors.danger, fontSize: 13, lineHeight: 19, fontWeight: "900", textAlign: "center" },
@@ -1191,7 +1233,13 @@ const styles = StyleSheet.create({
   declineButtonHint: { color: colors.muted, fontSize: 9, lineHeight: 14, marginTop: 5, textAlign: "center" },
   acceptButtonHint: { color: "rgba(255,255,255,0.75)", fontSize: 9, lineHeight: 14, marginTop: 5, textAlign: "center" },
   decisionPressed: { transform: [{ scale: 0.985 }], opacity: 0.94 },
-  waitingCard: { width: "100%", borderRadius: radius.xl, backgroundColor: colors.primary, padding: 18, ...shadows.card },
+  waitingCard: {
+    width: "100%",
+    borderRadius: radius.xl,
+    backgroundColor: colors.primary,
+    padding: 18,
+    ...shadows.card,
+  },
   waitingMark: { color: colors.white, fontSize: 25, lineHeight: 32, fontWeight: "900" },
   waitingTitle: { width: "100%", color: colors.white, fontSize: 17, lineHeight: 27, fontWeight: "900", marginTop: 5 },
   waitingBody: { width: "100%", color: "rgba(255,255,255,0.78)", fontSize: 11, lineHeight: 19, marginTop: 5 },

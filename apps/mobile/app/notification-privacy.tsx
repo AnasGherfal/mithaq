@@ -149,12 +149,7 @@ export default function NotificationPrivacyScreen() {
         <View style={styles.stack}>
           <View style={styles.statusCard}>
             <View style={[styles.statusTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-              <View
-                style={[
-                  styles.statusDot,
-                  settings.pushEnabled ? styles.statusDotOn : styles.statusDotOff,
-                ]}
-              />
+              <View style={[styles.statusDot, settings.pushEnabled ? styles.statusDotOn : styles.statusDotOff]} />
               <View style={styles.flex}>
                 <Text style={[styles.statusTitle, { textAlign, writingDirection }]}>
                   {settings.pushEnabled ? copy.on : copy.off}
@@ -167,11 +162,7 @@ export default function NotificationPrivacyScreen() {
 
             {settings.pushEnabled ? (
               <View style={styles.statusAction}>
-                <PrimaryButton
-                  tone="quiet"
-                  loading={changingEnabled}
-                  onPress={() => void disablePush()}
-                >
+                <PrimaryButton tone="quiet" loading={changingEnabled} onPress={() => void disablePush()}>
                   {copy.turnOff}
                 </PrimaryButton>
               </View>
@@ -184,22 +175,14 @@ export default function NotificationPrivacyScreen() {
             )}
 
             {__DEV__ && runtimeStatus !== "available" ? (
-              <Text style={[styles.devNote, { textAlign, writingDirection }]}>
-                {copy.devRuntime(runtimeStatus)}
-              </Text>
+              <Text style={[styles.devNote, { textAlign, writingDirection }]}>{copy.devRuntime(runtimeStatus)}</Text>
             ) : null}
           </View>
 
           <View style={styles.section}>
-            <Text style={[styles.sectionEyebrow, { textAlign, writingDirection }]}>
-              {copy.previewEyebrow}
-            </Text>
-            <Text style={[styles.sectionTitle, { textAlign, writingDirection }]}>
-              {copy.previewTitle}
-            </Text>
-            <Text style={[styles.sectionBody, { textAlign, writingDirection }]}>
-              {copy.previewBody}
-            </Text>
+            <Text style={[styles.sectionEyebrow, { textAlign, writingDirection }]}>{copy.previewEyebrow}</Text>
+            <Text style={[styles.sectionTitle, { textAlign, writingDirection }]}>{copy.previewTitle}</Text>
+            <Text style={[styles.sectionBody, { textAlign, writingDirection }]}>{copy.previewBody}</Text>
 
             <View style={styles.choiceStack}>
               <PreviewChoice
@@ -211,11 +194,7 @@ export default function NotificationPrivacyScreen() {
                 body={copy.neutralBody}
                 onPress={() => void selectPreviewMode("neutral")}
               >
-                <LockScreenPreview
-                  rtl={rtl}
-                  title={copy.appTitle}
-                  body={copy.neutralPreview}
-                />
+                <LockScreenPreview rtl={rtl} title={copy.appTitle} body={copy.neutralPreview} />
               </PreviewChoice>
 
               <PreviewChoice
@@ -227,22 +206,14 @@ export default function NotificationPrivacyScreen() {
                 warning={copy.detailedWarning}
                 onPress={() => void selectPreviewMode("detailed")}
               >
-                <LockScreenPreview
-                  rtl={rtl}
-                  title={copy.appTitle}
-                  body={copy.detailedPreview}
-                />
+                <LockScreenPreview rtl={rtl} title={copy.appTitle} body={copy.detailedPreview} />
               </PreviewChoice>
             </View>
           </View>
 
           <View style={styles.alwaysPrivateCard}>
-            <Text style={[styles.alwaysPrivateTitle, { textAlign, writingDirection }]}>
-              {copy.alwaysPrivateTitle}
-            </Text>
-            <Text style={[styles.alwaysPrivateBody, { textAlign, writingDirection }]}>
-              {copy.alwaysPrivateBody}
-            </Text>
+            <Text style={[styles.alwaysPrivateTitle, { textAlign, writingDirection }]}>{copy.alwaysPrivateTitle}</Text>
+            <Text style={[styles.alwaysPrivateBody, { textAlign, writingDirection }]}>{copy.alwaysPrivateBody}</Text>
           </View>
 
           {settings.registeredDeviceCount > 0 ? (
@@ -252,10 +223,7 @@ export default function NotificationPrivacyScreen() {
           ) : null}
 
           {message ? (
-            <Text
-              accessibilityLiveRegion="polite"
-              style={[styles.message, { textAlign, writingDirection }]}
-            >
+            <Text accessibilityLiveRegion="polite" style={[styles.message, { textAlign, writingDirection }]}>
               {message}
             </Text>
           ) : null}
@@ -320,9 +288,7 @@ function PreviewChoice({
 
       {children}
 
-      {warning ? (
-        <Text style={[styles.warning, { textAlign, writingDirection }]}>{warning}</Text>
-      ) : null}
+      {warning ? <Text style={[styles.warning, { textAlign, writingDirection }]}>{warning}</Text> : null}
     </Pressable>
   );
 }
@@ -337,12 +303,7 @@ function LockScreenPreview({ rtl, title, body }: { rtl: boolean; title: string; 
         <Text style={styles.previewApp}>{title}</Text>
         <Text style={styles.previewTime}>{rtl ? "الآن" : "now"}</Text>
       </View>
-      <Text
-        style={[
-          styles.previewBody,
-          { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" },
-        ]}
-      >
+      <Text style={[styles.previewBody, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>
         {body}
       </Text>
     </View>
@@ -377,7 +338,8 @@ function notificationCopy(locale: MobileLocale) {
       detailedPreview: "لديك رسالة خاصة جديدة.",
       detailedWarning: "قد يعرف من يرى شاشة القفل أن لديك رسالة أو تعارفاً خاصاً في ميثاق.",
       alwaysPrivateTitle: "يبقى هذا مخفياً دائماً",
-      alwaysPrivateBody: "حتى في الوضع الأكثر تفصيلاً لا نعرض اسم الطرف الآخر أو نص الرسالة أو صورته أو رقم هاتفه أو تفاصيل ملفه على شاشة القفل.",
+      alwaysPrivateBody:
+        "حتى في الوضع الأكثر تفصيلاً لا نعرض اسم الطرف الآخر أو نص الرسالة أو صورته أو رقم هاتفه أو تفاصيل ملفه على شاشة القفل.",
       appTitle: "ميثاق",
       previewSaved: "تم حفظ مستوى الخصوصية.",
       enabledMessage: "تم تفعيل الإشعارات لهذا الجهاز.",
@@ -418,14 +380,18 @@ function notificationCopy(locale: MobileLocale) {
     previewBody: "This choice only controls the lock-screen preview. You can change it at any time.",
     neutralTitle: "Neutral",
     recommended: "Recommended",
-    neutralBody: "Does not reveal what happened. Best if you do not want someone looking at your phone to infer why you use Mithaq.",
+    neutralBody:
+      "Does not reveal what happened. Best if you do not want someone looking at your phone to infer why you use Mithaq.",
     neutralPreview: "You have a new update.",
     detailedTitle: "More detail",
-    detailedBody: "May say that a private message or private introduction exists, but never identifies the person or content.",
+    detailedBody:
+      "May say that a private message or private introduction exists, but never identifies the person or content.",
     detailedPreview: "You have a new private message.",
-    detailedWarning: "Someone looking at your lock screen may learn that you have a private message or introduction in Mithaq.",
+    detailedWarning:
+      "Someone looking at your lock screen may learn that you have a private message or introduction in Mithaq.",
     alwaysPrivateTitle: "Always kept out of lock-screen previews",
-    alwaysPrivateBody: "Even in More detail, Mithaq never shows the other person’s name, message text, photo, phone number, or profile facts on the lock screen.",
+    alwaysPrivateBody:
+      "Even in More detail, Mithaq never shows the other person’s name, message text, photo, phone number, or profile facts on the lock screen.",
     appTitle: "Mithaq",
     previewSaved: "Privacy level saved.",
     enabledMessage: "Notifications are enabled for this device.",
@@ -477,7 +443,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sectionEyebrow: { width: "100%", color: colors.gold, fontSize: 9, lineHeight: 14, fontWeight: "900" },
-  sectionTitle: { width: "100%", color: colors.foreground, fontSize: 18, lineHeight: 27, fontWeight: "900", marginTop: 4 },
+  sectionTitle: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 18,
+    lineHeight: 27,
+    fontWeight: "900",
+    marginTop: 4,
+  },
   sectionBody: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 19, marginTop: 4 },
   choiceStack: { width: "100%", gap: 11, marginTop: 15 },
   choice: {
@@ -492,21 +465,56 @@ const styles = StyleSheet.create({
   choicePressed: { transform: [{ scale: 0.994 }], opacity: 0.92 },
   choiceDisabled: { opacity: 0.7 },
   choiceHeading: { width: "100%", gap: 10, alignItems: "flex-start" },
-  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: colors.borderStrong, alignItems: "center", justifyContent: "center", marginTop: 1 },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
   radioSelected: { borderColor: colors.primary },
   radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
   titleLine: { width: "100%", alignItems: "center", gap: 8, flexWrap: "wrap" },
   choiceTitle: { color: colors.foreground, fontSize: 14, lineHeight: 21, fontWeight: "900" },
-  recommendedBadge: { borderRadius: radius.pill, backgroundColor: colors.goldSoft, paddingHorizontal: 8, paddingVertical: 4 },
+  recommendedBadge: {
+    borderRadius: radius.pill,
+    backgroundColor: colors.goldSoft,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
   recommendedText: { color: colors.gold, fontSize: 8, lineHeight: 12, fontWeight: "900" },
   choiceBody: { width: "100%", color: colors.muted, fontSize: 10, lineHeight: 17, marginTop: 3 },
-  previewShell: { width: "100%", borderRadius: radius.md, backgroundColor: "#EEF0F3", paddingHorizontal: 12, paddingVertical: 11, marginTop: 12 },
+  previewShell: {
+    width: "100%",
+    borderRadius: radius.md,
+    backgroundColor: "#EEF0F3",
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    marginTop: 12,
+  },
   previewTop: { width: "100%", alignItems: "center", gap: 7 },
-  previewMark: { width: 24, height: 24, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: colors.brandNavy },
+  previewMark: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.brandNavy,
+  },
   previewMarkText: { color: colors.white, fontSize: 11, lineHeight: 15, fontWeight: "900" },
   previewApp: { flex: 1, color: colors.foreground, fontSize: 10, lineHeight: 15, fontWeight: "800" },
   previewTime: { color: colors.mutedSoft, fontSize: 9, lineHeight: 14 },
-  previewBody: { width: "100%", color: colors.foreground, fontSize: 12, lineHeight: 19, fontWeight: "700", marginTop: 7 },
+  previewBody: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 12,
+    lineHeight: 19,
+    fontWeight: "700",
+    marginTop: 7,
+  },
   warning: { width: "100%", color: colors.danger, fontSize: 9, lineHeight: 16, marginTop: 9 },
   alwaysPrivateCard: { width: "100%", borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 14 },
   alwaysPrivateTitle: { width: "100%", color: colors.primaryStrong, fontSize: 12, lineHeight: 19, fontWeight: "900" },

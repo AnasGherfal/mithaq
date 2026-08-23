@@ -234,13 +234,7 @@ export default function QuestionnaireScreen() {
           {step === 1 ? <BasicsStep copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
           {step === 2 ? <LocationStep copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
           {step === 3 ? (
-            <MarriageStep
-              copy={copy}
-              rtl={rtl}
-              draft={draft}
-              update={update}
-              toggleStatus={toggleStatus}
-            />
+            <MarriageStep copy={copy} rtl={rtl} draft={draft} update={update} toggleStatus={toggleStatus} />
           ) : null}
           {step === 4 ? (
             <ReachStep
@@ -257,7 +251,11 @@ export default function QuestionnaireScreen() {
           ) : null}
           {step === 5 ? <PrivacyStep copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
           {step === 6 ? <FamilyStep copy={copy} rtl={rtl} draft={draft} update={update} /> : null}
-          {error ? <Text accessibilityRole="alert" style={[styles.error, textAlign(rtl)]}>{error}</Text> : null}
+          {error ? (
+            <Text accessibilityRole="alert" style={[styles.error, textAlign(rtl)]}>
+              {error}
+            </Text>
+          ) : null}
         </View>
       )}
     </ScreenShell>
@@ -269,7 +267,12 @@ function BasicsStep({ copy, rtl, draft, update }: StepProps) {
     <View style={styles.section}>
       <Label rtl={rtl}>{copy.aboutYou}</Label>
       <ChoiceGrid rtl={rtl}>
-        <Choice label={copy.woman} selected={draft.gender === "woman"} rtl={rtl} onPress={() => update("gender", "woman")} />
+        <Choice
+          label={copy.woman}
+          selected={draft.gender === "woman"}
+          rtl={rtl}
+          onPress={() => update("gender", "woman")}
+        />
         <Choice label={copy.man} selected={draft.gender === "man"} rtl={rtl} onPress={() => update("gender", "man")} />
       </ChoiceGrid>
       <Label rtl={rtl}>{copy.ageRange}</Label>
@@ -294,12 +297,33 @@ function LocationStep({ copy, rtl, draft, update }: StepProps) {
     <View style={styles.section}>
       <Label rtl={rtl}>{copy.residence}</Label>
       <ChoiceGrid rtl={rtl}>
-        <Choice label={copy.libya} selected={draft.residencyType === "libya"} rtl={rtl} onPress={() => update("residencyType", "libya")} />
-        <Choice label={copy.diaspora} selected={draft.residencyType === "diaspora"} rtl={rtl} onPress={() => update("residencyType", "diaspora")} />
+        <Choice
+          label={copy.libya}
+          selected={draft.residencyType === "libya"}
+          rtl={rtl}
+          onPress={() => update("residencyType", "libya")}
+        />
+        <Choice
+          label={copy.diaspora}
+          selected={draft.residencyType === "diaspora"}
+          rtl={rtl}
+          onPress={() => update("residencyType", "diaspora")}
+        />
       </ChoiceGrid>
-      <Field label={copy.country} rtl={rtl} value={draft.currentCountryCode} onChange={(value) => update("currentCountryCode", value.slice(0, 2))} autoCapitalize="characters" />
+      <Field
+        label={copy.country}
+        rtl={rtl}
+        value={draft.currentCountryCode}
+        onChange={(value) => update("currentCountryCode", value.slice(0, 2))}
+        autoCapitalize="characters"
+      />
       <Field label={copy.city} rtl={rtl} value={draft.currentCity} onChange={(value) => update("currentCity", value)} />
-      <Field label={copy.region} rtl={rtl} value={draft.libyanOriginRegion} onChange={(value) => update("libyanOriginRegion", value)} />
+      <Field
+        label={copy.region}
+        rtl={rtl}
+        value={draft.libyanOriginRegion}
+        onChange={(value) => update("libyanOriginRegion", value)}
+      />
       <Label rtl={rtl}>{copy.marital}</Label>
       <View style={styles.choiceStack}>
         {maritalStatuses.map((status) => (
@@ -312,8 +336,18 @@ function LocationStep({ copy, rtl, draft, update }: StepProps) {
           />
         ))}
       </View>
-      <ToggleCard label={copy.children} value={draft.hasChildren} rtl={rtl} onChange={(value) => update("hasChildren", value)} />
-      <ToggleCard label={copy.libyanAttestation} value={draft.libyanSelfAttestation} rtl={rtl} onChange={(value) => update("libyanSelfAttestation", value)} />
+      <ToggleCard
+        label={copy.children}
+        value={draft.hasChildren}
+        rtl={rtl}
+        onChange={(value) => update("hasChildren", value)}
+      />
+      <ToggleCard
+        label={copy.libyanAttestation}
+        value={draft.libyanSelfAttestation}
+        rtl={rtl}
+        onChange={(value) => update("libyanSelfAttestation", value)}
+      />
     </View>
   );
 }
@@ -337,7 +371,13 @@ function MarriageStep({
       <Label rtl={rtl}>{copy.timeline}</Label>
       <View style={styles.choiceStack}>
         {timelines.map((value) => (
-          <Choice key={value} label={copy.timelineValues[value]} selected={draft.marriageTimeline === value} rtl={rtl} onPress={() => update("marriageTimeline", value)} />
+          <Choice
+            key={value}
+            label={copy.timelineValues[value]}
+            selected={draft.marriageTimeline === value}
+            rtl={rtl}
+            onPress={() => update("marriageTimeline", value)}
+          />
         ))}
       </View>
       <View style={[styles.ageRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
@@ -372,7 +412,13 @@ function MarriageStep({
           />
         ))}
       </View>
-      <TriChoice label={copy.partnerChildren} value={draft.acceptsPartnerWithChildren} copy={copy} rtl={rtl} onChange={(value) => update("acceptsPartnerWithChildren", value)} />
+      <TriChoice
+        label={copy.partnerChildren}
+        value={draft.acceptsPartnerWithChildren}
+        copy={copy}
+        rtl={rtl}
+        onChange={(value) => update("acceptsPartnerWithChildren", value)}
+      />
     </View>
   );
 }
@@ -387,10 +433,33 @@ function ReachStep({
 }: StepProps & { countries: string; setCountries: (value: string) => void }) {
   return (
     <View style={styles.section}>
-      <ToggleCard label={copy.openLibya} value={draft.openToLibya} rtl={rtl} onChange={(value) => update("openToLibya", value)} />
-      <ToggleCard label={copy.openDiaspora} value={draft.openToDiaspora} rtl={rtl} onChange={(value) => update("openToDiaspora", value)} />
-      <TriChoice label={copy.relocation} value={draft.relocationWillingness} copy={copy} rtl={rtl} onChange={(value) => update("relocationWillingness", value)} />
-      <Field label={copy.countries} helper={copy.countriesHelp} rtl={rtl} value={countries} onChange={setCountries} autoCapitalize="characters" />
+      <ToggleCard
+        label={copy.openLibya}
+        value={draft.openToLibya}
+        rtl={rtl}
+        onChange={(value) => update("openToLibya", value)}
+      />
+      <ToggleCard
+        label={copy.openDiaspora}
+        value={draft.openToDiaspora}
+        rtl={rtl}
+        onChange={(value) => update("openToDiaspora", value)}
+      />
+      <TriChoice
+        label={copy.relocation}
+        value={draft.relocationWillingness}
+        copy={copy}
+        rtl={rtl}
+        onChange={(value) => update("relocationWillingness", value)}
+      />
+      <Field
+        label={copy.countries}
+        helper={copy.countriesHelp}
+        rtl={rtl}
+        value={countries}
+        onChange={setCountries}
+        autoCapitalize="characters"
+      />
     </View>
   );
 }
@@ -404,11 +473,22 @@ function PrivacyStep({ copy, rtl, draft, update }: StepProps) {
   ];
   return (
     <View style={styles.section}>
-      <ToggleCard label={copy.identity} value={draft.willingIdentityVerification} rtl={rtl} onChange={(value) => update("willingIdentityVerification", value)} />
+      <ToggleCard
+        label={copy.identity}
+        value={draft.willingIdentityVerification}
+        rtl={rtl}
+        onChange={(value) => update("willingIdentityVerification", value)}
+      />
       <Label rtl={rtl}>{copy.photo}</Label>
       <View style={styles.choiceStack}>
         {photos.map((value) => (
-          <Choice key={value} label={copy.photoValues[value]} selected={draft.photoPrivacyPreference === value} rtl={rtl} onPress={() => update("photoPrivacyPreference", value)} />
+          <Choice
+            key={value}
+            label={copy.photoValues[value]}
+            selected={draft.photoPrivacyPreference === value}
+            rtl={rtl}
+            onPress={() => update("photoPrivacyPreference", value)}
+          />
         ))}
       </View>
       <View style={styles.reassurance}>
@@ -438,7 +518,13 @@ function FamilyStep({ copy, rtl, draft, update }: StepProps) {
       <Label rtl={rtl}>{copy.family}</Label>
       <View style={styles.choiceStack}>
         {families.map((value) => (
-          <Choice key={value} label={copy.familyValues[value]} selected={draft.familyInvolvementPreference === value} rtl={rtl} onPress={() => update("familyInvolvementPreference", value)} />
+          <Choice
+            key={value}
+            label={copy.familyValues[value]}
+            selected={draft.familyInvolvementPreference === value}
+            rtl={rtl}
+            onPress={() => update("familyInvolvementPreference", value)}
+          />
         ))}
       </View>
       <View style={localStyles.reviewCard}>
@@ -446,20 +532,45 @@ function FamilyStep({ copy, rtl, draft, update }: StepProps) {
         <Text style={[localStyles.reviewBody, textAlign(rtl)]}>{copy.reviewBody}</Text>
         <View style={localStyles.reviewRows}>
           <ReviewRow rtl={rtl} label={copy.timeline} value={copy.timelineValues[draft.marriageTimeline]} />
-          <ReviewRow rtl={rtl} label={copy.reviewAge} value={`${draft.preferredPartnerAgeMin}–${draft.preferredPartnerAgeMax}`} />
+          <ReviewRow
+            rtl={rtl}
+            label={copy.reviewAge}
+            value={`${draft.preferredPartnerAgeMin}–${draft.preferredPartnerAgeMax}`}
+          />
           <ReviewRow rtl={rtl} label={copy.accepted} value={acceptedStatuses} />
           <ReviewRow rtl={rtl} label={copy.reviewLocations} value={locationValue} />
           <ReviewRow rtl={rtl} label={copy.reviewPhoto} value={copy.photoValues[draft.photoPrivacyPreference]} />
-          <ReviewRow rtl={rtl} label={copy.reviewFamily} value={copy.familyValues[draft.familyInvolvementPreference]} last />
+          <ReviewRow
+            rtl={rtl}
+            label={copy.reviewFamily}
+            value={copy.familyValues[draft.familyInvolvementPreference]}
+            last
+          />
         </View>
       </View>
     </View>
   );
 }
 
-function ReviewRow({ rtl, label, value, last = false }: { rtl: boolean; label: string; value: string; last?: boolean }) {
+function ReviewRow({
+  rtl,
+  label,
+  value,
+  last = false,
+}: {
+  rtl: boolean;
+  label: string;
+  value: string;
+  last?: boolean;
+}) {
   return (
-    <View style={[localStyles.reviewRow, !last ? localStyles.reviewRowDivider : null, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+    <View
+      style={[
+        localStyles.reviewRow,
+        !last ? localStyles.reviewRowDivider : null,
+        { flexDirection: rtl ? "row-reverse" : "row" },
+      ]}
+    >
       <Text style={[localStyles.reviewLabel, textAlign(rtl)]}>{label}</Text>
       <Text style={[localStyles.reviewValue, textAlign(rtl)]}>{value}</Text>
     </View>
@@ -485,7 +596,14 @@ function TriChoice({
       <Label rtl={rtl}>{label}</Label>
       <ChoiceGrid rtl={rtl}>
         {options.map((option) => (
-          <Choice key={option} compact label={copy.tri[option]} selected={value === option} rtl={rtl} onPress={() => onChange(option)} />
+          <Choice
+            key={option}
+            compact
+            label={copy.tri[option]}
+            selected={value === option}
+            rtl={rtl}
+            onPress={() => onChange(option)}
+          />
         ))}
       </ChoiceGrid>
     </View>

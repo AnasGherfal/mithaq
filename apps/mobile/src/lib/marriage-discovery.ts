@@ -2,11 +2,7 @@ import { supabase } from "@/lib/supabase";
 
 export type MarriageDiscoveryPhotoMode = "full" | "blurred" | "hidden";
 export type MarriageDiscoveryAlignmentReason =
-  | "same_city"
-  | "living_arrangement"
-  | "children_plan"
-  | "work_after_marriage"
-  | "wedding_style";
+  "same_city" | "living_arrangement" | "children_plan" | "work_after_marriage" | "wedding_style";
 
 export type MarriageDiscoveryProfile = {
   userId: string;
@@ -106,9 +102,8 @@ export async function listMarriageDiscovery(limit = 6): Promise<MarriageDiscover
     hasChildren: Boolean(row.has_children),
     photoId: row.photo_id,
     photoDisplayMode: normalizePhotoMode(row.photo_display_mode),
-    alignmentReasons: (row.alignment_reasons ?? []).filter(
-      (value): value is MarriageDiscoveryAlignmentReason =>
-        alignmentReasonValues.includes(value as MarriageDiscoveryAlignmentReason),
+    alignmentReasons: (row.alignment_reasons ?? []).filter((value): value is MarriageDiscoveryAlignmentReason =>
+      alignmentReasonValues.includes(value as MarriageDiscoveryAlignmentReason),
     ),
     alignmentCount: Number(row.alignment_count ?? 0),
     realPersonVerified: Boolean(row.real_person_verified),
@@ -121,23 +116,20 @@ export async function getMarriageDiscoveryPhoto(
   candidateUserId: string,
   photoId: string,
 ): Promise<MarriageDiscoveryPhoto | null> {
-  const { data, error } = await supabase.functions.invoke(
-    "marriage-discovery-photo-url",
-    {
-      body: { candidateUserId, photoId },
-    },
-  );
+  const { data, error } = await supabase.functions.invoke("marriage-discovery-photo-url", {
+    body: { candidateUserId, photoId },
+  });
   if (error) return null;
 
   const response = (data ?? {}) as DiscoveryPhotoResponse;
-  const displayMode = response.displayMode === "full" || response.displayMode === "blurred"
-    ? response.displayMode
-    : null;
-  const uri = typeof response.signedUrl === "string"
-    ? response.signedUrl
-    : typeof response.imageDataUrl === "string"
-      ? response.imageDataUrl
-      : null;
+  const displayMode =
+    response.displayMode === "full" || response.displayMode === "blurred" ? response.displayMode : null;
+  const uri =
+    typeof response.signedUrl === "string"
+      ? response.signedUrl
+      : typeof response.imageDataUrl === "string"
+        ? response.imageDataUrl
+        : null;
 
   if (!displayMode || !uri) return null;
 
@@ -148,10 +140,7 @@ export async function getMarriageDiscoveryPhoto(
   };
 }
 
-export async function recordMarriageDiscoveryAction(
-  candidateUserId: string,
-  action: "noticed" | "skipped",
-) {
+export async function recordMarriageDiscoveryAction(candidateUserId: string, action: "noticed" | "skipped") {
   const { error } = await supabase.rpc("record_marriage_discovery_action", {
     p_candidate_user_id: candidateUserId,
     p_action: action,

@@ -24,9 +24,7 @@ export async function getMyMarriageVisibility(): Promise<MarriageVisibilityMode>
   return data === "standard" ? "standard" : "private";
 }
 
-export async function setMyMarriageVisibility(
-  visibilityMode: MarriageVisibilityMode,
-): Promise<MarriageVisibilityMode> {
+export async function setMyMarriageVisibility(visibilityMode: MarriageVisibilityMode): Promise<MarriageVisibilityMode> {
   const { data, error } = await supabase.rpc("set_my_marriage_visibility", {
     p_visibility_mode: visibilityMode,
   });

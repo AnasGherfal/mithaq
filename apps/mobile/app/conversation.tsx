@@ -1,14 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  AppState,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
 import { ProfilePortrait } from "@/components/profile-portrait";
 import { ScreenShell } from "@/components/screen-shell";
@@ -163,7 +155,8 @@ export default function ConversationScreen() {
       }
 
       const rows = (messageResult.data ?? []) as MessageRow[];
-      const previewRow = ((Array.isArray(previewResult.data) ? previewResult.data[0] : previewResult.data) ?? null) as ConversationPreview | null;
+      const previewRow = ((Array.isArray(previewResult.data) ? previewResult.data[0] : previewResult.data) ??
+        null) as ConversationPreview | null;
       setMessages((current) => (showLoading ? rows : mergeMessages(current, rows)));
       setPreview(previewRow);
       if (showLoading) setHasOlder(rows.length === PAGE_SIZE);
@@ -293,8 +286,7 @@ export default function ConversationScreen() {
   }
 
   const hasTrust = Boolean(
-    preview &&
-      (preview.real_person_verified || preview.age_18_plus_verified || preview.identity_verified),
+    preview && (preview.real_person_verified || preview.age_18_plus_verified || preview.identity_verified),
   );
   const initials = preview?.display_name?.trim().charAt(0) || "م";
   const profileMeta = [preview?.age_band_label, preview?.city].filter(Boolean).join(" · ");
@@ -409,7 +401,9 @@ export default function ConversationScreen() {
                 </View>
                 <Text style={[styles.emptyTitle, { textAlign: "center", writingDirection }]}>{copy.emptyTitle}</Text>
                 <Text style={[styles.emptyBody, { textAlign: "center", writingDirection }]}>{copy.emptyBody}</Text>
-                <Text style={[styles.starterLabel, { textAlign: "center", writingDirection }]}>{copy.starterLabel}</Text>
+                <Text style={[styles.starterLabel, { textAlign: "center", writingDirection }]}>
+                  {copy.starterLabel}
+                </Text>
                 <View style={styles.starterList}>
                   {copy.starters.map((starter) => (
                     <Pressable
@@ -549,15 +543,7 @@ function DayLabel({ sentAt, locale }: { sentAt: string; locale: MobileLocale }) 
   );
 }
 
-function MessageBubble({
-  message,
-  locale,
-  rtl,
-}: {
-  message: MessageRow;
-  locale: MobileLocale;
-  rtl: boolean;
-}) {
+function MessageBubble({ message, locale, rtl }: { message: MessageRow; locale: MobileLocale; rtl: boolean }) {
   const time = new Date(message.sent_at).toLocaleTimeString(locale === "ar" ? "ar-LY" : "en-US", {
     hour: "numeric",
     minute: "2-digit",
@@ -628,7 +614,9 @@ function conversationCopy(locale: MobileLocale) {
     loadEarlier: ar ? "تحميل الرسائل الأقدم" : "Load earlier messages",
     historyStart: ar ? "هذه بداية المحادثة" : "This is the beginning of the conversation",
     olderError: ar ? "تعذر تحميل الرسائل الأقدم. حاول مرة أخرى." : "We couldn’t load earlier messages. Try again.",
-    emptyTitle: ar ? "ابدأ بسؤال يساعد على فهم الزواج، لا الدردشة فقط" : "Start with something that helps you understand marriage fit",
+    emptyTitle: ar
+      ? "ابدأ بسؤال يساعد على فهم الزواج، لا الدردشة فقط"
+      : "Start with something that helps you understand marriage fit",
     emptyBody: ar
       ? "يمكنك الكتابة بطريقتك، أو استخدام أحد الأسئلة كبداية فقط. لن يرسل ميثاق شيئاً نيابةً عنك."
       : "Write in your own words, or use one of these as a starting point. Mithaq never sends a prompt on your behalf.",
@@ -695,7 +683,14 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   stagePillText: { color: colors.primaryStrong, fontSize: 9, lineHeight: 13, fontWeight: "900" },
-  partnerName: { width: "100%", color: colors.foreground, fontSize: 24, lineHeight: 34, fontWeight: "900", marginTop: 10 },
+  partnerName: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 24,
+    lineHeight: 34,
+    fontWeight: "900",
+    marginTop: 10,
+  },
   partnerMeta: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 1 },
   partnerTrust: { width: "100%", marginTop: 9 },
   partnerFacts: { width: "100%", gap: 8, marginTop: 12 },

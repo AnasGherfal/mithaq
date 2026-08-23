@@ -95,11 +95,7 @@ export default function ProfileScreen() {
       setOccupation(profile?.occupation ?? "");
       setEducation(profile?.education ?? "");
       setComplete(Boolean(profile?.profile_completed_at));
-      setReview(
-        reviewResult.data
-          ? (reviewResult.data as ProfileReview)
-          : { state: "pending", review_after: null },
-      );
+      setReview(reviewResult.data ? (reviewResult.data as ProfileReview) : { state: "pending", review_after: null });
       setLoading(false);
     } catch {
       setLoadError(true);
@@ -254,11 +250,7 @@ export default function ProfileScreen() {
       }
     >
       {loading ? (
-        <View
-          style={styles.loadingState}
-          accessibilityLiveRegion="polite"
-          accessibilityLabel={copy.loading}
-        >
+        <View style={styles.loadingState} accessibilityLiveRegion="polite" accessibilityLabel={copy.loading}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
       ) : loadError ? (
@@ -274,12 +266,7 @@ export default function ProfileScreen() {
         <StateCard rtl={rtl} tone="neutral" title={copy.unavailableTitle} body={copy.unavailableBody} />
       ) : (
         <View style={styles.page}>
-          <ProfileProgress
-            rtl={rtl}
-            step={step}
-            total={TOTAL_STEPS}
-            label={copy.steps[step - 1] ?? ""}
-          />
+          <ProfileProgress rtl={rtl} step={step} total={TOTAL_STEPS} label={copy.steps[step - 1] ?? ""} />
 
           {step === 1 ? (
             <View style={styles.section}>
@@ -324,18 +311,11 @@ export default function ProfileScreen() {
 
           {step === 2 ? (
             <View style={styles.section}>
-              <View
-                style={[
-                  styles.privacyNote,
-                  { flexDirection: rtl ? "row-reverse" : "row" },
-                ]}
-              >
+              <View style={[styles.privacyNote, { flexDirection: rtl ? "row-reverse" : "row" }]}>
                 <View style={styles.privacyIcon}>
                   <AppIcon name="privacy" active size={18} />
                 </View>
-                <Text style={[styles.privacyText, { textAlign, writingDirection }]}>
-                  {copy.optionalNote}
-                </Text>
+                <Text style={[styles.privacyText, { textAlign, writingDirection }]}>{copy.optionalNote}</Text>
               </View>
               <Field
                 rtl={rtl}
@@ -365,12 +345,7 @@ export default function ProfileScreen() {
           {step === 3 ? (
             <View style={styles.section}>
               <View style={styles.previewCard}>
-                <View
-                  style={[
-                    styles.previewIdentity,
-                    { flexDirection: rtl ? "row-reverse" : "row" },
-                  ]}
-                >
+                <View style={[styles.previewIdentity, { flexDirection: rtl ? "row-reverse" : "row" }]}>
                   <View style={styles.avatar}>
                     <Text style={styles.avatarText}>{displayName.trim().charAt(0) || "م"}</Text>
                   </View>
@@ -388,22 +363,13 @@ export default function ProfileScreen() {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.privateSummary,
-                  { flexDirection: rtl ? "row-reverse" : "row" },
-                ]}
-              >
+              <View style={[styles.privateSummary, { flexDirection: rtl ? "row-reverse" : "row" }]}>
                 <View style={styles.privateIcon}>
                   <AppIcon name="shield" active size={18} />
                 </View>
                 <View style={[styles.flex, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
-                  <Text style={[styles.privateTitle, { textAlign, writingDirection }]}>
-                    {copy.privateTitle}
-                  </Text>
-                  <Text style={[styles.privateBody, { textAlign, writingDirection }]}>
-                    {copy.privateBody}
-                  </Text>
+                  <Text style={[styles.privateTitle, { textAlign, writingDirection }]}>{copy.privateTitle}</Text>
+                  <Text style={[styles.privateBody, { textAlign, writingDirection }]}>{copy.privateBody}</Text>
                 </View>
               </View>
 
@@ -457,17 +423,7 @@ export default function ProfileScreen() {
   );
 }
 
-function ProfileProgress({
-  rtl,
-  step,
-  total,
-  label,
-}: {
-  rtl: boolean;
-  step: number;
-  total: number;
-  label: string;
-}) {
+function ProfileProgress({ rtl, step, total, label }: { rtl: boolean; step: number; total: number; label: string }) {
   const textAlign = rtl ? "right" : "left";
   const writingDirection = rtl ? "rtl" : "ltr";
 
@@ -556,9 +512,7 @@ function Field({
 
   return (
     <View style={styles.field}>
-      <Text style={[styles.label, { textAlign: rtl ? "right" : "left", writingDirection }]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, { textAlign: rtl ? "right" : "left", writingDirection }]}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
         accessibilityHint={invalid ? helper : undefined}
@@ -741,29 +695,101 @@ const styles = StyleSheet.create({
   readinessTop: { alignItems: "center", justifyContent: "space-between", gap: 12 },
   readinessLabel: { flex: 1, color: colors.muted, fontSize: 12, lineHeight: 20, fontWeight: "700" },
   readinessValue: { color: colors.primary, fontSize: 12, lineHeight: 20, fontWeight: "900" },
-  readinessTrack: { width: "100%", height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: "hidden", marginTop: 8 },
+  readinessTrack: {
+    width: "100%",
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    overflow: "hidden",
+    marginTop: 8,
+  },
   readinessFill: { height: "100%", borderRadius: 2, backgroundColor: colors.primary },
-  privacyNote: { width: "100%", alignItems: "flex-start", gap: 12, borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 16 },
-  privacyIcon: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised },
+  privacyNote: {
+    width: "100%",
+    alignItems: "flex-start",
+    gap: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primaryWash,
+    padding: 16,
+  },
+  privacyIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceRaised,
+  },
   privacyText: { flex: 1, color: colors.muted, fontSize: 12, lineHeight: 21 },
-  previewCard: { width: "100%", borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceRaised, padding: 19 },
+  previewCard: {
+    width: "100%",
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    padding: 19,
+  },
   previewIdentity: { width: "100%", alignItems: "center", gap: 13 },
-  avatar: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", backgroundColor: colors.primaryStrong },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primaryStrong,
+  },
   avatarText: { color: colors.white, fontSize: 23, lineHeight: 31, fontWeight: "800" },
   previewName: { width: "100%", color: colors.foreground, fontSize: 21, lineHeight: 32, fontWeight: "800" },
   previewMeta: { width: "100%", color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 2 },
-  previewAbout: { width: "100%", color: colors.foreground, fontSize: 14, lineHeight: 26, marginTop: 17, paddingTop: 15, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  privateSummary: { width: "100%", alignItems: "flex-start", gap: 12, borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 16 },
-  privateIcon: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised },
+  previewAbout: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 14,
+    lineHeight: 26,
+    marginTop: 17,
+    paddingTop: 15,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  privateSummary: {
+    width: "100%",
+    alignItems: "flex-start",
+    gap: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primaryWash,
+    padding: 16,
+  },
+  privateIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceRaised,
+  },
   privateTitle: { width: "100%", color: colors.foreground, fontSize: 13, lineHeight: 21, fontWeight: "800" },
   privateBody: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 21, marginTop: 3 },
-  reviewState: { width: "100%", borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceMuted, padding: 16 },
+  reviewState: {
+    width: "100%",
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
+    padding: 16,
+  },
   reviewApproved: { borderColor: colors.primarySoft, backgroundColor: colors.primaryWash },
   reviewChanges: { borderColor: colors.goldSoft },
   reviewRejected: { borderColor: "rgba(180,35,63,0.18)", backgroundColor: "#FBF4F3" },
   reviewTitle: { width: "100%", color: colors.foreground, fontSize: 15, lineHeight: 24, fontWeight: "800" },
   reviewBody: { width: "100%", color: colors.muted, fontSize: 12, lineHeight: 21, marginTop: 5 },
-  reviewDate: { width: "100%", color: colors.foreground, fontSize: 11, lineHeight: 18, fontWeight: "800", marginTop: 8 },
+  reviewDate: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 11,
+    lineHeight: 18,
+    fontWeight: "800",
+    marginTop: 8,
+  },
   message: { width: "100%", color: colors.muted, fontSize: 13, lineHeight: 21, fontWeight: "700" },
   messageSuccess: { color: colors.primary },
   messageError: { color: colors.danger },

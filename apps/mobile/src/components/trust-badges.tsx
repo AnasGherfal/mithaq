@@ -22,15 +22,9 @@ export function TrustBadges({
 }: Props) {
   const rtl = locale === "ar";
   const badges = [
-    realPersonVerified
-      ? { key: "person", label: rtl ? "شخص حقيقي موثّق" : "Real person verified" }
-      : null,
-    age18PlusVerified
-      ? { key: "age", label: rtl ? "العمر 18+ موثّق" : "18+ verified" }
-      : null,
-    identityVerified
-      ? { key: "identity", label: rtl ? "الهوية موثّقة" : "Identity verified" }
-      : null,
+    realPersonVerified ? { key: "person", label: rtl ? "شخص حقيقي موثّق" : "Real person verified" } : null,
+    age18PlusVerified ? { key: "age", label: rtl ? "العمر 18+ موثّق" : "18+ verified" } : null,
+    identityVerified ? { key: "identity", label: rtl ? "الهوية موثّقة" : "Identity verified" } : null,
   ].filter((badge): badge is { key: string; label: string } => badge !== null);
 
   if (badges.length === 0) return null;
@@ -38,24 +32,14 @@ export function TrustBadges({
   return (
     <View
       accessibilityLabel={badges.map((badge) => badge.label).join(", ")}
-      style={[
-        styles.wrap,
-        compact ? styles.wrapCompact : null,
-        { flexDirection: rtl ? "row-reverse" : "row" },
-      ]}
+      style={[styles.wrap, compact ? styles.wrapCompact : null, { flexDirection: rtl ? "row-reverse" : "row" }]}
     >
       {badges.map((badge) => (
         <View key={badge.key} style={[styles.badge, compact ? styles.badgeCompact : null]}>
           <View style={[styles.check, compact ? styles.checkCompact : null]}>
             <Text style={[styles.checkText, compact ? styles.checkTextCompact : null]}>✓</Text>
           </View>
-          <Text
-            style={[
-              styles.label,
-              compact ? styles.labelCompact : null,
-              { writingDirection: rtl ? "rtl" : "ltr" },
-            ]}
-          >
+          <Text style={[styles.label, compact ? styles.labelCompact : null, { writingDirection: rtl ? "rtl" : "ltr" }]}>
             {badge.label}
           </Text>
         </View>

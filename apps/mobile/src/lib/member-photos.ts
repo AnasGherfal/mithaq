@@ -2,17 +2,10 @@ import { supabase } from "@/lib/supabase";
 
 export const memberPhotoBucket = "member-profile-photos";
 
-export type MemberPhotoReviewState =
-  | "pending"
-  | "approved"
-  | "needs_changes"
-  | "rejected";
+export type MemberPhotoReviewState = "pending" | "approved" | "needs_changes" | "rejected";
 
 export type MemberPhotoExtension = "jpg" | "png" | "webp";
-export type MemberPhotoCleanupReason =
-  | "delete"
-  | "replace"
-  | "registration_failure";
+export type MemberPhotoCleanupReason = "delete" | "replace" | "registration_failure";
 
 export type PreparedMemberPhotoUpload = {
   bytes: ArrayBuffer;
@@ -55,9 +48,7 @@ export async function listMyMemberPhotos(): Promise<MemberPhoto[]> {
   const { data, error } = await supabase.rpc("list_my_member_photos");
   if (error) throw error;
 
-  const rows = ((data ?? []) as MemberPhotoRow[]).sort(
-    (a, b) => Number(a.position) - Number(b.position),
-  );
+  const rows = ((data ?? []) as MemberPhotoRow[]).sort((a, b) => Number(a.position) - Number(b.position));
 
   return Promise.all(
     rows.map(async (row) => {
@@ -79,15 +70,12 @@ export async function listMyMemberPhotos(): Promise<MemberPhoto[]> {
   );
 }
 
-export async function uploadPreparedMemberPhoto(
-  input: PreparedMemberPhotoUpload,
-) {
+export async function uploadPreparedMemberPhoto(input: PreparedMemberPhotoUpload) {
   if (input.bytes.byteLength === 0) {
     throw new Error("member photo file is empty");
   }
 
-  const { data: sessionData, error: sessionError } =
-    await supabase.auth.getSession();
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   if (sessionError) throw sessionError;
 
   const userId = sessionData.session?.user.id;
@@ -96,35 +84,26 @@ export async function uploadPreparedMemberPhoto(
   const objectId = createObjectId();
   const storagePath = `${userId}/${objectId}.${input.extension}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from(memberPhotoBucket)
-    .upload(storagePath, input.bytes, {
-      cacheControl: "3600",
-      contentType: input.contentType,
-      upsert: false,
-    });
+  const { error: uploadError } = await supabase.storage.from(memberPhotoBucket).upload(storagePath, input.bytes, {
+    cacheControl: "3600",
+    contentType: input.contentType,
+    upsert: false,
+  });
 
   if (uploadError) throw uploadError;
 
-  const { data: registrationData, error: registrationError } = await supabase.rpc(
-    "register_member_photo",
-    {
-      p_storage_path: storagePath,
-      p_position: input.position ?? null,
-      p_make_primary: input.makePrimary ?? false,
-    },
-  );
+  const { data: registrationData, error: registrationError } = await supabase.rpc("register_member_photo", {
+    p_storage_path: storagePath,
+    p_position: input.position ?? null,
+    p_make_primary: input.makePrimary ?? false,
+  });
 
   if (registrationError || typeof registrationData !== "string") {
-    const { error: cleanupError } = await supabase.storage
-      .from(memberPhotoBucket)
-      .remove([storagePath]);
+    const { error: cleanupError } = await supabase.storage.from(memberPhotoBucket).remove([storagePath]);
 
     if (cleanupError) {
       await queueMyMemberPhotoCleanup(storagePath, "registration_failure");
-      throw new Error(
-        "member photo registration failed and secure cleanup was queued",
-      );
+      throw new Error("member photo registration failed and secure cleanup was queued");
     }
 
     throw registrationError ?? new Error("member photo registration failed");
@@ -159,9 +138,7 @@ export async function removeMemberPhoto(photoId: string) {
   const storagePath = typeof data === "string" ? data : null;
   if (!storagePath) throw new Error("member photo cleanup path unavailable");
 
-  const { error: storageError } = await supabase.storage
-    .from(memberPhotoBucket)
-    .remove([storagePath]);
+  const { error: storageError } = await supabase.storage.from(memberPhotoBucket).remove([storagePath]);
 
   let storageCleanupQueued = false;
   if (storageError) {
@@ -175,10 +152,7 @@ export async function removeMemberPhoto(photoId: string) {
   };
 }
 
-export async function queueMyMemberPhotoCleanup(
-  storagePath: string,
-  reason: MemberPhotoCleanupReason,
-) {
+export async function queueMyMemberPhotoCleanup(storagePath: string, reason: MemberPhotoCleanupReason) {
   const { data, error } = await supabase.rpc("queue_my_member_photo_cleanup", {
     p_storage_path: storagePath,
     p_reason: reason,

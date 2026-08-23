@@ -29,10 +29,7 @@ export function MemberTabBar({ locale, active }: Props) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
-      <View
-        style={[styles.bar, { flexDirection: rtl ? "row-reverse" : "row" }]}
-        accessibilityRole="tablist"
-      >
+      <View style={[styles.bar, { flexDirection: rtl ? "row-reverse" : "row" }]} accessibilityRole="tablist">
         {tabs.map((tab) => {
           const selected = tab.key === active;
           const label = rtl ? tab.ar : tab.en;
@@ -54,13 +51,7 @@ export function MemberTabBar({ locale, active }: Props) {
               <View style={[styles.iconWrap, selected ? styles.iconWrapSelected : null]}>
                 <AppIcon name={tab.icon} active={selected} size={20} />
               </View>
-              <Text
-                style={[
-                  styles.label,
-                  rtl ? styles.labelArabic : null,
-                  selected ? styles.labelSelected : null,
-                ]}
-              >
+              <Text style={[styles.label, rtl ? styles.labelArabic : null, selected ? styles.labelSelected : null]}>
                 {label}
               </Text>
             </Pressable>

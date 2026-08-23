@@ -1,14 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
@@ -217,12 +209,8 @@ export default function ProfileVisibilityScreen() {
       ) : (
         <View style={styles.stack}>
           <View style={styles.sectionCard}>
-            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.presentationTitle}
-            </Text>
-            <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.presentationBody}
-            </Text>
+            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.presentationTitle}</Text>
+            <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.presentationBody}</Text>
             <PresentationChoice
               selected={visibilityMode === "private"}
               rtl={rtl}
@@ -239,34 +227,22 @@ export default function ProfileVisibilityScreen() {
               onPress={() => setVisibilityMode("standard")}
             />
             {visibilityMode === "standard" && !trust.approvedPhoto ? (
-              <Text style={[styles.helper, { textAlign: rtl ? "right" : "left" }]}>
-                {copy.openNoPhoto}
-              </Text>
+              <Text style={[styles.helper, { textAlign: rtl ? "right" : "left" }]}>{copy.openNoPhoto}</Text>
             ) : null}
             <View style={styles.safetyNote}>
               <Text style={[styles.safetyNoteTitle, { textAlign: rtl ? "right" : "left" }]}>
                 {copy.neverShownTitle}
               </Text>
-              <Text style={[styles.safetyNoteBody, { textAlign: rtl ? "right" : "left" }]}>
-                {copy.neverShownBody}
-              </Text>
+              <Text style={[styles.safetyNoteBody, { textAlign: rtl ? "right" : "left" }]}>{copy.neverShownBody}</Text>
             </View>
-            <PrimaryButton
-              disabled={!visibilityDirty}
-              loading={visibilitySaving}
-              onPress={() => void saveVisibility()}
-            >
+            <PrimaryButton disabled={!visibilityDirty} loading={visibilitySaving} onPress={() => void saveVisibility()}>
               {visibilityDirty ? copy.savePresentation : copy.presentationSaved}
             </PrimaryButton>
           </View>
 
           <View style={styles.sectionCard}>
-            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.shieldTitle}
-            </Text>
-            <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.shieldBody}
-            </Text>
+            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.shieldTitle}</Text>
+            <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.shieldBody}</Text>
             <TextInput
               value={phone}
               onChangeText={setPhone}
@@ -306,19 +282,13 @@ export default function ProfileVisibilityScreen() {
                 ))}
               </View>
             ) : (
-              <Text style={[styles.emptyText, { textAlign: rtl ? "right" : "left" }]}>
-                {copy.shieldEmpty}
-              </Text>
+              <Text style={[styles.emptyText, { textAlign: rtl ? "right" : "left" }]}>{copy.shieldEmpty}</Text>
             )}
-            <Text style={[styles.helper, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.shieldPrivacy}
-            </Text>
+            <Text style={[styles.helper, { textAlign: rtl ? "right" : "left" }]}>{copy.shieldPrivacy}</Text>
           </View>
 
           <View style={styles.sectionCard}>
-            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.detailsTitle}
-            </Text>
+            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.detailsTitle}</Text>
             <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>
               {visibilityMode === "standard" ? copy.detailsOpenBody : copy.detailsBody}
             </Text>
@@ -327,9 +297,7 @@ export default function ProfileVisibilityScreen() {
               label={copy.occupationTitle}
               body={copy.occupationBody}
               value={preferences.share_occupation}
-              onChange={(value) =>
-                setPreferences((current) => ({ ...current, share_occupation: value }))
-              }
+              onChange={(value) => setPreferences((current) => ({ ...current, share_occupation: value }))}
             />
             <View style={styles.rule} />
             <DisclosureToggle
@@ -337,9 +305,7 @@ export default function ProfileVisibilityScreen() {
               label={copy.educationTitle}
               body={copy.educationBody}
               value={preferences.share_education}
-              onChange={(value) =>
-                setPreferences((current) => ({ ...current, share_education: value }))
-              }
+              onChange={(value) => setPreferences((current) => ({ ...current, share_education: value }))}
             />
             <View style={styles.rule} />
             <DisclosureToggle
@@ -347,9 +313,7 @@ export default function ProfileVisibilityScreen() {
               label={copy.originTitle}
               body={copy.originBody}
               value={preferences.share_origin_region}
-              onChange={(value) =>
-                setPreferences((current) => ({ ...current, share_origin_region: value }))
-              }
+              onChange={(value) => setPreferences((current) => ({ ...current, share_origin_region: value }))}
             />
             <PrimaryButton disabled={!dirty} loading={saving} onPress={() => void saveDisclosure()}>
               {dirty ? copy.save : copy.savedState}
@@ -357,27 +321,18 @@ export default function ProfileVisibilityScreen() {
           </View>
 
           <View style={styles.sectionCard}>
-            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.trustTitle}
-            </Text>
-            <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.trustBody}
-            </Text>
+            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.trustTitle}</Text>
+            <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.trustBody}</Text>
             <TrustRow rtl={rtl} label={copy.phoneVerified} value={trust.phoneVerified} />
             <TrustRow rtl={rtl} label={copy.photoReviewed} value={trust.approvedPhoto} optional />
             <TrustRow rtl={rtl} label={copy.realPerson} value={trust.realPersonVerified} optional />
             <TrustRow rtl={rtl} label={copy.ageVerified} value={trust.age18PlusVerified} optional />
             <TrustRow rtl={rtl} label={copy.identityVerified} value={trust.identityVerified} optional />
-            <Text style={[styles.helper, { textAlign: rtl ? "right" : "left" }]}>
-              {copy.trustNote}
-            </Text>
+            <Text style={[styles.helper, { textAlign: rtl ? "right" : "left" }]}>{copy.trustNote}</Text>
           </View>
 
           {message ? (
-            <Text
-              accessibilityLiveRegion="polite"
-              style={[styles.message, { textAlign: rtl ? "right" : "left" }]}
-            >
+            <Text accessibilityLiveRegion="polite" style={[styles.message, { textAlign: rtl ? "right" : "left" }]}>
               {message}
             </Text>
           ) : null}

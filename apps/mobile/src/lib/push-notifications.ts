@@ -74,9 +74,7 @@ async function expoPushToken() {
   return result.data;
 }
 
-export async function enableDiscreetPushNotifications(
-  previewMode: NotificationPreviewMode,
-): Promise<PushEnableResult> {
+export async function enableDiscreetPushNotifications(previewMode: NotificationPreviewMode): Promise<PushEnableResult> {
   const runtime = remotePushRuntimeStatus();
   if (runtime !== "available") return { ok: false, reason: runtime };
 
@@ -92,10 +90,7 @@ export async function enableDiscreetPushNotifications(
     }
     if (!permission.granted) return { ok: false, reason: "permission_denied" };
 
-    const [installationId, token] = await Promise.all([
-      getInstallationId(),
-      expoPushToken(),
-    ]);
+    const [installationId, token] = await Promise.all([getInstallationId(), expoPushToken()]);
     if (!installationId || !token) {
       return { ok: false, reason: "project_not_configured" };
     }
@@ -118,9 +113,7 @@ export async function enableDiscreetPushNotifications(
   }
 }
 
-export async function disableDiscreetPushNotifications(
-  previewMode: NotificationPreviewMode,
-) {
+export async function disableDiscreetPushNotifications(previewMode: NotificationPreviewMode) {
   const installationId = await getInstallationId(false);
   if (installationId) {
     await unregisterPushDevice(installationId).catch(() => undefined);
@@ -128,9 +121,7 @@ export async function disableDiscreetPushNotifications(
   return setPushNotificationSettings(false, previewMode);
 }
 
-export async function saveNotificationPreviewMode(
-  previewMode: NotificationPreviewMode,
-) {
+export async function saveNotificationPreviewMode(previewMode: NotificationPreviewMode) {
   const current = await getPushNotificationSettings();
   return setPushNotificationSettings(current.pushEnabled, previewMode);
 }
@@ -153,10 +144,7 @@ export async function syncPushRegistrationIfEnabled() {
 
   try {
     await ensureAndroidChannel();
-    const [installationId, token] = await Promise.all([
-      getInstallationId(),
-      expoPushToken(),
-    ]);
+    const [installationId, token] = await Promise.all([getInstallationId(), expoPushToken()]);
     if (!installationId || !token) return;
     await registerExpoPushDevice({ installationId, expoPushToken: token, platform });
   } catch {

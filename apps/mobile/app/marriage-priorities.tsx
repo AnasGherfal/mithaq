@@ -150,12 +150,8 @@ export default function MarriagePrioritiesScreen() {
 
           {previewOnly ? (
             <View style={styles.previewNotice}>
-              <Text style={[styles.previewTitle, { textAlign, writingDirection: direction }]}>
-                {copy.previewTitle}
-              </Text>
-              <Text style={[styles.previewBody, { textAlign, writingDirection: direction }]}>
-                {copy.previewBody}
-              </Text>
+              <Text style={[styles.previewTitle, { textAlign, writingDirection: direction }]}>{copy.previewTitle}</Text>
+              <Text style={[styles.previewBody, { textAlign, writingDirection: direction }]}>{copy.previewBody}</Text>
             </View>
           ) : null}
 
@@ -212,10 +208,7 @@ export default function MarriagePrioritiesScreen() {
               {copy.save}
             </PrimaryButton>
             {saved ? (
-              <Text
-                accessibilityLiveRegion="polite"
-                style={[styles.saved, { textAlign, writingDirection: direction }]}
-              >
+              <Text accessibilityLiveRegion="polite" style={[styles.saved, { textAlign, writingDirection: direction }]}>
                 {previewOnly ? copy.previewSaved : copy.saved}
               </Text>
             ) : null}
@@ -308,7 +301,9 @@ function prioritiesCopy(locale: MobileLocale) {
       flexible: ar ? "مرن وأفضّل مناقشته" : "Flexible — I’d rather discuss it",
     } satisfies Record<LivingArrangement, string>,
     childrenTitle: ar ? "الأطفال مستقبلاً" : "Children in the future",
-    childrenBody: ar ? "اختر ما يعبر عنك اليوم، ويمكنك تغييره لاحقاً." : "Choose what reflects you today. You can change it later.",
+    childrenBody: ar
+      ? "اختر ما يعبر عنك اليوم، ويمكنك تغييره لاحقاً."
+      : "Choose what reflects you today. You can change it later.",
     childrenValues: {
       want_children: ar ? "أريد أطفالاً" : "I want children",
       do_not_want_children: ar ? "لا أريد أطفالاً" : "I do not want children",
@@ -323,7 +318,9 @@ function prioritiesCopy(locale: MobileLocale) {
       no_preference: ar ? "ليس لدي تفضيل محدد" : "I have no specific preference",
     } satisfies Record<WorkAfterMarriage, string>,
     weddingTitle: ar ? "شكل حفل الزواج" : "Wedding style",
-    weddingBody: ar ? "التوقعات المالية والاجتماعية تستحق الوضوح مبكراً." : "Financial and social expectations are worth making clear early.",
+    weddingBody: ar
+      ? "التوقعات المالية والاجتماعية تستحق الوضوح مبكراً."
+      : "Financial and social expectations are worth making clear early.",
     weddingValues: {
       simple: ar ? "بسيط" : "Simple",
       moderate: ar ? "متوسط" : "Moderate",
@@ -338,7 +335,9 @@ function prioritiesCopy(locale: MobileLocale) {
       : "Permanent saving is not available in this preview yet, but you can try every choice.",
     previewSaved: ar ? "تم حفظ الاختيارات لهذه المعاينة فقط." : "Saved for this preview only.",
     errorTitle: ar ? "تعذر فتح أولويات الزواج" : "We couldn’t open Marriage priorities",
-    errorBody: ar ? "لم نغيّر اختياراتك. تحقق من الاتصال ثم حاول مرة أخرى." : "Your choices were not changed. Check your connection and try again.",
+    errorBody: ar
+      ? "لم نغيّر اختياراتك. تحقق من الاتصال ثم حاول مرة أخرى."
+      : "Your choices were not changed. Check your connection and try again.",
     retry: ar ? "إعادة المحاولة" : "Try again",
     back: ar ? "رجوع" : "Back",
   };

@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { AppIcon } from "@/components/app-icon";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
@@ -26,12 +20,7 @@ type NextStep = {
   title: string;
   body: string;
   action: string;
-  pathname:
-    | "/questionnaire"
-    | "/consent"
-    | "/profile"
-    | "/marriage-discover"
-    | "/privacy";
+  pathname: "/questionnaire" | "/consent" | "/profile" | "/marriage-discover" | "/privacy";
 };
 
 type FlowIcon = "sliders" | "introductions" | "chat";
@@ -71,21 +60,13 @@ export default function StatusScreen() {
     }
 
     const [userResult, applicationResult, profileResult] = await Promise.all([
-      supabase
-        .from("users")
-        .select("account_status")
-        .eq("id", data.session.user.id)
-        .maybeSingle(),
+      supabase.from("users").select("account_status").eq("id", data.session.user.id).maybeSingle(),
       supabase
         .from("waitlist_applications")
         .select("status, questionnaire_completed_at")
         .eq("user_id", data.session.user.id)
         .maybeSingle(),
-      supabase
-        .from("member_profiles")
-        .select("profile_completed_at")
-        .eq("user_id", data.session.user.id)
-        .maybeSingle(),
+      supabase.from("member_profiles").select("profile_completed_at").eq("user_id", data.session.user.id).maybeSingle(),
     ]);
 
     if (userResult.error || applicationResult.error || profileResult.error) {
@@ -99,8 +80,7 @@ export default function StatusScreen() {
       questionnaireComplete: Boolean(application?.questionnaire_completed_at),
       submitted: application?.status === "submitted",
       profileComplete: Boolean(profileResult.data?.profile_completed_at),
-      deletionPending:
-        userResult.data?.account_status === "deletion_pending",
+      deletionPending: userResult.data?.account_status === "deletion_pending",
     });
     setLoading(false);
   }, [locale]);
@@ -118,11 +98,7 @@ export default function StatusScreen() {
   const nextStep = resolveNextStep(registration, rtl);
 
   return (
-    <ScreenShell
-      title={rtl ? "الرئيسية" : "Home"}
-      rtl={rtl}
-      scrollEnabled={false}
-    >
+    <ScreenShell title={rtl ? "الرئيسية" : "Home"} rtl={rtl} scrollEnabled={false}>
       {loading ? (
         <View style={styles.loadingState}>
           <ActivityIndicator color={colors.primary} size="large" />
@@ -132,49 +108,21 @@ export default function StatusScreen() {
           rtl={rtl}
           tone="error"
           title={rtl ? "تعذر تحميل حسابك" : "We couldn’t load your account"}
-          body={
-            rtl
-              ? "تحقق من اتصالك وحاول مرة أخرى."
-              : "Check your connection and try again."
-          }
+          body={rtl ? "تحقق من اتصالك وحاول مرة أخرى." : "Check your connection and try again."}
           actionLabel={rtl ? "إعادة المحاولة" : "Try again"}
           onAction={() => void load()}
         />
       ) : (
         <View style={styles.page}>
           <View style={styles.progressBlock}>
-            <View
-              style={[
-                styles.progressRow,
-                { flexDirection: rtl ? "row-reverse" : "row" },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.progressLabel,
-                  { textAlign, writingDirection },
-                ]}
-              >
+            <View style={[styles.progressRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+              <Text style={[styles.progressLabel, { textAlign, writingDirection }]}>
                 {rtl ? "جاهزية الملف" : "Profile readiness"}
               </Text>
-              <Text
-                style={[
-                  styles.progressValue,
-                  { textAlign: rtl ? "left" : "right" },
-                ]}
-              >
-                {readiness}%
-              </Text>
+              <Text style={[styles.progressValue, { textAlign: rtl ? "left" : "right" }]}>{readiness}%</Text>
             </View>
-            <View
-              style={[
-                styles.progressTrack,
-                { alignItems: rtl ? "flex-end" : "flex-start" },
-              ]}
-            >
-              <View
-                style={[styles.progressFill, { width: `${readiness}%` }]}
-              />
+            <View style={[styles.progressTrack, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+              <View style={[styles.progressFill, { width: `${readiness}%` }]} />
             </View>
           </View>
 
@@ -186,34 +134,11 @@ export default function StatusScreen() {
               { alignItems: rtl ? "flex-end" : "flex-start" },
             ]}
           >
-            <View
-              pointerEvents="none"
-              style={[
-                styles.roseGlow,
-                rtl ? styles.roseGlowRtl : styles.roseGlowLtr,
-              ]}
-            />
-            <View
-              pointerEvents="none"
-              style={[
-                styles.goldGlow,
-                rtl ? styles.goldGlowRtl : styles.goldGlowLtr,
-              ]}
-            />
+            <View pointerEvents="none" style={[styles.roseGlow, rtl ? styles.roseGlowRtl : styles.roseGlowLtr]} />
+            <View pointerEvents="none" style={[styles.goldGlow, rtl ? styles.goldGlowRtl : styles.goldGlowLtr]} />
 
-            <View
-              style={[
-                styles.kickerPill,
-                { alignSelf: rtl ? "flex-end" : "flex-start" },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.kicker,
-                  rtl ? styles.kickerArabic : null,
-                  { textAlign, writingDirection },
-                ]}
-              >
+            <View style={[styles.kickerPill, { alignSelf: rtl ? "flex-end" : "flex-start" }]}>
+              <Text style={[styles.kicker, rtl ? styles.kickerArabic : null, { textAlign, writingDirection }]}>
                 {rtl ? "خطوتك الآن" : "YOUR NEXT STEP"}
               </Text>
             </View>
@@ -227,13 +152,7 @@ export default function StatusScreen() {
             >
               {nextStep.title}
             </Text>
-            <Text
-              style={[
-                styles.nextBody,
-                rtl ? styles.nextBodyArabic : null,
-                { textAlign, writingDirection },
-              ]}
-            >
+            <Text style={[styles.nextBody, rtl ? styles.nextBodyArabic : null, { textAlign, writingDirection }]}>
               {nextStep.body}
             </Text>
             <View style={styles.action}>
@@ -250,47 +169,18 @@ export default function StatusScreen() {
             </View>
           </View>
 
-          <View
-            style={[
-              styles.howItWorks,
-              { alignItems: rtl ? "flex-end" : "flex-start" },
-            ]}
-          >
-            <Text
-              style={[styles.howTitle, { textAlign, writingDirection }]}
-            >
+          <View style={[styles.howItWorks, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+            <Text style={[styles.howTitle, { textAlign, writingDirection }]}>
               {rtl ? "رحلة التعارف" : "How introductions work"}
             </Text>
-            <View
-              style={[
-                styles.flow,
-                { flexDirection: rtl ? "row-reverse" : "row" },
-              ]}
-            >
-              <FlowStep
-                icon="sliders"
-                label={rtl ? "توافق" : "Fit"}
-                rtl={rtl}
-                tone="teal"
-              />
+            <View style={[styles.flow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+              <FlowStep icon="sliders" label={rtl ? "توافق" : "Fit"} rtl={rtl} tone="teal" />
               <View style={styles.flowLine} />
-              <FlowStep
-                icon="introductions"
-                label={rtl ? "اهتمام خاص" : "Private interest"}
-                rtl={rtl}
-                tone="rose"
-              />
+              <FlowStep icon="introductions" label={rtl ? "اهتمام خاص" : "Private interest"} rtl={rtl} tone="rose" />
               <View style={styles.flowLine} />
-              <FlowStep
-                icon="chat"
-                label={rtl ? "قبول متبادل" : "Mutual chat"}
-                rtl={rtl}
-                tone="gold"
-              />
+              <FlowStep icon="chat" label={rtl ? "قبول متبادل" : "Mutual chat"} rtl={rtl} tone="gold" />
             </View>
-            <Text
-              style={[styles.howBody, { textAlign, writingDirection }]}
-            >
+            <Text style={[styles.howBody, { textAlign, writingDirection }]}>
               {rtl
                 ? "راجع مجموعة صغيرة ومحدودة، واختر اهتمامك بشكل خاص، ولا تبدأ المحادثة إلا بعد القبول المتبادل."
                 : "Review a small finite set, express interest privately, and chat only after mutual acceptance."}
@@ -302,10 +192,7 @@ export default function StatusScreen() {
   );
 }
 
-function resolveNextStep(
-  registration: RegistrationState,
-  rtl: boolean,
-): NextStep {
+function resolveNextStep(registration: RegistrationState, rtl: boolean): NextStep {
   if (registration.deletionPending) {
     return {
       title: rtl ? "راجع طلب حذف حسابك" : "Review your deletion request",
@@ -360,38 +247,18 @@ function resolveNextStep(
   };
 }
 
-function FlowStep({
-  icon,
-  label,
-  rtl,
-  tone,
-}: {
-  icon: FlowIcon;
-  label: string;
-  rtl: boolean;
-  tone: FlowTone;
-}) {
+function FlowStep({ icon, label, rtl, tone }: { icon: FlowIcon; label: string; rtl: boolean; tone: FlowTone }) {
   return (
     <View style={styles.flowStep}>
       <View
         style={[
           styles.flowIcon,
-          tone === "rose"
-            ? styles.flowIconRose
-            : tone === "gold"
-              ? styles.flowIconGold
-              : styles.flowIconTeal,
+          tone === "rose" ? styles.flowIconRose : tone === "gold" ? styles.flowIconGold : styles.flowIconTeal,
         ]}
       >
         <AppIcon name={icon} active size={17} />
       </View>
-      <Text
-        style={[
-          styles.flowLabel,
-          rtl ? styles.flowLabelArabic : null,
-          { writingDirection: rtl ? "rtl" : "ltr" },
-        ]}
-      >
+      <Text style={[styles.flowLabel, rtl ? styles.flowLabelArabic : null, { writingDirection: rtl ? "rtl" : "ltr" }]}>
         {label}
       </Text>
     </View>

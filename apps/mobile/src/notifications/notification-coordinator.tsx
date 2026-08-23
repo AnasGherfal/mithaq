@@ -5,8 +5,7 @@ import { AppState } from "react-native";
 import { syncPushRegistrationIfEnabled } from "@/lib/push-notifications";
 import { supabase } from "@/lib/supabase";
 
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -20,8 +19,7 @@ Notifications.setNotificationHandler({
 function notificationData(response: Notifications.NotificationResponse) {
   const data = response.notification.request.content.data;
   const route = typeof data.route === "string" ? data.route : "";
-  const introductionId =
-    typeof data.introductionId === "string" ? data.introductionId : "";
+  const introductionId = typeof data.introductionId === "string" ? data.introductionId : "";
   const locale = data.locale === "en" ? "en" : "ar";
   return { route, introductionId, locale };
 }

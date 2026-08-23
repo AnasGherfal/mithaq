@@ -98,10 +98,7 @@ export default function VerifyScreen() {
           .eq("id", verifyData.user.id);
       }
 
-      await Promise.all([
-        SecureStore.deleteItemAsync(pendingPhoneKey),
-        SecureStore.deleteItemAsync(pendingLocaleKey),
-      ]);
+      await Promise.all([SecureStore.deleteItemAsync(pendingPhoneKey), SecureStore.deleteItemAsync(pendingLocaleKey)]);
       router.replace({ pathname: "/spaces", params: { locale } });
     } catch {
       setError(copy.genericError);
@@ -195,11 +192,7 @@ export default function VerifyScreen() {
         <Text style={[styles.label, { textAlign: rtl ? "right" : "left" }]}>{copy.codeLabel}</Text>
         <TextInput
           accessibilityLabel={copy.codeLabel}
-          accessibilityHint={
-            rtl
-              ? "أدخل رمز التحقق المكوّن من ستة أرقام"
-              : "Enter the six-digit verification code"
-          }
+          accessibilityHint={rtl ? "أدخل رمز التحقق المكوّن من ستة أرقام" : "Enter the six-digit verification code"}
           autoComplete="one-time-code"
           keyboardType="number-pad"
           value={code}
@@ -226,28 +219,18 @@ export default function VerifyScreen() {
       </View>
 
       {error ? (
-        <Text
-          accessibilityRole="alert"
-          style={[styles.error, { textAlign: rtl ? "right" : "left" }]}
-        >
+        <Text accessibilityRole="alert" style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>
           {error}
         </Text>
       ) : null}
       {notice ? (
-        <Text
-          accessibilityLiveRegion="polite"
-          style={[styles.notice, { textAlign: rtl ? "right" : "left" }]}
-        >
+        <Text accessibilityLiveRegion="polite" style={[styles.notice, { textAlign: rtl ? "right" : "left" }]}>
           {notice}
         </Text>
       ) : null}
 
       <View style={styles.actions}>
-        <PrimaryButton
-          disabled={!phone || code.length !== 6}
-          loading={loading}
-          onPress={() => void verifyCode()}
-        >
+        <PrimaryButton disabled={!phone || code.length !== 6} loading={loading} onPress={() => void verifyCode()}>
           {loading ? copy.verifying : copy.verify}
         </PrimaryButton>
         <PrimaryButton

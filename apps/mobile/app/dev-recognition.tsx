@@ -27,7 +27,8 @@ export default function DevRecognitionScreen() {
         meta: "25–29 · طرابلس",
         context: "تخيل أنك تعرف هذا الشخص خارج ميثاق وتفضّل ألا تتقاطعا هنا.",
         hiddenTitle: "لن تظهروا لبعضكم",
-        hiddenBody: "في المسار الحقيقي يصبح الإخفاء متبادلاً، ويُغلق أي تعارف أو محادثة نشطة، ولا يصل للطرف الآخر إشعار بسبب اختيارك.",
+        hiddenBody:
+          "في المسار الحقيقي يصبح الإخفاء متبادلاً، ويُغلق أي تعارف أو محادثة نشطة، ولا يصل للطرف الآخر إشعار بسبب اختيارك.",
         reset: "إعادة المعاينة",
         back: "العودة إلى الحساب",
       }
@@ -40,7 +41,8 @@ export default function DevRecognitionScreen() {
         meta: "25–29 · Tripoli",
         context: "Imagine you recognize this person outside Mithaq and would rather not cross paths here.",
         hiddenTitle: "You won’t be shown to each other",
-        hiddenBody: "In the real flow the hide becomes reciprocal, any active introduction or chat closes, and the other person receives no notification explaining your choice.",
+        hiddenBody:
+          "In the real flow the hide becomes reciprocal, any active introduction or chat closes, and the other person receives no notification explaining your choice.",
         reset: "Reset preview",
         back: "Back to Account",
       };
@@ -86,10 +88,7 @@ export default function DevRecognitionScreen() {
           </>
         )}
 
-        <PrimaryButton
-          tone="quiet"
-          onPress={() => router.replace({ pathname: "/account", params: { locale } })}
-        >
+        <PrimaryButton tone="quiet" onPress={() => router.replace({ pathname: "/account", params: { locale } })}>
           {copy.back}
         </PrimaryButton>
       </View>

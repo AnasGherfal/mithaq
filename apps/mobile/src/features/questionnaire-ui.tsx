@@ -23,11 +23,7 @@ export function Label({ children, rtl }: { children: string; rtl: boolean }) {
 }
 
 export function ChoiceGrid({ children, rtl = false }: { children: ReactNode; rtl?: boolean }) {
-  return (
-    <View style={[styles.choiceGrid, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-      {children}
-    </View>
-  );
+  return <View style={[styles.choiceGrid, { flexDirection: rtl ? "row-reverse" : "row" }]}>{children}</View>;
 }
 
 export function Choice({
@@ -59,15 +55,7 @@ export function Choice({
       <View style={[styles.choiceIndicator, selected ? styles.choiceIndicatorSelected : null]}>
         {selected ? <View style={styles.choiceIndicatorCore} /> : null}
       </View>
-      <Text
-        style={[
-          styles.choiceText,
-          selected ? styles.choiceTextSelected : null,
-          textAlign(rtl),
-        ]}
-      >
-        {label}
-      </Text>
+      <Text style={[styles.choiceText, selected ? styles.choiceTextSelected : null, textAlign(rtl)]}>{label}</Text>
     </Pressable>
   );
 }
@@ -96,19 +84,9 @@ export function ToggleCard({
       ]}
     >
       <View style={[styles.toggleMark, value ? styles.toggleMarkActive : null]}>
-        <Text style={[styles.checkMark, value ? styles.checkMarkActive : null]}>
-          {value ? "✓" : ""}
-        </Text>
+        <Text style={[styles.checkMark, value ? styles.checkMarkActive : null]}>{value ? "✓" : ""}</Text>
       </View>
-      <Text
-        style={[
-          styles.choiceText,
-          value ? styles.choiceTextSelected : null,
-          textAlign(rtl),
-        ]}
-      >
-        {label}
-      </Text>
+      <Text style={[styles.choiceText, value ? styles.choiceTextSelected : null, textAlign(rtl)]}>{label}</Text>
     </Pressable>
   );
 }

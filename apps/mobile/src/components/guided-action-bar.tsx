@@ -46,12 +46,7 @@ export function GuidedActionBar({
           <Text style={[styles.backLabel, { writingDirection }]}>{backLabel}</Text>
         </Pressable>
 
-        <PrimaryButton
-          disabled={primaryDisabled}
-          loading={loading}
-          onPress={onPrimary}
-          style={styles.primary}
-        >
+        <PrimaryButton disabled={primaryDisabled} loading={loading} onPress={onPrimary} style={styles.primary}>
           {primaryLabel}
         </PrimaryButton>
       </View>

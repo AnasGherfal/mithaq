@@ -67,10 +67,7 @@ export function ScreenShell({
               : null;
 
   const resolvedBottomBar =
-    bottomBar ??
-    (marriageActiveTab ? (
-      <MemberTabBar locale={locale} active={marriageActiveTab} />
-    ) : null);
+    bottomBar ?? (marriageActiveTab ? <MemberTabBar locale={locale} active={marriageActiveTab} /> : null);
   const memberMode = Boolean(resolvedBottomBar);
 
   const content = (
@@ -85,8 +82,7 @@ export function ScreenShell({
         >
           <View
             style={{
-              alignSelf:
-                brandVariant === "full" ? "center" : rtl ? "flex-end" : "flex-start",
+              alignSelf: brandVariant === "full" ? "center" : rtl ? "flex-end" : "flex-start",
             }}
           >
             <BrandLogo
@@ -108,9 +104,7 @@ export function ScreenShell({
             pressed ? styles.pressed : null,
           ]}
         >
-          <Text style={[styles.devPillText, { writingDirection }]}>
-            {rtl ? "مختبر التجربة" : "Test Lab"}
-          </Text>
+          <Text style={[styles.devPillText, { writingDirection }]}>{rtl ? "مختبر التجربة" : "Test Lab"}</Text>
         </Pressable>
       ) : null}
 
@@ -142,13 +136,7 @@ export function ScreenShell({
         ]}
       >
         {eyebrow ? (
-          <Text
-            style={[
-              styles.eyebrow,
-              rtl ? styles.eyebrowArabic : null,
-              { textAlign, writingDirection },
-            ]}
-          >
+          <Text style={[styles.eyebrow, rtl ? styles.eyebrowArabic : null, { textAlign, writingDirection }]}>
             {eyebrow}
           </Text>
         ) : null}
@@ -202,10 +190,7 @@ export function ScreenShell({
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         {scrollEnabled ? (
           <ScrollView
             style={styles.flex}
@@ -248,14 +233,36 @@ const styles = StyleSheet.create({
   scrollContentCompact: { paddingHorizontal: 18 },
   navRow: { width: "100%", minHeight: 50, justifyContent: "center" },
   navRowFull: { minHeight: 152, paddingTop: 8 },
-  devPill: { marginTop: 6, borderRadius: radius.pill, backgroundColor: colors.goldSoft, paddingHorizontal: 10, paddingVertical: 6 },
+  devPill: {
+    marginTop: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.goldSoft,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
   devPillText: { color: colors.gold, fontSize: 9, lineHeight: 13, fontWeight: "900" },
   hero: { flexGrow: 0, paddingTop: 38, width: "100%", maxWidth: 560 },
   heroMember: { paddingTop: 12 },
   heroAfterFullBrand: { paddingTop: 22 },
-  eyebrow: { width: "100%", color: colors.primary, fontSize: 12, lineHeight: 18, fontWeight: "800", letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 12 },
+  eyebrow: {
+    width: "100%",
+    color: colors.primary,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    textTransform: "uppercase",
+    marginBottom: 12,
+  },
   eyebrowArabic: { fontSize: 14, lineHeight: 24, letterSpacing: 0, textTransform: "none" },
-  title: { width: "100%", color: colors.foreground, fontSize: 42, lineHeight: 50, fontWeight: "800", letterSpacing: -1.5 },
+  title: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 42,
+    lineHeight: 50,
+    fontWeight: "800",
+    letterSpacing: -1.5,
+  },
   titleCompact: { fontSize: 36, lineHeight: 43, letterSpacing: -1 },
   titleArabic: { fontSize: 39, lineHeight: 60, letterSpacing: 0, fontWeight: "700" },
   titleArabicCompact: { fontSize: 34, lineHeight: 54, letterSpacing: 0 },

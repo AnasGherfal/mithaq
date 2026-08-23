@@ -19,9 +19,9 @@ export function useAppSwitcherPrivacy() {
     if (Platform.OS !== "ios") return;
 
     let disposed = false;
-    const activation = ScreenCapture.enableAppSwitcherProtectionAsync(
-      APP_SWITCHER_BLUR_INTENSITY,
-    ).catch(() => undefined);
+    const activation = ScreenCapture.enableAppSwitcherProtectionAsync(APP_SWITCHER_BLUR_INTENSITY).catch(
+      () => undefined,
+    );
 
     return () => {
       disposed = true;
@@ -78,28 +78,15 @@ export function ScreenPrivacyNotice({ locale }: { locale: MobileLocale }) {
   const rtl = locale === "ar";
 
   return (
-    <View
-      accessibilityRole="text"
-      style={[styles.notice, { flexDirection: rtl ? "row-reverse" : "row" }]}
-    >
+    <View accessibilityRole="text" style={[styles.notice, { flexDirection: rtl ? "row-reverse" : "row" }]}>
       <View style={styles.shield}>
         <Text style={styles.shieldMark}>◌</Text>
       </View>
       <View style={styles.copy}>
-        <Text
-          style={[
-            styles.title,
-            { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" },
-          ]}
-        >
+        <Text style={[styles.title, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>
           {rtl ? "هذه الشاشة محمية" : "This screen is protected"}
         </Text>
-        <Text
-          style={[
-            styles.body,
-            { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" },
-          ]}
-        >
+        <Text style={[styles.body, { textAlign: rtl ? "right" : "left", writingDirection: rtl ? "rtl" : "ltr" }]}>
           {rtl
             ? "يمنع ميثاق لقطات الشاشة وتسجيلها هنا لحماية صور وبيانات ومحادثات الأعضاء."
             : "Mithaq blocks screenshots and screen recording here to protect member photos, profile information, and conversations."}

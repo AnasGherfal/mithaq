@@ -1,12 +1,7 @@
 import { supabase } from "@/lib/supabase";
 
 export type IntroductionPhotoPreference =
-  | "discovery_visible"
-  | "none"
-  | "blurred"
-  | "after_mutual_interest"
-  | "explicit_approval"
-  | "after_family_involvement";
+  "discovery_visible" | "none" | "blurred" | "after_mutual_interest" | "explicit_approval" | "after_family_involvement";
 
 export type IntroductionRevealState = {
   photoPreference: IntroductionPhotoPreference;
@@ -24,9 +19,7 @@ type RevealStateRow = {
   other_photo_revealed: boolean | null;
 };
 
-export async function getMyIntroductionRevealState(
-  introductionId: string,
-): Promise<IntroductionRevealState> {
+export async function getMyIntroductionRevealState(introductionId: string): Promise<IntroductionRevealState> {
   const { data, error } = await supabase.rpc("get_my_introduction_reveal_state", {
     p_introduction_id: introductionId,
   });

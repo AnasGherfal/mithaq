@@ -6,10 +6,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { PrimaryButton } from "@/components/primary-button";
 import { NotificationCoordinator } from "@/notifications/notification-coordinator";
 import { BiometricGate } from "@/security/biometric-gate";
-import {
-  PrivateMemberCaptureGuard,
-  useAppSwitcherPrivacy,
-} from "@/security/screen-privacy";
+import { PrivateMemberCaptureGuard, useAppSwitcherPrivacy } from "@/security/screen-privacy";
 import { colors } from "@/theme";
 
 export default function RootLayout() {
