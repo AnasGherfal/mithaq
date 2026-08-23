@@ -4,28 +4,28 @@ Mithaq is an Arabic-first, privacy-forward product for serious marriage introduc
 
 ## Current milestone
 
-Stages A and B are merged to `main`.
+Stages A through D are merged to `main`.
 
-Stage C (private photos and trust) is complete in code and green in PR #9. Stage D is now layered on top of that branch and adds private marriage discovery while keeping introductions and chat closed.
+Stage E adds controlled introductions on top of private discovery while keeping conversation UI closed until the next milestone.
 
-The current Stage D slice includes:
+The current Stage E slice includes:
 
-- invited-only discovery eligibility
-- completed onboarding + practical marriage priorities required
-- approved profile review + clear safety state required
-- moderator profile-review console with audited decisions
-- at most six curated discovery candidates per request
-- reciprocal hard-match constraints from both members' waitlist preferences
-- privacy-aware standard vs private candidate presentation
-- compatibility reasons (same city and practical marriage priorities)
-- visible trust badges only when backend evidence exists
-- approved primary photos served from the private bucket through short-lived signed URLs
-- interest (`noticed`) and 14-day skip actions
-- explicit pair hiding for known/unwanted matches
-- Family Shield using hashed phone exclusions and masked last-four display
-- no contact information or open messaging in discovery
+- shared participation gate tightened to the marriage-only launch rules
+- reciprocal discovery interest creates at most one seven-day controlled introduction
+- discovery interest does **not** count as accepting the introduction
+- both members start each introduction with a fresh `pending` decision
+- explicit accept / decline required from each member
+- only two accepts produce `mutually_accepted`
+- introduction inbox with active and historical states
+- privacy-aware introduction detail and compatibility reasons
+- private approved-photo access with five-minute signed URLs
+- saved photo privacy rules continue to control visibility inside introductions
+- explicit photo reveal consent supported after mutual acceptance where required
+- recognized-person hide and member block actions
+- existing offer and mutual-acceptance notification triggers reused
+- no phone numbers, external contact details or conversation UI exposed
 
-The existing `mithaq-staging` Supabase project remains the backend source of truth. Controlled introductions and chat are intentionally separate later milestones.
+The existing `mithaq-staging` Supabase project remains the backend source of truth. The conversation backend already exists but is intentionally not surfaced by Stage E.
 
 ## Local setup
 
@@ -67,9 +67,11 @@ Repository-tracked migrations added after the initial backend build include:
 - `20260823132805_stage_c_moderator_photo_access.sql`
 - `20260823133448_stage_d_invited_discovery_eligibility.sql`
 - `20260823133642_stage_d_private_discovery_photo_access.sql`
+- `20260823134631_stage_e_invited_participation_and_mutual_interest.sql`
+- `20260823134706_stage_e_private_introduction_photo_access.sql`
 
 Earlier staging migrations were created before the application repository was scaffolded and are not yet mirrored here. Before production, export/baseline the complete schema and keep all future migrations in Git.
 
 ## Current product boundary
 
-Only invited users with completed onboarding, completed practical priorities, an approved member profile and a clear safety state can enter marriage discovery. Discovery records interest, skip and hide decisions but does not create a conversation or expose contact information. Identity/selfie verification still requires choosing and integrating a real provider; no verification badge is granted without actual backend evidence.
+Only invited users with completed onboarding, practical priorities, an approved member profile and a clear safety state can participate. Reciprocal discovery interest may create a time-limited introduction, but each side must separately accept it. Even after mutual acceptance, Stage E does not expose chat or contact information. Identity/selfie verification still requires choosing and integrating a real provider; no verification badge is granted without actual backend evidence.
