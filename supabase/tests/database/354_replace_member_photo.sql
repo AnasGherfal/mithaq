@@ -94,7 +94,7 @@ select set_config(
 insert into m11_replace_photo (id)
 select public.register_member_photo(
   '54545454-5454-4545-8545-545454545451/original.jpg',
-  1,
+  1::smallint,
   true
 );
 
