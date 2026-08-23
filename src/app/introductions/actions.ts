@@ -30,15 +30,17 @@ export async function respondToIntroduction(formData: FormData) {
 
   if (error) redirect(`/introductions/${introId.data}?error=response`);
 
+  revalidatePath("/member");
   revalidatePath("/introductions");
   revalidatePath(`/introductions/${introId.data}`);
+  revalidatePath(`/conversations/${introId.data}`);
 
-  if (data === "mutually_accepted") redirect(`/introductions/${introId.data}?mutual=1`);
+  if (data === "mutually_accepted") redirect(`/conversations/${introId.data}?mutual=1`);
   if (data === "declined") redirect("/introductions?declined=1");
   if (data === "expired") redirect("/introductions?expired=1");
   if (data === "cancelled") redirect("/introductions?cancelled=1");
 
-  redirect(`/introductions/${introId.data}?accepted=1`);
+  redirect(`/conversations/${introId.data}?accepted=1`);
 }
 
 export async function revealIntroductionPhoto(formData: FormData) {
@@ -67,8 +69,10 @@ export async function hideRecognizedIntroduction(formData: FormData) {
 
   if (error) redirect(`/introductions/${parsed.data}?error=hide`);
 
+  revalidatePath("/member");
   revalidatePath("/introductions");
   revalidatePath("/discovery");
+  revalidatePath(`/conversations/${parsed.data}`);
   redirect("/introductions?hidden=1");
 }
 
@@ -83,7 +87,9 @@ export async function blockIntroductionMember(formData: FormData) {
 
   if (error) redirect(`/introductions/${parsed.data}?error=block`);
 
+  revalidatePath("/member");
   revalidatePath("/introductions");
   revalidatePath("/discovery");
+  revalidatePath(`/conversations/${parsed.data}`);
   redirect("/introductions?blocked=1");
 }
