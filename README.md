@@ -36,11 +36,12 @@ Open `http://localhost:3000`.
 ## Validation
 
 ```bash
+npm ci
 npm run typecheck
 npm run build
 ```
 
-The first push to `stage-a/web-foundation` also generates and commits `package-lock.json`, then runs typecheck and build in GitHub Actions. After the lockfile is present, this bootstrap workflow should be replaced by a normal `npm ci` CI workflow before merging.
+GitHub Actions runs the same dependency install, typecheck and production build on pull requests and on pushes to `main` or the Stage A feature branch.
 
 ## Supabase
 
