@@ -17,12 +17,13 @@ jobs:
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
       NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+      NODE_OPTIONS: --max-old-space-size=3072
     steps:
       - checkout
       - install_pnpm
       - run:
           name: Install dependencies
-          command: pnpm install --frozen-lockfile
+          command: pnpm install --frozen-lockfile --network-concurrency=4 --child-concurrency=2
       - run:
           name: Formatting, lint, types, unit tests, release gates, and build
           command: pnpm check
@@ -52,7 +53,7 @@ jobs:
           path: ~/project
       - run:
           name: Install mobile dependencies
-          command: npm install --legacy-peer-deps --no-package-lock
+          command: npm ci --legacy-peer-deps
       - run:
           name: Mobile TypeScript and formatting checks
           command: npm run check
@@ -72,6 +73,7 @@ jobs:
       SUPABASE_AUTH_SMS_TWILIO_ACCOUNT_SID: AC00000000000000000000000000000000
       SUPABASE_AUTH_SMS_TWILIO_MESSAGE_SERVICE_SID: MG00000000000000000000000000000000
       SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN: local-test-token-not-a-secret
+      NODE_OPTIONS: --max-old-space-size=3072
     steps:
       - checkout
       - run:
@@ -84,7 +86,7 @@ jobs:
       - install_pnpm
       - run:
           name: Install dependencies
-          command: pnpm install --frozen-lockfile
+          command: pnpm install --frozen-lockfile --network-concurrency=4 --child-concurrency=2
       - run:
           name: Validate unique Supabase migration versions
           command: |
