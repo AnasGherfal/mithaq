@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { WaitlistStatus } from "@/lib/supabase/database.types";
 
 import { ReferralShare } from "./referral-share";
-import { WaitlistForm } from "./waitlist-form";
+import { WaitlistForm, type InitialData } from "./waitlist-form";
 
 export const dynamic = "force-dynamic";
 
@@ -112,24 +112,24 @@ export default async function WaitlistPage() {
     acceptedStatuses = statusesResult.data ?? [];
   }
 
-  const initialData = {
+  const initialData: InitialData = {
     gender: application?.gender ?? "",
     ageBandId: application?.age_band_id ? String(application.age_band_id) : "",
-    residencyType: application?.residency_type ?? ("libya" as const),
+    residencyType: application?.residency_type ?? "libya",
     currentCountryCode: application?.current_country_code?.trim() ?? "LY",
     currentCity: application?.current_city ?? "",
     libyanOriginRegion: application?.libyan_origin_region ?? "",
     maritalStatus: application?.marital_status ?? "",
     hasChildren:
-      application?.has_children === true ? ("yes" as const) : application?.has_children === false ? ("no" as const) : ("" as const),
+      application?.has_children === true ? "yes" : application?.has_children === false ? "no" : "",
     libyanSelfAttestation: application?.libyan_self_attestation ?? false,
     marriageTimeline: preferences?.marriage_timeline ?? "",
     willingIdentityVerification:
       preferences?.willing_identity_verification === true
-        ? ("yes" as const)
+        ? "yes"
         : preferences?.willing_identity_verification === false
-          ? ("no" as const)
-          : ("" as const),
+          ? "no"
+          : "",
     photoPrivacyPreference: preferences?.photo_privacy_preference ?? "",
     familyInvolvementPreference: preferences?.family_involvement_preference ?? "",
     relocationWillingness: preferences?.relocation_willingness ?? "",
