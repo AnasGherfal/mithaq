@@ -10,6 +10,8 @@ import { MessageComposer } from "./message-composer";
 
 export const dynamic = "force-dynamic";
 
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 type IntroductionRow = {
   introduction_id: string;
   status: "offered" | "mutually_accepted" | "declined" | "expired" | "cancelled" | "closed";
@@ -64,14 +66,30 @@ export default async function ConversationPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ accepted?: string; mutual?: string; sent?: string; error?: string }>;
+  searchParams: Promise<{
+    accepted?: string;
+    mutual?: string;
+    sent?: string;
+    error?: string;
+    before?: string;
+    beforeId?: string;
+  }>;
 }) {
   const { id } = await params;
   const query = await searchParams;
 
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  if (!uuidPattern.test(id)) {
     notFound();
   }
+
+  const historyMode = Boolean(query.before || query.beforeId);
+  const validHistoryCursor =
+    !historyMode ||
+    (Boolean(query.before) &&
+      Boolean(query.beforeId) &&
+      Number.isFinite(Date.parse(query.before ?? "")) &&
+      uuidPattern.test(query.beforeId ?? ""));
+  if (!validHistoryCursor) redirect(`/conversations/${id}`);
 
   const supabase = await createClient();
   const rpc = asUntypedSupabase(supabase);
@@ -136,18 +154,20 @@ export default async function ConversationPage({
 
   const { data: messagesData, error: messagesError } = await rpc.rpc("list_my_conversation_messages_v2", {
     p_introduction_id: id,
-    p_before_sent_at: null,
-    p_before_message_id: null,
+    p_before_sent_at: query.before ?? null,
+    p_before_message_id: query.beforeId ?? null,
     p_limit: 50,
   });
   if (messagesError || !Array.isArray(messagesData)) return <ConversationUnavailable introductionId={id} />;
 
   const messages = messagesData as MessageRow[];
-  const lastMessageAt = messages.length > 0 ? messages[messages.length - 1]?.sent_at ?? null : null;
+  const firstMessage = messages[0] ?? null;
+  const lastMessageAt = !historyMode && messages.length > 0 ? messages[messages.length - 1]?.sent_at ?? null : null;
+  const hasOlder = messages.length === 50 && Boolean(firstMessage);
 
   return (
     <main className="min-h-screen px-5 py-6 sm:py-10">
-      <ConversationRefresh introductionId={id} lastMessageAt={lastMessageAt} />
+      {!historyMode ? <ConversationRefresh introductionId={id} lastMessageAt={lastMessageAt} /> : null}
       <div className="mx-auto w-full max-w-3xl">
         <header className="rounded-[2rem] border border-black/7 bg-white/92 p-5 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -162,7 +182,10 @@ export default async function ConversationPage({
                 </p>
               ) : null}
             </div>
-            <span className="rounded-full bg-green-50 px-4 py-2 text-xs font-black text-green-800">موافقة متبادلة · محادثة مفتوحة</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link className="rounded-full bg-[#f8f5ef] px-4 py-2 text-xs font-black text-[#8b6228]" href="/activity">النشاط</Link>
+              <span className="rounded-full bg-green-50 px-4 py-2 text-xs font-black text-green-800">موافقة متبادلة · محادثة مفتوحة</span>
+            </div>
           </div>
           <div className="mt-4 rounded-2xl bg-[#f8f5ef] px-4 py-3 text-xs leading-6 text-black/50">
             ميثاق لا يشارك رقم هاتفك أو بيانات اتصالك تلقائياً. أي نص ترسله هنا سيظهر للطرف الآخر، لذلك لا ترسل معلومات خاصة قبل أن تكون مرتاحاً لذلك.
@@ -184,16 +207,30 @@ export default async function ConversationPage({
         ) : null}
 
         <section className="mt-4 rounded-[2rem] border border-black/7 bg-[#f8f5ef] p-4 shadow-sm sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-black text-[#153d35]">الرسائل</h2>
-            <span className="text-[11px] font-bold text-black/38">تتحدث الصفحة كل 5 ثوانٍ أثناء فتحها</span>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-black text-[#153d35]">{historyMode ? "سجل الرسائل" : "الرسائل"}</h2>
+            <span className="text-[11px] font-bold text-black/38">
+              {historyMode ? "أنت تعرض دفعة أقدم من سجل المحادثة" : "تتحدث الصفحة كل 5 ثوانٍ أثناء فتحها"}
+            </span>
           </div>
+
+          {historyMode ? (
+            <div className="mt-4 flex justify-center">
+              <Link className="rounded-xl border border-black/10 bg-white px-4 py-2.5 text-xs font-black text-black/55" href={`/conversations/${id}`}>
+                العودة لأحدث الرسائل
+              </Link>
+            </div>
+          ) : null}
 
           {messages.length === 0 ? (
             <div className="my-8 text-center">
               <div className="mx-auto grid size-14 place-items-center rounded-full bg-white text-xl text-[#153d35] shadow-sm">م</div>
-              <p className="mt-3 text-sm font-black text-[#153d35]">ابدأ برسالة هادئة وواضحة</p>
-              <p className="mt-1 text-xs leading-6 text-black/45">يمكن لكل طرف إنهاء المحادثة في أي وقت.</p>
+              <p className="mt-3 text-sm font-black text-[#153d35]">
+                {historyMode ? "لا توجد رسائل أقدم" : "ابدأ برسالة هادئة وواضحة"}
+              </p>
+              <p className="mt-1 text-xs leading-6 text-black/45">
+                {historyMode ? "يمكنك العودة لأحدث الرسائل من الزر أعلاه." : "يمكن لكل طرف إنهاء المحادثة في أي وقت."}
+              </p>
             </div>
           ) : (
             <div className="mt-5 space-y-3" aria-live="polite">
@@ -214,14 +251,23 @@ export default async function ConversationPage({
             </div>
           )}
 
-          {messages.length === 50 ? (
-            <p className="mt-4 text-center text-[11px] font-bold text-black/38">نعرض أحدث 50 رسالة في هذه النسخة.</p>
+          {hasOlder && firstMessage ? (
+            <div className="mt-5 flex justify-center">
+              <Link
+                className="rounded-xl bg-[#153d35] px-4 py-2.5 text-xs font-black text-white"
+                href={`/conversations/${id}?before=${encodeURIComponent(firstMessage.sent_at)}&beforeId=${firstMessage.message_id}`}
+              >
+                عرض 50 رسالة أقدم
+              </Link>
+            </div>
           ) : null}
         </section>
 
-        <div className="mt-4">
-          <MessageComposer introductionId={id} />
-        </div>
+        {!historyMode ? (
+          <div className="mt-4">
+            <MessageComposer introductionId={id} />
+          </div>
+        ) : null}
 
         <section className="mt-4 rounded-[2rem] border border-black/7 bg-white p-5 shadow-sm sm:p-6">
           <h2 className="text-sm font-black text-[#153d35]">السلامة والتحكم</h2>

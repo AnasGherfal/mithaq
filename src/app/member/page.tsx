@@ -77,12 +77,14 @@ export default async function MemberPage({
     { data: previewRows },
     { data: introductionData },
     { data: conversationUnreadData },
+    { data: notificationUnreadData },
   ] = await Promise.all([
     supabase.rpc("get_my_marriage_practical_priorities", {}),
     supabase.rpc("get_my_marriage_visibility", {}),
     supabase.rpc("get_own_introduction_preview", {}),
     rpc.rpc("list_my_introductions", {}),
     rpc.rpc("list_my_conversation_unread_counts", {}),
+    rpc.rpc("get_my_notification_unread_count", {}),
   ]);
 
   if (!priorities?.[0]?.completed_at) redirect("/onboarding?step=priorities");
@@ -105,6 +107,7 @@ export default async function MemberPage({
     (sum, item) => sum + (Number(item.unread_count) || 0),
     0,
   );
+  const notificationUnread = Number(notificationUnreadData) || 0;
 
   let ageLabel = "—";
   if (preview?.age_band_id) {
@@ -131,6 +134,9 @@ export default async function MemberPage({
             </Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/conversations">
               المحادثات{totalConversationUnread > 0 ? ` (${totalConversationUnread})` : ""}
+            </Link>
+            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/activity">
+              النشاط{notificationUnread > 0 ? ` (${notificationUnread})` : ""}
             </Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/photos">الصور والثقة</Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/settings">الإعدادات</Link>
@@ -262,6 +268,20 @@ export default async function MemberPage({
               </div>
               {totalConversationUnread > 0 ? (
                 <span className="rounded-full bg-[#153d35] px-3 py-2 text-xs font-black text-white">{totalConversationUnread} جديدة</span>
+              ) : null}
+            </div>
+          </Link>
+
+          <Link className="mt-4 block rounded-3xl border border-[#c99a52]/20 bg-[#c99a52]/5 p-5 transition hover:border-[#c99a52]/40" href="/activity">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-black text-[#8b6228]">مركز النشاط</div>
+                <p className="mt-2 text-xs leading-6 text-black/48">
+                  إشعارات مختصرة عن المقدمات والموافقة والرسائل بدون عرض نص الرسائل أو بيانات اتصال خاصة.
+                </p>
+              </div>
+              {notificationUnread > 0 ? (
+                <span className="rounded-full bg-[#8b6228] px-3 py-2 text-xs font-black text-white">{notificationUnread} جديد</span>
               ) : null}
             </div>
           </Link>
