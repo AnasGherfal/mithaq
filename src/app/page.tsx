@@ -143,6 +143,7 @@ export default async function Home({
       <footer className="border-t border-black/7 px-5 py-8 text-center text-xs leading-6 text-black/45">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-5 gap-y-2">
           <span>© 2026 ميثاق</span>
+          <Link href="/safety" className="hover:text-[#153d35]">الأمان والثقة</Link>
           <Link href="/privacy" className="hover:text-[#153d35]">الخصوصية</Link>
           <Link href="/terms" className="hover:text-[#153d35]">الشروط</Link>
         </div>

@@ -19,12 +19,35 @@ const statusCopy: Record<WaitlistStatus, { title: string; text: string }> = {
   deleted: { title: "تم حذف بيانات الطلب", text: "بيانات قائمة الانتظار لم تعد نشطة." },
 };
 
+function AccountActions({ isAdmin }: { isAdmin: boolean }) {
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-1">
+      {isAdmin ? (
+        <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-[#8b6228] hover:bg-white" href="/admin">
+          الإدارة
+        </Link>
+      ) : null}
+      <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/settings">
+        الإعدادات
+      </Link>
+      <form action="/auth/signout" method="post">
+        <button className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" type="submit">
+          تسجيل الخروج
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export default async function WaitlistPage() {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
 
   if (!userId) redirect("/join");
+
+  const { data: moderationAccess } = await supabase.rpc("get_my_moderation_access", {});
+  const isAdmin = moderationAccess?.some((access) => access.moderation_role === "admin") ?? false;
 
   const { data: ageBands, error: ageError } = await supabase
     .from("age_bands")
@@ -66,9 +89,7 @@ export default async function WaitlistPage() {
               <span className="grid size-9 place-items-center rounded-xl bg-[#153d35] text-white">م</span>
               ميثاق
             </Link>
-            <form action="/auth/signout" method="post">
-              <button className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" type="submit">تسجيل الخروج</button>
-            </form>
+            <AccountActions isAdmin={isAdmin} />
           </div>
 
           <section className="mt-8 rounded-[2rem] border border-black/7 bg-white/85 p-7 shadow-[0_25px_70px_rgba(35,43,38,.1)] sm:p-9">
@@ -87,6 +108,7 @@ export default async function WaitlistPage() {
 
             <div className="mt-6 rounded-2xl bg-[#f8f5ef] p-4 text-xs leading-6 text-black/48">
               لا ترسل صوراً شخصية أو مستندات هوية لأي شخص يدّعي أنه يمثل ميثاق. أي خطوة تحقق مستقبلية ستظهر داخل المنتج نفسه.
+              <Link className="mr-1 font-black text-[#8b6228] underline" href="/safety">اقرأ إرشادات الأمان.</Link>
             </div>
           </section>
         </div>
@@ -149,9 +171,7 @@ export default async function WaitlistPage() {
             <span className="grid size-9 place-items-center rounded-xl bg-[#153d35] text-white">م</span>
             ميثاق
           </Link>
-          <form action="/auth/signout" method="post">
-            <button className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" type="submit">تسجيل الخروج</button>
-          </form>
+          <AccountActions isAdmin={isAdmin} />
         </div>
 
         <section className="mt-7 rounded-[2rem] border border-black/7 bg-white/88 p-6 shadow-[0_25px_70px_rgba(35,43,38,.1)] sm:p-9">
