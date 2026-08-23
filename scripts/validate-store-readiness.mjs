@@ -182,6 +182,10 @@ await resolveAsset(
   "Splash image",
 );
 
+if (easConfig.cli?.appVersionSource !== "remote") {
+  errors.push("EAS appVersionSource must remain remote so native build numbers are server-managed");
+}
+
 const development = easConfig.build?.development;
 if (
   development?.developmentClient !== true ||
@@ -202,8 +206,8 @@ if (
     "EAS preview must remain an internal build using the preview environment",
   );
 }
-if (preview?.ios?.autoIncrement !== "buildNumber") {
-  errors.push("EAS preview must auto-increment the iOS build number");
+if (preview?.autoIncrement !== true) {
+  errors.push("EAS preview must auto-increment Android versionCode and iOS buildNumber");
 }
 
 const production = easConfig.build?.production;
@@ -253,5 +257,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, Expo SDK 54 native beta stack present, discreet notification channel locked, 1024px native artwork present, development/preview/production EAS profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
+  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, Expo SDK 54 native beta stack present, discreet notification channel locked, remote native versioning enabled, 1024px native artwork present, development/preview/production EAS profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
 );
