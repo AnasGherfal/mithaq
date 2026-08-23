@@ -71,11 +71,7 @@ export default function StatusScreen() {
         .eq("user_id", data.session.user.id)
         .maybeSingle(),
       supabase.from("member_profiles").select("profile_completed_at").eq("user_id", data.session.user.id).maybeSingle(),
-      supabase
-        .from("member_profile_reviews")
-        .select("state")
-        .eq("user_id", data.session.user.id)
-        .maybeSingle(),
+      supabase.from("member_profile_reviews").select("state").eq("user_id", data.session.user.id).maybeSingle(),
     ]);
 
     if (userResult.error || applicationResult.error || profileResult.error || reviewResult.error) {
