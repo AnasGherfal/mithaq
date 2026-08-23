@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { asUntypedSupabase } from "@/lib/supabase/untyped";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,13 @@ const maritalLabels: Record<string, string> = {
   married: "متزوج/متزوجة",
 };
 
+const reviewLabels: Record<string, string> = {
+  pending: "قيد المراجعة",
+  approved: "معتمد",
+  needs_changes: "يحتاج تعديلاً",
+  rejected: "غير معتمد",
+};
+
 export default async function MemberPage({
   searchParams,
 }: {
@@ -19,12 +27,13 @@ export default async function MemberPage({
 }) {
   const params = await searchParams;
   const supabase = await createClient();
+  const rpc = asUntypedSupabase(supabase);
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
 
   if (!userId) redirect("/join");
 
-  const [{ data: application }, { data: profile }, { data: spaces }] = await Promise.all([
+  const [{ data: application }, { data: profile }, { data: spaces }, { data: review }] = await Promise.all([
     supabase
       .from("waitlist_applications")
       .select("status")
@@ -36,6 +45,11 @@ export default async function MemberPage({
       .eq("user_id", userId)
       .maybeSingle(),
     supabase.rpc("list_my_connection_spaces", {}),
+    rpc
+      .from("member_profile_reviews")
+      .select("state,reason_code")
+      .eq("user_id", userId)
+      .maybeSingle(),
   ]);
 
   if (application?.status !== "invited") redirect("/waitlist");
@@ -53,6 +67,9 @@ export default async function MemberPage({
   if (!priorities?.[0]?.completed_at) redirect("/onboarding?step=priorities");
 
   const preview = previewRows?.[0];
+  const reviewState = typeof review?.state === "string" ? review.state : "pending";
+  const discoveryReady = reviewState === "approved";
+
   let ageLabel = "—";
   if (preview?.age_band_id) {
     const { data: band } = await supabase
@@ -71,7 +88,8 @@ export default async function MemberPage({
             <span className="grid size-9 place-items-center rounded-xl bg-[#153d35] text-white">م</span>
             ميثاق
           </Link>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
+            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/discovery">الاستكشاف</Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/photos">الصور والثقة</Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/settings">الإعدادات</Link>
             <form action="/auth/signout" method="post">
@@ -92,13 +110,24 @@ export default async function MemberPage({
               <p className="text-sm font-black text-[#9d702d]">المرحلة الخاصة</p>
               <h1 className="mt-2 text-3xl font-black text-[#153d35]">ملفك الأساسي جاهز</h1>
               <p className="mt-3 max-w-xl text-sm leading-7 text-black/55">
-                أكملت معلومات الملف والأولويات الأساسية. يمكنك الآن إدارة صورك ومتابعة حالة الثقة، بينما يظل الاستكشاف والمحادثة مغلقين حتى نكمل ضوابط المرحلة التالية.
+                أكملت معلومات الملف والأولويات الأساسية. الاستكشاف محدود بملفات يطابق كل طرف فيها الشروط الأساسية للطرف الآخر، ولا يفتح أي تواصل مباشر.
               </p>
             </div>
-            <span className="rounded-full bg-[#153d35]/8 px-4 py-2 text-xs font-black text-[#153d35]">
-              الظهور: {visibility === "standard" ? "عادي" : "خاص"}
-            </span>
+            <div className="flex flex-col items-end gap-2">
+              <span className="rounded-full bg-[#153d35]/8 px-4 py-2 text-xs font-black text-[#153d35]">
+                الظهور: {visibility === "standard" ? "عادي" : "خاص"}
+              </span>
+              <span className={`rounded-full px-4 py-2 text-xs font-black ${discoveryReady ? "bg-green-50 text-green-800" : "bg-amber-50 text-amber-800"}`}>
+                مراجعة الملف: {reviewLabels[reviewState] ?? reviewState}
+              </span>
+            </div>
           </div>
+
+          {review?.reason_code && reviewState !== "approved" ? (
+            <div className="mt-5 rounded-2xl bg-orange-50 p-4 text-xs font-bold leading-6 text-orange-800">
+              ملاحظة المراجعة: {review.reason_code}
+            </div>
+          ) : null}
 
           <div className="mt-7 rounded-3xl border border-black/8 bg-[#f8f5ef] p-5 sm:p-6">
             <div className="flex items-center justify-between gap-3">
@@ -134,7 +163,7 @@ export default async function MemberPage({
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <Link className="rounded-3xl border border-black/8 bg-white p-5 transition hover:border-[#153d35]/25" href="/onboarding?step=profile">
               <div className="text-sm font-black text-[#153d35]">تعديل ملفي</div>
-              <p className="mt-2 text-xs leading-6 text-black/45">الاسم الظاهر، النبذة، المهنة والتعليم.</p>
+              <p className="mt-2 text-xs leading-6 text-black/45">الاسم الظاهر، النبذة، المهنة والتعليم. أي تعديل جوهري يعيد الملف للمراجعة.</p>
             </Link>
             <Link className="rounded-3xl border border-black/8 bg-white p-5 transition hover:border-[#153d35]/25" href="/onboarding?step=priorities">
               <div className="text-sm font-black text-[#153d35]">تعديل أولويات الزواج</div>
@@ -142,17 +171,26 @@ export default async function MemberPage({
             </Link>
           </div>
 
-          <Link className="mt-6 block rounded-3xl border border-[#c99a52]/25 bg-[#c99a52]/8 p-5 transition hover:border-[#c99a52]/45" href="/photos">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-black text-[#8b6228]">الصور وحالة الثقة</div>
-                <p className="mt-2 text-xs leading-6 text-black/52">
-                  أضف صوراً خاصة، اختر الرئيسية، تابع المراجعة، وشاهد ما تم التحقق منه فعلياً في حسابك.
-                </p>
-              </div>
-              <span className="text-xl text-[#8b6228]">‹</span>
-            </div>
-          </Link>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <Link className="block rounded-3xl border border-[#c99a52]/25 bg-[#c99a52]/8 p-5 transition hover:border-[#c99a52]/45" href="/photos">
+              <div className="text-sm font-black text-[#8b6228]">الصور وحالة الثقة</div>
+              <p className="mt-2 text-xs leading-6 text-black/52">
+                أضف صوراً خاصة، اختر الرئيسية، تابع المراجعة، وشاهد ما تم التحقق منه فعلياً.
+              </p>
+            </Link>
+
+            <Link
+              className={`block rounded-3xl border p-5 transition ${discoveryReady ? "border-[#153d35]/20 bg-[#153d35] text-white hover:bg-[#12362f]" : "border-black/8 bg-black/[.025] text-black/45"}`}
+              href="/discovery"
+            >
+              <div className={`text-sm font-black ${discoveryReady ? "text-white" : "text-[#153d35]"}`}>الاستكشاف الخاص</div>
+              <p className={`mt-2 text-xs leading-6 ${discoveryReady ? "text-white/75" : "text-black/45"}`}>
+                {discoveryReady
+                  ? "شاهد عدداً محدوداً من الملفات المتوافقة وسجل اهتماماً أو تخطياً بدون فتح محادثة."
+                  : "سيفتح بعد اعتماد ملفك. يمكنك فتح الصفحة الآن لمتابعة حالة المراجعة."}
+              </p>
+            </Link>
+          </div>
 
           <div className="mt-4 rounded-2xl bg-[#f8f5ef] p-4 text-xs leading-6 text-black/45">
             تحقق الهوية الرسمي لم يتم ربطه بمزود خارجي بعد. لن نعرض أي علامة تحقق قبل وجود دليل فعلي في النظام.

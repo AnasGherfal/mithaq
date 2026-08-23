@@ -9,6 +9,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link className="rounded-xl px-3 py-2 text-black/50 hover:bg-[#f8f5ef] hover:text-[#153d35]" href="/admin">
             قائمة الانتظار
           </Link>
+          <Link className="rounded-xl px-3 py-2 text-black/50 hover:bg-[#f8f5ef] hover:text-[#153d35]" href="/admin/profiles">
+            مراجعة الملفات
+          </Link>
           <Link className="rounded-xl px-3 py-2 text-black/50 hover:bg-[#f8f5ef] hover:text-[#153d35]" href="/admin/photos">
             مراجعة الصور
           </Link>
