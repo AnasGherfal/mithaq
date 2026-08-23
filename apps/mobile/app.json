@@ -10,7 +10,10 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.mithaq.app",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.mithaq.app",
