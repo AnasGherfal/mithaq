@@ -34,8 +34,8 @@ select is(
 select ok(
   pg_get_functiondef(
     'public.resolve_introduction_photo_path_for_service(uuid,uuid,uuid)'::regprocedure
-  ) like '%introduction_member_photo_is_revealed%',
-  'the resolver requires the target member photo to be revealed for this introduction'
+  ) like '%introduction_member_photo_is_visible%',
+  'the resolver uses the final introduction photo-stage visibility guard'
 );
 
 select ok(
