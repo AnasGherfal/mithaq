@@ -33,6 +33,7 @@ type AccountPath =
   | "/notification-privacy"
   | "/security"
   | "/dev-family-handoff"
+  | "/dev-recognition"
   | "/dev-activity";
 
 export default function AccountScreen() {
@@ -53,14 +54,14 @@ export default function AccountScreen() {
         title: "حسابي", body: "ملف الزواج وخصوصيتك وأمان حسابك في مكان واحد.", member: "عضو ميثاق", ready: "ملف الزواج جاهز", incomplete: "ملف الزواج يحتاج إلى إكمال", deletion: "طلب حذف الحساب قيد المعالجة",
         marriage: "الزواج", profile: "ملفي الخاص", profileBody: "الاسم الظاهر والنبذة والتفاصيل التي تختار مشاركتها.", photos: "صوري الخاصة", photosBody: "الصور اختيارية. «خصوصية أولاً» يبقيها مخفية، والملف المفتوح قد يعرض صورة معتمدة باختيارك.", preferences: "تفضيلات الزواج", preferencesBody: "العمر والمكان والحالة الاجتماعية وحدودك الأساسية.", priorities: "أولويات الحياة الزوجية", prioritiesBody: "السكن والأطفال والعمل وتوقعات حفل الزواج.", visibility: "الخصوصية ومن لا يظهر لك", visibilityBody: "درع العائلة، تفاصيل الظهور، وما نتحقق منه فعلاً.", trustedContacts: "دائرة الثقة", trustedContactsBody: "احفظ حتى ثلاثة أشخاص قد تختار إشراك أحدهم بعد قبول متبادل.",
         trust: "الخصوصية والأمان", privacy: "الخصوصية والموافقات", privacyBody: "الموافقات والتحديثات الاختيارية وطلب حذف الحساب.", safety: "مركز السلامة", safetyBody: "البلاغات والحظر وضوابط حماية التعارف.", notifications: "الإشعارات", notificationsBody: "تنبيهات محايدة على شاشة القفل افتراضياً، وأنت تختار إن كان مسموحاً بإظهار تفاصيل أكثر.", security: "أمان الجهاز والحساب", securityBody: "القفل البيومتري والجلسات المسجلة على أجهزة أخرى.",
-        development: "للتطوير فقط", familyPreview: "معاينة التسليم العائلي", familyPreviewBody: "جرّب مشاركة جهات الاتصال والصورة بعد إشراك العائلة بدون حساب ثانٍ أو أرقام حقيقية.", activityPreview: "معاينة رحلة النشاط", activityPreviewBody: "راجع تسلسل الاهتمام والتعارف والقبول والمحادثة ودائرة الثقة ببيانات محلية وهمية.",
+        development: "للتطوير فقط", familyPreview: "معاينة التسليم العائلي", familyPreviewBody: "جرّب مشاركة جهات الاتصال والصورة بعد إشراك العائلة بدون حساب ثانٍ أو أرقام حقيقية.", activityPreview: "معاينة رحلة النشاط", activityPreviewBody: "راجع تسلسل الاهتمام والتعارف والقبول والمحادثة ودائرة الثقة ببيانات محلية وهمية.", recognitionPreview: "معاينة معرفة الشخص", recognitionPreviewBody: "جرّب خيار «أعرف هذا الشخص» والإخفاء المتبادل بدون عضو حقيقي أو تغيير أي بيانات.",
         app: "التطبيق", language: "اللغة", languageBody: "العربية · اضغط للتبديل إلى English", signOut: "تسجيل الخروج", signOutBody: "إنهاء الجلسة المحفوظة على هذا الجهاز وإيقاف تنبيهاته الخاصة بالحساب.", loadErrorTitle: "تعذر تحميل حسابك", loadErrorBody: "تحقق من اتصالك ثم حاول مرة أخرى.", retry: "إعادة المحاولة", languageError: "تعذر حفظ اللغة الآن. حاول مرة أخرى.",
       }
     : {
         title: "Account", body: "Your Marriage profile, privacy, and account security in one place.", member: "Mithaq member", ready: "Marriage profile ready", incomplete: "Marriage profile needs completion", deletion: "Account deletion is being processed",
         marriage: "Marriage", profile: "Private profile", profileBody: "Your display name, introduction, and details you choose to share.", photos: "Private photos", photosBody: "Photos are optional. Private first keeps them hidden; an Open profile may show an approved photo by your choice.", preferences: "Marriage preferences", preferencesBody: "Age, location, marital-status choices, and essential boundaries.", priorities: "Marriage life priorities", prioritiesBody: "Housing, children, work, and wedding expectations.", visibility: "Privacy & people shield", visibilityBody: "Family Shield, detail visibility, and what Mithaq has actually verified.", trustedContacts: "Trusted contacts", trustedContactsBody: "Save up to three people you may choose to involve after mutual acceptance.",
         trust: "Privacy & security", privacy: "Privacy & consent", privacyBody: "Consent history, optional updates, and account deletion.", safety: "Safety Center", safetyBody: "Reports, blocks, and controls that protect introductions.", notifications: "Notifications", notificationsBody: "Neutral lock-screen updates by default. You decide whether more detail is allowed.", security: "Device & account security", securityBody: "Biometric protection and sessions on other devices.",
-        development: "Development only", familyPreview: "Family handoff preview", familyPreviewBody: "Test contact sharing and the after-family photo stage without a second account or real phone numbers.", activityPreview: "Activity journey preview", activityPreviewBody: "Review interest, introduction, acceptance, conversation, and Trusted Circle stages with local fake data.",
+        development: "Development only", familyPreview: "Family handoff preview", familyPreviewBody: "Test contact sharing and the after-family photo stage without a second account or real phone numbers.", activityPreview: "Activity journey preview", activityPreviewBody: "Review interest, introduction, acceptance, conversation, and Trusted Circle stages with local fake data.", recognitionPreview: "Recognized-person preview", recognitionPreviewBody: "Test “I know this person” and the reciprocal privacy hide without a real member or database change.",
         app: "App", language: "Language", languageBody: "English · tap to switch to العربية", signOut: "Sign out", signOutBody: "End the saved session on this device and unregister its private account alerts.", loadErrorTitle: "We couldn’t load your account", loadErrorBody: "Check your connection, then try again.", retry: "Try again", languageError: "We couldn’t save the language right now. Try again.",
       };
 
@@ -146,6 +147,7 @@ export default function AccountScreen() {
           {__DEV__ ? (
             <SettingsGroup title={copy.development} rtl={rtl}>
               <SettingsRow rtl={rtl} icon="activity" title={copy.activityPreview} body={copy.activityPreviewBody} onPress={() => open("/dev-activity")} />
+              <SettingsRow rtl={rtl} icon="privacy" title={copy.recognitionPreview} body={copy.recognitionPreviewBody} onPress={() => open("/dev-recognition")} />
               <SettingsRow rtl={rtl} icon="account" title={copy.familyPreview} body={copy.familyPreviewBody} onPress={() => open("/dev-family-handoff")} last />
             </SettingsGroup>
           ) : null}
