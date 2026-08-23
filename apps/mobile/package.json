@@ -1,6 +1,6 @@
 {
   "name": "@mithaq/mobile",
-  "version": "0.1.0-expo-go-preview",
+  "version": "0.1.0",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
