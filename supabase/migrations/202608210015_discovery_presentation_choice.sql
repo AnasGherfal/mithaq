@@ -240,7 +240,7 @@ returns table (
 language plpgsql
 security definer
 set search_path = public, private
-as $$;
+as $$
 begin
   if p_viewer_user_id is null
      or p_candidate_user_id is null
