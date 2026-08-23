@@ -9,6 +9,12 @@ import { asUntypedSupabase } from "@/lib/supabase/untyped";
 
 const candidateSchema = z.string().uuid();
 
+type DiscoveryActionResult = {
+  action_id: string;
+  introduction_id: string | null;
+  mutual_interest: boolean;
+};
+
 async function getAuthenticatedRpc() {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
@@ -21,13 +27,21 @@ export async function noticeCandidate(formData: FormData) {
   if (!parsed.success) redirect("/discovery?error=invalid");
 
   const { rpc } = await getAuthenticatedRpc();
-  const { error } = await rpc.rpc("record_marriage_discovery_action", {
+  const { data, error } = await rpc.rpc("record_marriage_discovery_action_v2", {
     p_candidate_user_id: parsed.data,
     p_action: "noticed",
   });
 
   if (error) redirect("/discovery?error=unavailable");
+
+  const result = Array.isArray(data) ? (data[0] as DiscoveryActionResult | undefined) : undefined;
   revalidatePath("/discovery");
+  revalidatePath("/introductions");
+
+  if (result?.mutual_interest && result.introduction_id) {
+    redirect(`/introductions/${result.introduction_id}?new=1`);
+  }
+
   redirect("/discovery?noticed=1");
 }
 
