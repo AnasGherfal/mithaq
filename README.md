@@ -4,28 +4,29 @@ Mithaq is an Arabic-first, privacy-forward product for serious marriage introduc
 
 ## Current milestone
 
-Stages A through D are merged to `main`.
+Stages A through E are merged to `main`.
 
-Stage E adds controlled introductions on top of private discovery while keeping conversation UI closed until the next milestone.
+Stage F opens a controlled, text-only conversation after explicit mutual acceptance while keeping contact details private and retaining the existing safety gates.
 
-The current Stage E slice includes:
+The current Stage F slice includes:
 
-- shared participation gate tightened to the marriage-only launch rules
+- shared participation gate remains tied to the marriage-only launch rules
 - reciprocal discovery interest creates at most one seven-day controlled introduction
 - discovery interest does **not** count as accepting the introduction
-- both members start each introduction with a fresh `pending` decision
 - explicit accept / decline required from each member
 - only two accepts produce `mutually_accepted`
-- introduction inbox with active and historical states
-- privacy-aware introduction detail and compatibility reasons
+- mutually accepted introductions can open a private in-app conversation
+- conversation inbox with unread counts
+- text-only messages limited to 2,000 characters
+- idempotent sends and a per-member conversation rate limit enforced in Postgres
+- read-state tracking and cursor-ready message history
+- message-received notifications
+- report, block and end-conversation controls
 - private approved-photo access with five-minute signed URLs
-- saved photo privacy rules continue to control visibility inside introductions
-- explicit photo reveal consent supported after mutual acceptance where required
-- recognized-person hide and member block actions
-- existing offer and mutual-acceptance notification triggers reused
-- no phone numbers, external contact details or conversation UI exposed
+- explicit photo reveal consent after mutual acceptance where required
+- no automatic phone-number or external-contact sharing
 
-The existing `mithaq-staging` Supabase project remains the backend source of truth. The conversation backend already exists but is intentionally not surfaced by Stage E.
+The existing `mithaq-staging` Supabase project remains the backend source of truth. The conversation backend predates the application repository and is now surfaced through the Stage F web flow.
 
 ## Local setup
 
@@ -69,9 +70,11 @@ Repository-tracked migrations added after the initial backend build include:
 - `20260823133642_stage_d_private_discovery_photo_access.sql`
 - `20260823134631_stage_e_invited_participation_and_mutual_interest.sql`
 - `20260823134706_stage_e_private_introduction_photo_access.sql`
+- `20260823135616_stage_f_message_notification_trigger.sql`
+- `20260823171236_stage_f_remove_duplicate_message_notification_trigger.sql`
 
 Earlier staging migrations were created before the application repository was scaffolded and are not yet mirrored here. Before production, export/baseline the complete schema and keep all future migrations in Git.
 
 ## Current product boundary
 
-Only invited users with completed onboarding, practical priorities, an approved member profile and a clear safety state can participate. Reciprocal discovery interest may create a time-limited introduction, but each side must separately accept it. Even after mutual acceptance, Stage E does not expose chat or contact information. Identity/selfie verification still requires choosing and integrating a real provider; no verification badge is granted without actual backend evidence.
+Only invited users with completed onboarding, practical priorities, an approved member profile and a clear safety state can participate. Reciprocal discovery interest may create a time-limited introduction, and each side must separately accept it before conversation can open. Stage F exposes text chat only while continuing to withhold phone numbers and other external contact details. Identity/selfie verification still requires choosing and integrating a real provider; no verification badge is granted without actual backend evidence.
