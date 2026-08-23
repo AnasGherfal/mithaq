@@ -1,6 +1,7 @@
 # Mithaq private-beta acceptance plan
 
-This document defines exactly when a human test is required and when synthetic/automated testing is the correct substitute.
+This document defines exactly when a human test is required and when
+synthetic/automated testing is the correct substitute.
 
 ## Gate A — Automated release-candidate checks
 
@@ -15,11 +16,13 @@ Required checks:
 - database migration and pgTAP/regression tests
 - client-secret and private-schema boundary checks
 - release metadata/contract checks
-- conversation idempotency: one retry = one message + one recipient activity event
+- conversation idempotency: one retry = one message + one recipient activity
+  event
 - notification/activity cursor tests, including equal timestamps
 - safety/report/block/close database gates
 - account deletion and retention guards
-- no accidental exposure of phone numbers or raw private identifiers through member RPCs
+- no accidental exposure of phone numbers or raw private identifiers through
+  member RPCs
 
 Human testing does not start while a deterministic blocker is red.
 
@@ -34,7 +37,8 @@ Prerequisites:
 - hosted staging healthy
 - two sanctioned phone-login staging accounts
 - one admin/moderator login
-- both accounts can receive or otherwise legitimately complete the configured staging OTP flow
+- both accounts can receive or otherwise legitimately complete the configured
+  staging OTP flow
 - no auth bypass or fabricated persistent auth rows
 
 Use Account A and Account B.
@@ -45,13 +49,15 @@ For each account:
 
 1. Sign in with phone OTP.
 2. Complete the waitlist questionnaire and consent.
-3. Confirm the app shows the application as submitted rather than immediately unlocking member discovery.
+3. Confirm the app shows the application as submitted rather than immediately
+   unlocking member discovery.
 4. In admin, move the application through `submitted → qualified → invited`.
 5. Confirm only `invited` unlocks member profile setup.
 
 Expected privacy result:
 
-- member-facing screens never show the other account's phone number or login identity.
+- member-facing screens never show the other account's phone number or login
+  identity.
 
 ### B2. Member setup and review
 
@@ -77,7 +83,8 @@ Also test one `needs changes` cycle on at least one account before approval.
 
 Expected privacy result:
 
-- neither account sees the other's raw user ID, phone number, login metadata, or hidden discovery signal.
+- neither account sees the other's raw user ID, phone number, login metadata, or
+  hidden discovery signal.
 
 ### B4. Controlled introduction
 
@@ -100,11 +107,14 @@ Expected privacy result:
 ### B6. Safety and closure
 
 1. Test a report without block where supported.
-2. Test report + block on the other controlled fixture/pair or after resetting fixtures.
+2. Test report + block on the other controlled fixture/pair or after resetting
+   fixtures.
 3. Test conversation closure.
 4. Confirm post-close sends fail.
-5. Confirm blocked users no longer regain the pair through discovery/introduction paths.
-6. Admin confirms the report appears in the safety queue and transitions can be audited.
+5. Confirm blocked users no longer regain the pair through
+   discovery/introduction paths.
+6. Admin confirms the report appears in the safety queue and transitions can be
+   audited.
 
 ### B7. Device/layout smoke
 
@@ -115,7 +125,8 @@ Repeat the critical journey on:
 - Arabic RTL
 - English LTR
 
-Check keyboard handling, safe areas, text clipping, back navigation, loading/error states, and private app-switcher/screen protections where enabled.
+Check keyboard handling, safe areas, text clipping, back navigation,
+loading/error states, and private app-switcher/screen protections where enabled.
 
 ## Gate C — Synthetic population and scale
 
@@ -135,13 +146,16 @@ Use controlled staging/performance fixtures to exercise:
 - concurrent message sends and discovery actions
 - moderation/report queue volume
 
-Synthetic fixtures must be isolated and removable. They must not use fake persistent login identities to impersonate real OTP users.
+Synthetic fixtures must be isolated and removable. They must not use fake
+persistent login identities to impersonate real OTP users.
 
 ## Gate D — Small private beta
 
 **Label: NEEDS BETA USERS**
 
-Recommended first cohort: approximately 10–20 real testers, with enough men/women and preference diversity to create multiple legitimate candidate combinations.
+Recommended first cohort: approximately 10–20 real testers, with enough
+men/women and preference diversity to create multiple legitimate candidate
+combinations.
 
 Questions this gate answers that automation cannot:
 
@@ -153,9 +167,11 @@ Questions this gate answers that automation cannot:
 - Is the wait for review/invitation understandable?
 - Do people know when family involvement should happen?
 - Is the moderation/reporting flow usable?
-- Do users immediately try to share contact details, and does the product guidance remain appropriate?
+- Do users immediately try to share contact details, and does the product
+  guidance remain appropriate?
 
-Do not interpret 'zero matches' as a bug until the candidate pool and hard constraints are inspected.
+Do not interpret 'zero matches' as a bug until the candidate pool and hard
+constraints are inspected.
 
 ## Gate E — Expanded beta
 
@@ -188,7 +204,8 @@ Before public launch:
 - production Supabase and secrets configured
 - backups and monitoring verified
 - retention/maintenance workers scheduled and observed successfully
-- real SMS delivery tested on target Libya carriers and representative diaspora regions
+- real SMS delivery tested on target Libya carriers and representative diaspora
+  regions
 - push delivery tested on signed builds
 - TestFlight/internal Android builds accepted
 - production privacy/support/deletion URLs live
