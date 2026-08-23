@@ -82,7 +82,7 @@ values
 create temporary table m11_replace_photo (
   id uuid primary key
 ) on commit drop;
-grant select on m11_replace_photo to authenticated, service_role;
+grant select, insert on m11_replace_photo to authenticated, service_role;
 
 set local role authenticated;
 select set_config(

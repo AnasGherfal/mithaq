@@ -9,18 +9,21 @@ import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius, shadows } from "@/theme";
 
+type ProfileReviewState = "pending" | "approved" | "needs_changes" | "rejected";
+
 type RegistrationState = {
   questionnaireComplete: boolean;
-  submitted: boolean;
+  applicationStatus: string | null;
   profileComplete: boolean;
+  profileReviewState: ProfileReviewState | null;
   deletionPending: boolean;
 };
 
 type NextStep = {
   title: string;
   body: string;
-  action: string;
-  pathname: "/questionnaire" | "/consent" | "/profile" | "/marriage-discover" | "/privacy";
+  action: string | null;
+  pathname: "/questionnaire" | "/consent" | "/profile" | "/marriage-discover" | "/privacy" | null;
 };
 
 type FlowIcon = "sliders" | "introductions" | "chat";
@@ -38,8 +41,9 @@ export default function StatusScreen() {
   const [loadError, setLoadError] = useState(false);
   const [registration, setRegistration] = useState<RegistrationState>({
     questionnaireComplete: false,
-    submitted: false,
+    applicationStatus: null,
     profileComplete: false,
+    profileReviewState: null,
     deletionPending: false,
   });
 
@@ -59,7 +63,7 @@ export default function StatusScreen() {
       return;
     }
 
-    const [userResult, applicationResult, profileResult] = await Promise.all([
+    const [userResult, applicationResult, profileResult, reviewResult] = await Promise.all([
       supabase.from("users").select("account_status").eq("id", data.session.user.id).maybeSingle(),
       supabase
         .from("waitlist_applications")
@@ -67,19 +71,28 @@ export default function StatusScreen() {
         .eq("user_id", data.session.user.id)
         .maybeSingle(),
       supabase.from("member_profiles").select("profile_completed_at").eq("user_id", data.session.user.id).maybeSingle(),
+      supabase.from("member_profile_reviews").select("state").eq("user_id", data.session.user.id).maybeSingle(),
     ]);
 
-    if (userResult.error || applicationResult.error || profileResult.error) {
+    if (userResult.error || applicationResult.error || profileResult.error || reviewResult.error) {
       setLoadError(true);
       setLoading(false);
       return;
     }
 
     const application = applicationResult.data;
+    const reviewState = reviewResult.data?.state;
     setRegistration({
       questionnaireComplete: Boolean(application?.questionnaire_completed_at),
-      submitted: application?.status === "submitted",
+      applicationStatus: application?.status ?? null,
       profileComplete: Boolean(profileResult.data?.profile_completed_at),
+      profileReviewState:
+        reviewState === "pending" ||
+        reviewState === "approved" ||
+        reviewState === "needs_changes" ||
+        reviewState === "rejected"
+          ? reviewState
+          : null,
       deletionPending: userResult.data?.account_status === "deletion_pending",
     });
     setLoading(false);
@@ -89,12 +102,17 @@ export default function StatusScreen() {
     void load();
   }, [load]);
 
+  const applicationSubmitted = ["submitted", "qualified", "invited"].includes(registration.applicationStatus ?? "");
+  const membershipInvited = registration.applicationStatus === "invited";
+  const profileApproved = registration.profileReviewState === "approved";
   const completedSteps =
     1 +
     Number(registration.questionnaireComplete) +
-    Number(registration.submitted) +
-    Number(registration.profileComplete);
-  const readiness = Math.round((completedSteps / 4) * 100);
+    Number(applicationSubmitted) +
+    Number(membershipInvited) +
+    Number(registration.profileComplete) +
+    Number(profileApproved);
+  const readiness = Math.round((completedSteps / 6) * 100);
   const nextStep = resolveNextStep(registration, rtl);
 
   return (
@@ -117,7 +135,7 @@ export default function StatusScreen() {
           <View style={styles.progressBlock}>
             <View style={[styles.progressRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
               <Text style={[styles.progressLabel, { textAlign, writingDirection }]}>
-                {rtl ? "جاهزية الملف" : "Profile readiness"}
+                {rtl ? "جاهزية العضوية" : "Membership readiness"}
               </Text>
               <Text style={[styles.progressValue, { textAlign: rtl ? "left" : "right" }]}>{readiness}%</Text>
             </View>
@@ -155,18 +173,20 @@ export default function StatusScreen() {
             <Text style={[styles.nextBody, rtl ? styles.nextBodyArabic : null, { textAlign, writingDirection }]}>
               {nextStep.body}
             </Text>
-            <View style={styles.action}>
-              <PrimaryButton
-                onPress={() =>
-                  router.push({
-                    pathname: nextStep.pathname,
-                    params: { locale },
-                  })
-                }
-              >
-                {nextStep.action}
-              </PrimaryButton>
-            </View>
+            {nextStep.pathname && nextStep.action ? (
+              <View style={styles.action}>
+                <PrimaryButton
+                  onPress={() =>
+                    router.push({
+                      pathname: nextStep.pathname as Exclude<NextStep["pathname"], null>,
+                      params: { locale },
+                    })
+                  }
+                >
+                  {nextStep.action}
+                </PrimaryButton>
+              </View>
+            ) : null}
           </View>
 
           <View style={[styles.howItWorks, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
@@ -215,14 +235,38 @@ function resolveNextStep(registration: RegistrationState, rtl: boolean): NextSte
     };
   }
 
-  if (!registration.submitted) {
+  const applicationSubmitted = ["submitted", "qualified", "invited"].includes(registration.applicationStatus ?? "");
+  if (!applicationSubmitted) {
     return {
       title: rtl ? "راجع موافقتك" : "Review your consent",
       body: rtl
-        ? "راجع استخدام بياناتك، ثم أكّد مشاركتك."
-        : "Review how your data is used, then confirm participation.",
+        ? "راجع استخدام بياناتك، ثم أكّد إرسال طلب الانضمام."
+        : "Review how your data is used, then confirm your membership application.",
       action: rtl ? "متابعة" : "Continue",
       pathname: "/consent",
+    };
+  }
+
+  if (registration.applicationStatus !== "invited") {
+    return {
+      title:
+        registration.applicationStatus === "qualified"
+          ? rtl
+            ? "طلبك مؤهل وبانتظار الدعوة"
+            : "Your application is qualified"
+          : rtl
+            ? "طلبك قيد المراجعة"
+            : "Your application is under review",
+      body:
+        registration.applicationStatus === "qualified"
+          ? rtl
+            ? "تمت مراجعة طلبك مبدئياً. تجهيز ملف العضوية يفتح فقط عندما يرسل فريق ميثاق دعوة للحساب."
+            : "Your application passed the initial review. Member profile setup unlocks only after Mithaq sends an invitation."
+          : rtl
+            ? "وصل طلبك. لا تحتاج لإعادة التسجيل؛ سنظهر هنا عندما تنتقل إلى التأهيل أو الدعوة."
+            : "Your application was received. You do not need to register again; this screen will update when it is qualified or invited.",
+      action: null,
+      pathname: null,
     };
   }
 
@@ -230,18 +274,40 @@ function resolveNextStep(registration: RegistrationState, rtl: boolean): NextSte
     return {
       title: rtl ? "أكمل ملفك الخاص" : "Complete your private profile",
       body: rtl
-        ? "أضف التفاصيل التي نكشفها فقط وفق طريقة الظهور التي تختارها. الصورة ليست مطلوبة."
-        : "Add the details Mithaq reveals according to the presentation you choose. A photo is not required.",
+        ? "وصلتك الدعوة. جهّز ملف الزواج ومعلوماته الخاصة؛ هذا لا يفتح الاكتشاف أو المحادثة بعد."
+        : "You’re invited. Set up your private marriage profile; this does not open Discover or chat yet.",
       action: rtl ? "إكمال الملف" : "Complete profile",
       pathname: "/profile",
     };
   }
 
+  if (registration.profileReviewState !== "approved") {
+    if (registration.profileReviewState === "needs_changes" || registration.profileReviewState === "rejected") {
+      return {
+        title: rtl ? "ملفك يحتاج مراجعة منك" : "Your profile needs your attention",
+        body: rtl
+          ? "لن يظهر ملفك في الاكتشاف حتى تعدّل المطلوب ويُعتمد من فريق المراجعة."
+          : "Your profile will not appear in Discover until you make the requested changes and it is approved.",
+        action: rtl ? "فتح الملف" : "Open profile",
+        pathname: "/profile",
+      };
+    }
+
+    return {
+      title: rtl ? "ملفك قيد المراجعة" : "Your profile is under review",
+      body: rtl
+        ? "اكتمل إعداد الملف، لكن الاكتشاف يبقى مقفلاً حتى اعتماد المراجعة. لا تحتاج لإعادة الإرسال."
+        : "Profile setup is complete, but Discover remains locked until review is approved. You do not need to resubmit it.",
+      action: rtl ? "عرض حالة الملف" : "View profile status",
+      pathname: "/profile",
+    };
+  }
+
   return {
-    title: rtl ? "ملفك جاهز للاكتشاف" : "Your profile is ready for Discover",
+    title: rtl ? "ملفك معتمد للاكتشاف" : "Your profile is approved for Discover",
     body: rtl
-      ? "لا توجد ملفات عامة ولا سحب لا نهائي. راجع مجموعة صغيرة ومحدودة؛ يبقى خيار «خصوصية أولاً» مجهولاً، بينما يظهر الملف المفتوح كما اختاره صاحبه."
-      : "No public profiles or endless swiping. Review a small finite set: Private-first members stay anonymous, while Open profiles appear as their owners chose.",
+      ? "يمكنك الآن فتح اكتشاف الزواج. لا توجد ملفات عامة ولا سحب لا نهائي، والمحادثة لا تفتح إلا بعد مقدمة وقبول متبادل."
+      : "You can now open Marriage Discover. There are no public profiles or endless swipes, and chat opens only after an introduction and mutual acceptance.",
     action: rtl ? "فتح الاكتشاف" : "Open Discover",
     pathname: "/marriage-discover",
   };

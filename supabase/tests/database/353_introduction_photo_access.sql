@@ -65,6 +65,28 @@ insert into auth.users (
   )
 on conflict (id) do nothing;
 
+insert into auth.sessions (id, user_id, created_at, updated_at)
+values
+  (
+    '53535353-dddd-4ddd-8ddd-535353535351',
+    '53535353-5353-4535-8535-535353535351',
+    now(),
+    now()
+  ),
+  (
+    '53535353-dddd-4ddd-8ddd-535353535352',
+    '53535353-5353-4535-8535-535353535352',
+    now(),
+    now()
+  ),
+  (
+    '53535353-dddd-4ddd-8ddd-535353535353',
+    '53535353-5353-4535-8535-535353535353',
+    now(),
+    now()
+  )
+on conflict (id) do nothing;
+
 insert into public.users (id)
 values
   ('53535353-5353-4535-8535-535353535351'),
@@ -89,7 +111,7 @@ insert into public.waitlist_applications (
   (
     '53535353-aaaa-4aaa-8aaa-535353535351',
     '53535353-5353-4535-8535-535353535351',
-    'submitted',
+    'invited',
     'man',
     2,
     'libya',
@@ -103,7 +125,7 @@ insert into public.waitlist_applications (
   (
     '53535353-bbbb-4bbb-8bbb-535353535352',
     '53535353-5353-4535-8535-535353535352',
-    'submitted',
+    'invited',
     'woman',
     2,
     'libya',
@@ -117,7 +139,7 @@ insert into public.waitlist_applications (
   (
     '53535353-cccc-4ccc-8ccc-535353535353',
     '53535353-5353-4535-8535-535353535353',
-    'submitted',
+    'invited',
     'woman',
     3,
     'libya',
@@ -191,6 +213,32 @@ insert into public.member_profiles (
     now()
   );
 
+insert into public.member_connection_spaces (
+  user_id,
+  space,
+  membership_state,
+  is_current
+) values
+  ('53535353-5353-4535-8535-535353535351', 'marriage', 'active', true),
+  ('53535353-5353-4535-8535-535353535352', 'marriage', 'active', true),
+  ('53535353-5353-4535-8535-535353535353', 'marriage', 'active', true)
+on conflict (user_id, space) do update
+set membership_state = 'active'::public.connection_space_membership_state,
+    is_current = true,
+    updated_at = now();
+
+insert into private.marriage_practical_priorities (
+  user_id,
+  living_arrangement,
+  children_plan,
+  work_after_marriage,
+  wedding_style,
+  completed_at
+) values
+  ('53535353-5353-4535-8535-535353535351', 'independent_home', 'want_children', 'open_to_discuss', 'moderate', now()),
+  ('53535353-5353-4535-8535-535353535352', 'independent_home', 'want_children', 'open_to_discuss', 'moderate', now()),
+  ('53535353-5353-4535-8535-535353535353', 'independent_home', 'want_children', 'open_to_discuss', 'moderate', now());
+
 set local role service_role;
 
 select public.set_member_profile_review_state(
@@ -231,6 +279,11 @@ set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '53535353-5353-4535-8535-535353535352',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535352","session_id":"53535353-dddd-4ddd-8ddd-535353535352"}',
   true
 );
 
@@ -292,6 +345,11 @@ select set_config(
   '53535353-5353-4535-8535-535353535351',
   true
 );
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535351","session_id":"53535353-dddd-4ddd-8ddd-535353535351"}',
+  true
+);
 
 select is(
   (
@@ -320,6 +378,11 @@ select set_config(
   '53535353-5353-4535-8535-535353535352',
   true
 );
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535352","session_id":"53535353-dddd-4ddd-8ddd-535353535352"}',
+  true
+);
 
 select is(
   public.respond_to_introduction(
@@ -335,6 +398,11 @@ set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '53535353-5353-4535-8535-535353535351',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535351","session_id":"53535353-dddd-4ddd-8ddd-535353535351"}',
   true
 );
 
@@ -376,6 +444,11 @@ set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '53535353-5353-4535-8535-535353535353',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535353","session_id":"53535353-dddd-4ddd-8ddd-535353535353"}',
   true
 );
 
@@ -421,6 +494,11 @@ set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '53535353-5353-4535-8535-535353535351',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535351","session_id":"53535353-dddd-4ddd-8ddd-535353535351"}',
   true
 );
 

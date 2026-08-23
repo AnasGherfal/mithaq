@@ -392,10 +392,8 @@ function privacyCopy(locale: MobileLocale) {
       updatesEnabled: "تم تفعيل تحديثات ميثاق.",
       updatesDisabled: "تم إيقاف تحديثات ميثاق.",
       deleteTitle: "حذف الحساب",
-      deleteBody:
-        "طلب الحذف يوقف ظهور حسابك ومشاركتك الجديدة والتحديثات الاختيارية، ثم يدخل الحساب معالجة الحذف.",
-      deletePendingBody:
-        "طلب حذف حسابك مسجل. حسابك متوقف عن الظهور والمشاركة الجديدة أثناء معالجة الطلب.",
+      deleteBody: "طلب الحذف يوقف ظهور حسابك ومشاركتك الجديدة والتحديثات الاختيارية، ثم يدخل الحساب معالجة الحذف.",
+      deletePendingBody: "طلب حذف حسابك مسجل. حسابك متوقف عن الظهور والمشاركة الجديدة أثناء معالجة الطلب.",
       deleteRetention:
         "الحذف لا يعني محو كل أثر سلامة فوراً: قد يبقى حد أدنى من سجل المراجعة المنظم بعد فصل الهوية، بينما تُمحى النصوص الحرة المرتبطة بالحساب. يظهر أدناه موعد المعالجة المستهدف عندما يكون متاحاً.",
       deleteButton: "طلب حذف حسابي",
@@ -419,7 +417,8 @@ function privacyCopy(locale: MobileLocale) {
     promiseBody:
       "There is no member directory, find-by-phone, public profile URL, follower count, or presence status. One-sided interest and decisions are not exposed to the other person.",
     controlTitle: "What you control",
-    controlBody: "Privacy is not one switch. Mithaq separates discovery visibility, introductions, photos, and Trusted Circle sharing.",
+    controlBody:
+      "Privacy is not one switch. Mithaq separates discovery visibility, introductions, photos, and Trusted Circle sharing.",
     controlPoints: [
       {
         title: "Private first",
@@ -439,7 +438,8 @@ function privacyCopy(locale: MobileLocale) {
       },
     ],
     dataTitle: "What we do not expose and how records are handled",
-    dataBody: "Mithaq minimizes member-visible data and keeps operational records only as needed to run the service and protect safety.",
+    dataBody:
+      "Mithaq minimizes member-visible data and keeps operational records only as needed to run the service and protect safety.",
     dataPoints: [
       {
         title: "Sensitive data is not shown to members",
@@ -481,7 +481,8 @@ function privacyCopy(locale: MobileLocale) {
     cancel: "Cancel",
     requestedOn: "Requested",
     processingBy: "Target processing date",
-    deletionRecorded: "Your deletion request is recorded and your account has stopped appearing and taking part in new activity.",
+    deletionRecorded:
+      "Your deletion request is recorded and your account has stopped appearing and taking part in new activity.",
     genericError: "We could not save that change right now. Try again.",
     back: "Back to security & privacy",
   };
