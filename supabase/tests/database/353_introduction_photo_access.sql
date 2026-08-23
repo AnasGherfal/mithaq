@@ -246,7 +246,7 @@ values
     'approved',
     public.register_member_photo(
       '53535353-5353-4535-8535-535353535352/approved.jpg',
-      1,
+      1::smallint,
       true
     )
   ),
@@ -254,7 +254,7 @@ values
     'pending',
     public.register_member_photo(
       '53535353-5353-4535-8535-535353535352/pending.jpg',
-      2,
+      2::smallint,
       false
     )
   );
