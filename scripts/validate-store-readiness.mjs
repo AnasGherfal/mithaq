@@ -114,6 +114,11 @@ if (bundleIdentifier !== "com.mithaq.app") {
   errors.push("iOS bundleIdentifier must remain com.mithaq.app");
 }
 requirePositiveInteger(expo.ios?.buildNumber, "iOS buildNumber");
+if (expo.ios?.config?.usesNonExemptEncryption !== false) {
+  errors.push(
+    "iOS usesNonExemptEncryption must remain false while Mithaq uses only exempt platform/transport encryption",
+  );
+}
 
 const androidPackage = expo.android?.package;
 if (
@@ -257,5 +262,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, Expo SDK 54 native beta stack present, discreet notification channel locked, remote native versioning enabled, 1024px native artwork present, development/preview/production EAS profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
+  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, Expo SDK 54 native beta stack present, discreet notification channel locked, iOS export compliance declared, remote native versioning enabled, 1024px native artwork present, development/preview/production EAS profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
 );
