@@ -21,7 +21,7 @@ type AgeBand = {
   label: string;
 };
 
-type InitialData = {
+export type InitialData = {
   gender: Gender | "";
   ageBandId: string;
   residencyType: ResidencyType;
