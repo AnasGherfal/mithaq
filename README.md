@@ -4,23 +4,28 @@ Mithaq is an Arabic-first, privacy-forward product for serious marriage introduc
 
 ## Current milestone
 
-Stages A and B are complete and merged to `main`.
+Stages A and B are merged to `main`.
 
-Stage C is building the private photo and verification layer required before discovery. The current Stage C slice includes:
+Stage C (private photos and trust) is complete in code and green in PR #9. Stage D is now layered on top of that branch and adds private marriage discovery while keeping introductions and chat closed.
 
-- invited + completed-onboarding gate for new photo uploads/replacements
-- private Supabase Storage bucket with JPG/PNG/WebP and 8 MB limits
-- member photo manager with max-five enforcement
-- randomized private storage paths that do not expose original filenames
-- review states: pending, approved, needs changes, rejected
-- primary-photo selection and ordering
-- member photo deletion with durable orphan cleanup fallback
-- member trust panel for phone/photo/real-person/+18/identity verification states
-- moderator-only photo queue with five-minute signed image access
-- audited approve / needs-changes / reject decisions
-- no external identity-verification provider is claimed or simulated yet
+The current Stage D slice includes:
 
-The existing `mithaq-staging` Supabase project remains the backend source of truth. Discovery, controlled introductions and chat are still intentionally closed.
+- invited-only discovery eligibility
+- completed onboarding + practical marriage priorities required
+- approved profile review + clear safety state required
+- moderator profile-review console with audited decisions
+- at most six curated discovery candidates per request
+- reciprocal hard-match constraints from both members' waitlist preferences
+- privacy-aware standard vs private candidate presentation
+- compatibility reasons (same city and practical marriage priorities)
+- visible trust badges only when backend evidence exists
+- approved primary photos served from the private bucket through short-lived signed URLs
+- interest (`noticed`) and 14-day skip actions
+- explicit pair hiding for known/unwanted matches
+- Family Shield using hashed phone exclusions and masked last-four display
+- no contact information or open messaging in discovery
+
+The existing `mithaq-staging` Supabase project remains the backend source of truth. Controlled introductions and chat are intentionally separate later milestones.
 
 ## Local setup
 
@@ -60,9 +65,11 @@ Repository-tracked migrations added after the initial backend build include:
 - `20260823131553_stage_b_pause_noninvited_marriage_spaces.sql`
 - `20260823132419_stage_c_invited_photo_boundary.sql`
 - `20260823132805_stage_c_moderator_photo_access.sql`
+- `20260823133448_stage_d_invited_discovery_eligibility.sql`
+- `20260823133642_stage_d_private_discovery_photo_access.sql`
 
 Earlier staging migrations were created before the application repository was scaffolded and are not yet mirrored here. Before production, export/baseline the complete schema and keep all future migrations in Git.
 
 ## Current product boundary
 
-Only invited users with completed member onboarding can upload/register new photos. Photos remain private and cannot participate in discovery until approved and until the next discovery milestone is deliberately exposed. Identity/selfie verification still requires choosing and integrating a real verification provider; no badge is granted without backend evidence.
+Only invited users with completed onboarding, completed practical priorities, an approved member profile and a clear safety state can enter marriage discovery. Discovery records interest, skip and hide decisions but does not create a conversation or expose contact information. Identity/selfie verification still requires choosing and integrating a real provider; no verification badge is granted without actual backend evidence.
