@@ -11,7 +11,7 @@ jobs:
   application:
     docker:
       - image: cimg/node:24.4-browsers
-    resource_class: medium
+    resource_class: large
     environment:
       APP_ENV: local
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
