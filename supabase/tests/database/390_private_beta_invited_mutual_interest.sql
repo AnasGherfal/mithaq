@@ -142,7 +142,6 @@ insert into public.member_profiles (
 
 update public.member_profile_reviews
 set state = 'approved'::public.member_profile_review_state,
-    reason_code = null,
     updated_at = now()
 where user_id in (
   '90909090-9090-4090-8090-909090909091',
