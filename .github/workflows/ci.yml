@@ -35,7 +35,10 @@ jobs:
         uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
         with:
           runtime: node@24
-          cache: true
+          # A corrupted hosted-runner pnpm SQLite store can survive cache
+          # restores and fail installs with "database disk image is malformed".
+          # Prefer a clean content-addressable store for release-candidate CI.
+          cache: false
           install: false
 
       - name: Install dependencies
@@ -131,7 +134,9 @@ jobs:
         uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
         with:
           runtime: node@24
-          cache: true
+          # Keep release-candidate database jobs independent of a potentially
+          # corrupted shared pnpm store cache as well.
+          cache: false
           install: false
 
       - name: Install dependencies
