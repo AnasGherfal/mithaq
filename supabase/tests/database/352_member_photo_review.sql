@@ -70,7 +70,7 @@ select set_config(
 select ok(
   public.register_member_photo(
     '95959595-9595-4959-8959-959595959595/review-photo.jpg',
-    1,
+    1::smallint,
     true
   ) is not null,
   'member can register the private photo before review'
