@@ -172,6 +172,31 @@ export default function PrivacyScreen() {
         />
       ) : (
         <View style={styles.stack}>
+          <View style={styles.promiseCard}>
+            <Text style={[styles.promiseTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.promiseTitle}</Text>
+            <Text style={[styles.promiseBody, { textAlign: rtl ? "right" : "left" }]}>{copy.promiseBody}</Text>
+          </View>
+
+          <View style={styles.sectionCard}>
+            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.controlTitle}</Text>
+            <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.controlBody}</Text>
+            <View style={styles.pointList}>
+              {copy.controlPoints.map((point) => (
+                <PrivacyPoint key={point.title} rtl={rtl} title={point.title} body={point.body} />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.sectionCard}>
+            <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.dataTitle}</Text>
+            <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.dataBody}</Text>
+            <View style={styles.pointList}>
+              {copy.dataPoints.map((point) => (
+                <PrivacyPoint key={point.title} rtl={rtl} title={point.title} body={point.body} />
+              ))}
+            </View>
+          </View>
+
           <View style={styles.sectionCard}>
             <Text style={[styles.sectionTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.consentTitle}</Text>
             <Text style={[styles.sectionBody, { textAlign: rtl ? "right" : "left" }]}>{copy.consentBody}</Text>
@@ -216,6 +241,7 @@ export default function PrivacyScreen() {
             <Text style={[styles.deletionBody, { textAlign: rtl ? "right" : "left" }]}>
               {deletionRequest ? copy.deletePendingBody : copy.deleteBody}
             </Text>
+            <Text style={[styles.retentionNote, { textAlign: rtl ? "right" : "left" }]}>{copy.deleteRetention}</Text>
 
             {deletionRequest ? (
               <View style={styles.pendingMeta}>
@@ -258,6 +284,20 @@ export default function PrivacyScreen() {
   );
 }
 
+function PrivacyPoint({ rtl, title, body }: { rtl: boolean; title: string; body: string }) {
+  return (
+    <View style={[styles.pointRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+      <View style={styles.pointMark}>
+        <Text style={styles.pointMarkText}>✓</Text>
+      </View>
+      <View style={styles.pointCopy}>
+        <Text style={[styles.pointTitle, { textAlign: rtl ? "right" : "left" }]}>{title}</Text>
+        <Text style={[styles.pointBody, { textAlign: rtl ? "right" : "left" }]}>{body}</Text>
+      </View>
+    </View>
+  );
+}
+
 function ConsentRow({ event, locale, rtl }: { event: ConsentEvent; locale: MobileLocale; rtl: boolean }) {
   const label = consentLabel(event.consent_type, locale);
   return (
@@ -280,7 +320,7 @@ function consentLabel(type: string, locale: MobileLocale) {
     age_18_plus: { ar: "تأكيد العمر 18+", en: "Age 18+ confirmation" },
     terms: { ar: "شروط الاستخدام", en: "Terms of Use" },
     privacy: { ar: "سياسة الخصوصية", en: "Privacy Policy" },
-    waitlist_processing: { ar: "معالجة بيانات قائمة الانتظار", en: "Waitlist data processing" },
+    waitlist_processing: { ar: "معالجة بيانات التسجيل المبكر", en: "Early-access data processing" },
   };
   return labels[type]?.[locale] ?? type;
 }
@@ -297,12 +337,55 @@ function privacyCopy(locale: MobileLocale) {
   if (locale === "ar") {
     return {
       eyebrow: "الخصوصية والموافقة",
-      title: "بياناتك تحت سيطرتك",
-      body: "راجع موافقاتك، تحكم في التحديثات الاختيارية، واطلب حذف حسابك من مكان واحد.",
+      title: "أنت تختار من يعرف، ماذا يعرف، ومتى",
+      body: "راجع موافقاتك، افهم ما يظهر للآخرين، وتحكم في التحديثات وحذف الحساب من مكان واحد.",
+      promiseTitle: "وجودك في ميثاق خاص",
+      promiseBody:
+        "لا يوجد دليل أعضاء أو بحث بالهاتف أو ملف عام أو متابعون أو حالة اتصال. اهتمامك وقراراتك الفردية لا تُكشف للطرف الآخر.",
+      controlTitle: "ما الذي تتحكم فيه",
+      controlBody: "الخصوصية ليست إعداداً واحداً. ميثاق يفصل بين الظهور، التعارف، الصورة، ودائرة الثقة.",
+      controlPoints: [
+        {
+          title: "خصوصية أولاً",
+          body: "يمكن أن يظهر العمر التقريبي والمدينة والحالة الاجتماعية والأطفال وفئات توافق آمنة، بينما يبقى الاسم والصورة والنبذة والعمل والتعليم والأصل مخفياً في الاكتشاف.",
+        },
+        {
+          title: "ملف مفتوح باختيارك",
+          body: "إذا اخترت الظهور من البداية، يمكن عرض الاسم الظاهر والصورة المعتمدة إن وجدت والنبذة والعمل والتعليم والأصل، إضافة إلى معلومات التوافق الأساسية.",
+        },
+        {
+          title: "اهتمام خاص وإخفاء متبادل",
+          body: "الاهتمام من طرف واحد لا يرسل إشعاراً. درع العائلة أو خيار «أعرف هذا الشخص» يمنع ظهوركما لبعضكما دون إخبار الطرف الآخر بالسبب.",
+        },
+        {
+          title: "دائرة الثقة بموافقة صريحة",
+          body: "لا تُشارك جهة اتصال موثوقة إلا بعد قبول متبادل وباختيارك. المشاركة تحفظ نسخة مرتبطة بذلك التعارف؛ تعديل جهة الاتصال لاحقاً لا يغيّر النسخة التي سبق مشاركتها.",
+        },
+      ],
+      dataTitle: "ما لا نعرضه وكيف نتعامل مع السجلات",
+      dataBody: "ميثاق يقلل البيانات المكشوفة للأعضاء ويحتفظ ببعض السجلات فقط بقدر ما يلزم لتشغيل الخدمة والسلامة.",
+      dataPoints: [
+        {
+          title: "لا نعرض البيانات الحساسة للأعضاء",
+          body: "رقم الهاتف والاسم القانوني والعنوان الدقيق ووثائق الهوية وصور التحقق وبيانات السلامة الداخلية لا تظهر في ملفات الأعضاء.",
+        },
+        {
+          title: "الإشعارات محايدة افتراضياً",
+          body: "عنوان الإشعار على جهازك يُستخدم لإيصال تنبيهات الحساب الخاصة فقط. يمكن إلغاء تسجيل الجهاز عند إيقاف الإشعارات أو تسجيل الخروج.",
+        },
+        {
+          title: "سجلات السلامة لها معاملة مختلفة",
+          body: "البلاغات خاصة. عند حذف الحساب تُمحى النصوص الحرة المرتبطة به وتُفصل روابط الهوية، وقد يبقى حد أدنى من السجل المنظم للمحافظة على نزاهة المراجعة ومنع إساءة الاستخدام.",
+        },
+        {
+          title: "رسائل المحادثات المغلقة ليست دائمة بلا سبب",
+          body: "الرسائل في المحادثات المغلقة تخضع لتنظيف الاحتفاظ. إذا كان هناك بلاغ سلامة مفتوح بين الطرفين، يؤجل ميثاق حذف رسائل تلك المحادثة حتى لا تضيع أدلة المراجعة.",
+        },
+      ],
       consentTitle: "سجل الموافقات",
       consentBody: "نحتفظ بنسخة مؤرخة من الموافقات المهمة حتى تبقى شروط استخدام بياناتك واضحة.",
       updatesTitle: "تحديثات ميثاق",
-      updatesBody: "هذه الرسائل اختيارية ولا تؤثر على أهليتك أو مكانك في قائمة الانتظار.",
+      updatesBody: "هذه الرسائل اختيارية ولا تؤثر على أهليتك للزواج أو ترتيب ظهورك.",
       updatesOn: "التحديثات مفعّلة",
       updatesOff: "التحديثات متوقفة",
       updatesMeta: "يمكنك تغيير هذا الاختيار في أي وقت.",
@@ -310,29 +393,75 @@ function privacyCopy(locale: MobileLocale) {
       updatesDisabled: "تم إيقاف تحديثات ميثاق.",
       deleteTitle: "حذف الحساب",
       deleteBody:
-        "طلب الحذف يوقف مشاركتك في قائمة الانتظار والتحديثات الاختيارية فوراً، ثم ينتقل الحساب لمعالجة الحذف.",
+        "طلب الحذف يوقف ظهور حسابك ومشاركتك الجديدة والتحديثات الاختيارية، ثم يدخل الحساب معالجة الحذف.",
       deletePendingBody:
-        "طلب حذف حسابك مسجل. مشاركتك في قائمة الانتظار والتحديثات الاختيارية متوقفة أثناء معالجة الطلب.",
+        "طلب حذف حسابك مسجل. حسابك متوقف عن الظهور والمشاركة الجديدة أثناء معالجة الطلب.",
+      deleteRetention:
+        "الحذف لا يعني محو كل أثر سلامة فوراً: قد يبقى حد أدنى من سجل المراجعة المنظم بعد فصل الهوية، بينما تُمحى النصوص الحرة المرتبطة بالحساب. يظهر أدناه موعد المعالجة المستهدف عندما يكون متاحاً.",
       deleteButton: "طلب حذف حسابي",
-      confirmDelete: "هل أنت متأكد؟ ستُسحب مشاركتك من قائمة الانتظار فور تأكيد هذا الطلب.",
+      confirmDelete:
+        "هل أنت متأكد؟ سيتوقف حسابك عن الظهور والمشاركة الجديدة فور تسجيل الطلب، وستبدأ معالجة حذف الحساب.",
       confirmDeleteButton: "نعم، اطلب حذف الحساب",
       cancel: "إلغاء",
       requestedOn: "تاريخ الطلب",
       processingBy: "موعد المعالجة المستهدف",
-      deletionRecorded: "تم تسجيل طلب حذف الحساب وإيقاف مشاركتك في قائمة الانتظار.",
+      deletionRecorded: "تم تسجيل طلب حذف الحساب وإيقاف ظهوره ومشاركته الجديدة.",
       genericError: "تعذر حفظ التغيير الآن. حاول مرة أخرى.",
-      back: "العودة إلى الأمان",
+      back: "العودة إلى الأمان والخصوصية",
     };
   }
 
   return {
     eyebrow: "Privacy & consent",
-    title: "Your data stays under your control",
-    body: "Review consent history, control optional updates, and request account deletion in one place.",
+    title: "You choose who knows, what they know, and when",
+    body: "Review consent history, understand what others can see, and control optional updates and account deletion.",
+    promiseTitle: "Your presence on Mithaq is private",
+    promiseBody:
+      "There is no member directory, find-by-phone, public profile URL, follower count, or presence status. One-sided interest and decisions are not exposed to the other person.",
+    controlTitle: "What you control",
+    controlBody: "Privacy is not one switch. Mithaq separates discovery visibility, introductions, photos, and Trusted Circle sharing.",
+    controlPoints: [
+      {
+        title: "Private first",
+        body: "Discover may show a broad age band, city, marital status, children, and safe alignment categories while keeping name, photo, bio, work, education, and origin hidden.",
+      },
+      {
+        title: "Open profile by your choice",
+        body: "If you choose to be visible from the start, Discover may show your display name, an approved photo if you have one, bio, work, education, origin, and core compatibility context.",
+      },
+      {
+        title: "Private interest and reciprocal hiding",
+        body: "A one-sided interest sends no notification. Family Shield or “I know this person” keeps the pair from appearing to each other without telling the other person why.",
+      },
+      {
+        title: "Trusted Circle only with explicit sharing",
+        body: "A trusted contact is shared only after mutual acceptance and only when you choose it. Sharing creates an introduction-specific snapshot; later edits to the saved contact do not rewrite what was already shared.",
+      },
+    ],
+    dataTitle: "What we do not expose and how records are handled",
+    dataBody: "Mithaq minimizes member-visible data and keeps operational records only as needed to run the service and protect safety.",
+    dataPoints: [
+      {
+        title: "Sensitive data is not shown to members",
+        body: "Phone number, legal identity, exact address, identity documents, verification selfies, and internal safety data do not appear in member profiles.",
+      },
+      {
+        title: "Notifications are neutral by default",
+        body: "Your device notification address is used only to route private account alerts. The device can be unregistered when notifications are turned off or you sign out.",
+      },
+      {
+        title: "Safety records are handled differently",
+        body: "Reports stay private. When an account is deleted, free-text tied to it is erased and identity links are detached; a minimal structured moderation record may remain to preserve review integrity and prevent abuse.",
+      },
+      {
+        title: "Closed-chat messages are not kept forever without reason",
+        body: "Messages in closed conversations are subject to retention cleanup. If an open safety case exists between the two members, Mithaq delays purging that conversation so review evidence is not destroyed.",
+      },
+    ],
     consentTitle: "Consent record",
     consentBody: "Mithaq keeps a dated record of important consents so the terms governing your data stay explicit.",
     updatesTitle: "Mithaq updates",
-    updatesBody: "These messages are optional and never affect your eligibility or waitlist position.",
+    updatesBody: "These messages are optional and never affect Marriage eligibility or discovery ordering.",
     updatesOn: "Updates enabled",
     updatesOff: "Updates off",
     updatesMeta: "You can change this preference at any time.",
@@ -340,24 +469,36 @@ function privacyCopy(locale: MobileLocale) {
     updatesDisabled: "Mithaq updates are turned off.",
     deleteTitle: "Delete account",
     deleteBody:
-      "A deletion request immediately stops your waitlist participation and optional updates, then moves the account into deletion processing.",
+      "A deletion request stops your account from appearing or taking part in new activity and turns off optional updates, then moves the account into deletion processing.",
     deletePendingBody:
-      "Your deletion request is recorded. Waitlist participation and optional updates are stopped while the request is processed.",
+      "Your deletion request is recorded. Your account is no longer appearing or taking part in new activity while the request is processed.",
+    deleteRetention:
+      "Deletion does not mean every safety trace disappears immediately: a minimal structured review record may remain after identity is detached, while free-text tied to the account is erased. Your target processing date appears below when available.",
     deleteButton: "Request account deletion",
-    confirmDelete: "Are you sure? Your waitlist participation will be withdrawn as soon as you confirm this request.",
+    confirmDelete:
+      "Are you sure? Your account will stop appearing and taking part in new activity as soon as the request is recorded, and deletion processing will begin.",
     confirmDeleteButton: "Yes, request account deletion",
     cancel: "Cancel",
     requestedOn: "Requested",
     processingBy: "Target processing date",
-    deletionRecorded: "Your deletion request is recorded and your waitlist participation has stopped.",
+    deletionRecorded: "Your deletion request is recorded and your account has stopped appearing and taking part in new activity.",
     genericError: "We could not save that change right now. Try again.",
-    back: "Back to security",
+    back: "Back to security & privacy",
   };
 }
 
 const styles = StyleSheet.create({
   loadingState: { minHeight: 220, alignItems: "center", justifyContent: "center" },
   stack: { gap: 14 },
+  promiseCard: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.primarySoft,
+    backgroundColor: colors.primaryWash,
+    padding: 17,
+  },
+  promiseTitle: { color: colors.primaryStrong, fontSize: 18, lineHeight: 27, fontWeight: "900" },
+  promiseBody: { color: colors.foreground, fontSize: 13, lineHeight: 22, marginTop: 7 },
   sectionCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
@@ -367,6 +508,21 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { color: colors.foreground, fontSize: 17, fontWeight: "800" },
   sectionBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 6 },
+  pointList: { gap: 14, marginTop: 16 },
+  pointRow: { alignItems: "flex-start", gap: 11 },
+  pointMark: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primaryWash,
+    marginTop: 1,
+  },
+  pointMarkText: { color: colors.primary, fontSize: 12, fontWeight: "900" },
+  pointCopy: { flex: 1 },
+  pointTitle: { color: colors.foreground, fontSize: 13, lineHeight: 20, fontWeight: "800" },
+  pointBody: { color: colors.muted, fontSize: 11, lineHeight: 19, marginTop: 3 },
   consentList: { gap: 10, marginTop: 15 },
   consentRow: { alignItems: "center", gap: 11 },
   consentMark: {
@@ -408,6 +564,7 @@ const styles = StyleSheet.create({
   deletionPending: { borderColor: colors.goldSoft, backgroundColor: colors.primaryWash },
   deletionTitle: { color: colors.foreground, fontSize: 17, fontWeight: "800" },
   deletionBody: { color: colors.muted, fontSize: 13, lineHeight: 21 },
+  retentionNote: { color: colors.muted, fontSize: 11, lineHeight: 19 },
   pendingMeta: { gap: 5 },
   pendingLabel: { color: colors.primary, fontSize: 12, fontWeight: "700" },
   confirmationBox: { gap: 10 },
