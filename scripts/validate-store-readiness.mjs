@@ -42,10 +42,21 @@ function requireDependency(name, expectedPrefix) {
   }
 }
 
-function hasExpoPlugin(name) {
-  return (expo.plugins ?? []).some((plugin) =>
+function findExpoPlugin(name) {
+  return (expo.plugins ?? []).find((plugin) =>
     Array.isArray(plugin) ? plugin[0] === name : plugin === name,
   );
+}
+
+function hasExpoPlugin(name) {
+  return Boolean(findExpoPlugin(name));
+}
+
+function expoPluginOptions(name) {
+  const plugin = findExpoPlugin(name);
+  return Array.isArray(plugin) && plugin[1] && typeof plugin[1] === "object"
+    ? plugin[1]
+    : {};
 }
 
 async function resolveAsset(relativePath, label) {
@@ -132,6 +143,7 @@ requireDependency("expo-router", "~6.0.");
 
 for (const plugin of [
   "expo-router",
+  "expo-dev-client",
   "expo-notifications",
   "expo-image-picker",
   "expo-local-authentication",
@@ -143,16 +155,32 @@ for (const plugin of [
   }
 }
 
+const devClientOptions = expoPluginOptions("expo-dev-client");
+if (devClientOptions.launchMode !== "most-recent") {
+  errors.push("expo-dev-client must use launchMode=most-recent for internal development builds");
+}
+
+const notificationOptions = expoPluginOptions("expo-notifications");
+if (notificationOptions.defaultChannel !== "private-updates") {
+  errors.push("expo-notifications defaultChannel must remain private-updates");
+}
+if (notificationOptions.enableBackgroundRemoteNotifications !== false) {
+  errors.push(
+    "iOS background remote notifications must remain disabled for the privacy-minimal beta",
+  );
+}
+
 await requireNativeIcon(expo.icon, "Expo icon");
 await requireNativeIcon(
   expo.android?.adaptiveIcon?.foregroundImage,
   "Android adaptive foreground",
 );
 
-const splashPlugin = (expo.plugins ?? []).find(
-  (plugin) => Array.isArray(plugin) && plugin[0] === "expo-splash-screen",
+const splashPlugin = findExpoPlugin("expo-splash-screen");
+await resolveAsset(
+  Array.isArray(splashPlugin) ? splashPlugin?.[1]?.image : null,
+  "Splash image",
 );
-await resolveAsset(splashPlugin?.[1]?.image, "Splash image");
 
 const development = easConfig.build?.development;
 if (
@@ -225,5 +253,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, Expo SDK 54 native beta stack present, 1024px native artwork present, development/preview/production EAS profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
+  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, Expo SDK 54 native beta stack present, discreet notification channel locked, 1024px native artwork present, development/preview/production EAS profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
 );
