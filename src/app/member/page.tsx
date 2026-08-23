@@ -20,6 +20,14 @@ const reviewLabels: Record<string, string> = {
   rejected: "غير معتمد",
 };
 
+type IntroductionSummary = {
+  introduction_id: string;
+  status: string;
+  my_decision: string;
+  created_at: string;
+  expires_at: string;
+};
+
 export default async function MemberPage({
   searchParams,
 }: {
@@ -58,10 +66,16 @@ export default async function MemberPage({
     spaces?.some((space) => space.space === "marriage" && space.membership_state === "active") ?? false;
   if (!profile?.profile_completed_at || !hasMarriageSpace) redirect("/onboarding");
 
-  const [{ data: priorities }, { data: visibility }, { data: previewRows }] = await Promise.all([
+  const [
+    { data: priorities },
+    { data: visibility },
+    { data: previewRows },
+    { data: introductionData },
+  ] = await Promise.all([
     supabase.rpc("get_my_marriage_practical_priorities", {}),
     supabase.rpc("get_my_marriage_visibility", {}),
     supabase.rpc("get_own_introduction_preview", {}),
+    rpc.rpc("list_my_introductions", {}),
   ]);
 
   if (!priorities?.[0]?.completed_at) redirect("/onboarding?step=priorities");
@@ -69,6 +83,13 @@ export default async function MemberPage({
   const preview = previewRows?.[0];
   const reviewState = typeof review?.state === "string" ? review.state : "pending";
   const discoveryReady = reviewState === "approved";
+  const introductions = Array.isArray(introductionData) ? (introductionData as IntroductionSummary[]) : [];
+  const activeIntroductionCount = introductions.filter(
+    (item) => item.status === "offered" || item.status === "mutually_accepted",
+  ).length;
+  const pendingDecisionCount = introductions.filter(
+    (item) => item.status === "offered" && item.my_decision === "pending",
+  ).length;
 
   let ageLabel = "—";
   if (preview?.age_band_id) {
@@ -90,6 +111,9 @@ export default async function MemberPage({
           </Link>
           <div className="flex flex-wrap items-center gap-1">
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/discovery">الاستكشاف</Link>
+            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/introductions">
+              المقدمات{pendingDecisionCount > 0 ? ` (${pendingDecisionCount})` : ""}
+            </Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/photos">الصور والثقة</Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/settings">الإعدادات</Link>
             <form action="/auth/signout" method="post">
@@ -110,7 +134,7 @@ export default async function MemberPage({
               <p className="text-sm font-black text-[#9d702d]">المرحلة الخاصة</p>
               <h1 className="mt-2 text-3xl font-black text-[#153d35]">ملفك الأساسي جاهز</h1>
               <p className="mt-3 max-w-xl text-sm leading-7 text-black/55">
-                أكملت معلومات الملف والأولويات الأساسية. الاستكشاف محدود بملفات يطابق كل طرف فيها الشروط الأساسية للطرف الآخر، ولا يفتح أي تواصل مباشر.
+                أكملت معلومات الملف والأولويات الأساسية. الاستكشاف محدود بملفات يطابق كل طرف فيها الشروط الأساسية للطرف الآخر، وأي مقدمة تحتاج موافقة جديدة وصريحة من الطرفين.
               </p>
             </div>
             <div className="flex flex-col items-end gap-2">
@@ -191,6 +215,22 @@ export default async function MemberPage({
               </p>
             </Link>
           </div>
+
+          <Link className="mt-4 block rounded-3xl border border-black/8 bg-white p-5 transition hover:border-[#153d35]/25" href="/introductions">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-black text-[#153d35]">المقدمات الخاصة</div>
+                <p className="mt-2 text-xs leading-6 text-black/45">
+                  {activeIntroductionCount > 0
+                    ? `لديك ${activeIntroductionCount} مقدمة نشطة${pendingDecisionCount > 0 ? `، منها ${pendingDecisionCount} تحتاج قرارك` : ""}.`
+                    : "عند وجود اهتمام متبادل ستظهر مقدمة محدودة المدة وتحتاج موافقة صريحة من الطرفين."}
+                </p>
+              </div>
+              {pendingDecisionCount > 0 ? (
+                <span className="rounded-full bg-amber-50 px-3 py-2 text-xs font-black text-amber-800">{pendingDecisionCount} بانتظارك</span>
+              ) : null}
+            </div>
+          </Link>
 
           <div className="mt-4 rounded-2xl bg-[#f8f5ef] p-4 text-xs leading-6 text-black/45">
             تحقق الهوية الرسمي لم يتم ربطه بمزود خارجي بعد. لن نعرض أي علامة تحقق قبل وجود دليل فعلي في النظام.
