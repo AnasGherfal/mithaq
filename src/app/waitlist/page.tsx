@@ -13,7 +13,7 @@ const statusCopy: Record<WaitlistStatus, { title: string; text: string }> = {
   draft: { title: "أكمل التسجيل", text: "بقيت بعض المعلومات قبل إضافتك لقائمة الانتظار." },
   submitted: { title: "تم تسجيلك في قائمة الانتظار", text: "وصلتنا معلوماتك. سنستخدمها لتجهيز الإطلاق واختيار الدعوات الأولى بصورة منظمة." },
   qualified: { title: "طلبك مؤهل للمرحلة القادمة", text: "حسابك ضمن المجموعة المؤهلة. سنوضح الخطوة التالية عندما تصبح جاهزة." },
-  invited: { title: "لديك دعوة للمرحلة القادمة", text: "تم اختيار حسابك للانتقال إلى المرحلة التالية من ميثاق." },
+  invited: { title: "لديك دعوة للمرحلة القادمة", text: "تم اختيار حسابك للمرحلة الخاصة. الخطوة التالية هي تجهيز ملف الزواج وخصوصيته قبل فتح أي تعارف." },
   withdrawn: { title: "تم سحب طلبك", text: "طلبك ليس نشطاً حالياً في قائمة الانتظار." },
   declined: { title: "الطلب غير نشط", text: "طلبك ليس ضمن قائمة الانتظار النشطة في الوقت الحالي." },
   deleted: { title: "تم حذف بيانات الطلب", text: "بيانات قائمة الانتظار لم تعد نشطة." },
@@ -96,6 +96,15 @@ export default async function WaitlistPage() {
             <div className="mx-auto grid size-16 place-items-center rounded-full bg-[#153d35]/8 text-3xl text-[#153d35]">✓</div>
             <h1 className="mt-5 text-center text-2xl font-black text-[#153d35]">{copy.title}</h1>
             <p className="mx-auto mt-3 max-w-md text-center text-sm leading-7 text-black/55">{copy.text}</p>
+
+            {application.status === "invited" ? (
+              <Link
+                className="focus-ring mt-6 flex w-full items-center justify-center rounded-2xl bg-[#153d35] px-6 py-4 font-black text-white shadow-[0_14px_35px_rgba(21,61,53,.18)] hover:bg-[#0f2c27]"
+                href="/onboarding"
+              >
+                ابدأ إعداد ملفك
+              </Link>
+            ) : null}
 
             {referral?.code && ["submitted", "qualified", "invited"].includes(application.status) ? (
               <>
