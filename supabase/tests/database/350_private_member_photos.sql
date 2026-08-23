@@ -132,7 +132,7 @@ select set_config('request.jwt.claim.sub', '91919191-9191-4919-8919-919191919191
 select ok(
   public.register_member_photo(
     '91919191-9191-4919-8919-919191919191/photo-a.jpg',
-    1,
+    1::smallint,
     true
   ) is not null,
   'a submitted active member can register an uploaded photo'
@@ -167,7 +167,7 @@ select is(
 select ok(
   public.register_member_photo(
     '91919191-9191-4919-8919-919191919191/photo-b.png',
-    2,
+    2::smallint,
     false
   ) is not null,
   'a member can register a second private photo'
@@ -235,7 +235,7 @@ select is(
 select throws_ok(
   $$select public.register_member_photo(
     '91919191-9191-4919-8919-919191919191/photo-a.jpg',
-    1,
+    1::smallint,
     true
   )$$,
   'P0001',
@@ -278,7 +278,7 @@ select set_config('request.jwt.claim.sub', '93939393-9393-4939-8939-939393939393
 select throws_ok(
   $$select public.register_member_photo(
     '93939393-9393-4939-8939-939393939393/photo-d.jpg',
-    1,
+    1::smallint,
     true
   )$$,
   'P0001',
