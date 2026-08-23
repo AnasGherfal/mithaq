@@ -111,7 +111,7 @@ insert into public.waitlist_applications (
   (
     '53535353-aaaa-4aaa-8aaa-535353535351',
     '53535353-5353-4535-8535-535353535351',
-    'submitted',
+    'invited',
     'man',
     2,
     'libya',
@@ -125,7 +125,7 @@ insert into public.waitlist_applications (
   (
     '53535353-bbbb-4bbb-8bbb-535353535352',
     '53535353-5353-4535-8535-535353535352',
-    'submitted',
+    'invited',
     'woman',
     2,
     'libya',
@@ -139,7 +139,7 @@ insert into public.waitlist_applications (
   (
     '53535353-cccc-4ccc-8ccc-535353535353',
     '53535353-5353-4535-8535-535353535353',
-    'submitted',
+    'invited',
     'woman',
     3,
     'libya',
@@ -212,6 +212,32 @@ insert into public.member_profiles (
     'I value family, faith, respect, and a calm serious approach to marriage.',
     now()
   );
+
+insert into public.member_connection_spaces (
+  user_id,
+  space,
+  membership_state,
+  is_current
+) values
+  ('53535353-5353-4535-8535-535353535351', 'marriage', 'active', true),
+  ('53535353-5353-4535-8535-535353535352', 'marriage', 'active', true),
+  ('53535353-5353-4535-8535-535353535353', 'marriage', 'active', true)
+on conflict (user_id, space) do update
+set membership_state = 'active'::public.connection_space_membership_state,
+    is_current = true,
+    updated_at = now();
+
+insert into private.marriage_practical_priorities (
+  user_id,
+  living_arrangement,
+  children_plan,
+  work_after_marriage,
+  wedding_style,
+  completed_at
+) values
+  ('53535353-5353-4535-8535-535353535351', 'independent_home', 'want_children', 'open_to_discuss', 'moderate', now()),
+  ('53535353-5353-4535-8535-535353535352', 'independent_home', 'want_children', 'open_to_discuss', 'moderate', now()),
+  ('53535353-5353-4535-8535-535353535353', 'independent_home', 'want_children', 'open_to_discuss', 'moderate', now());
 
 set local role service_role;
 
