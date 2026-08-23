@@ -13,10 +13,12 @@ import {
 import { AppIcon } from "@/components/app-icon";
 import { PrimaryButton } from "@/components/primary-button";
 import { ProfilePortrait } from "@/components/profile-portrait";
+import { RecognizedPersonAction } from "@/components/recognized-person-action";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
 import { TrustBadges } from "@/components/trust-badges";
 import type { MobileLocale } from "@/i18n";
+import { hideRecognizedIntroductionMember } from "@/lib/recognized-pair-hide";
 import { supabase } from "@/lib/supabase";
 import { colors, radius, shadows } from "@/theme";
 
@@ -95,6 +97,8 @@ export default function IntroductionsScreen() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [decisionFeedback, setDecisionFeedback] = useState<"accepted" | "declined" | null>(null);
+  const [recognitionConfirm, setRecognitionConfirm] = useState(false);
+  const [recognizedIntroductionId, setRecognizedIntroductionId] = useState<string | null>(null);
 
   const decisionX = useRef(new Animated.Value(0)).current;
   const decisionOpacity = useRef(new Animated.Value(1)).current;
@@ -124,6 +128,8 @@ export default function IntroductionsScreen() {
     setLoading(true);
     setLoadError(false);
     setActionError(null);
+    setRecognitionConfirm(false);
+    setRecognizedIntroductionId(null);
 
     try {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -172,6 +178,8 @@ export default function IntroductionsScreen() {
   async function openIntroduction(item: IntroductionRow) {
     resetDecisionMotion();
     setDecisionFeedback(null);
+    setRecognitionConfirm(false);
+    setRecognizedIntroductionId(null);
     setSelected(item);
     setActionError(null);
     if (Object.prototype.hasOwnProperty.call(previewCache, item.introduction_id)) return;
@@ -181,6 +189,15 @@ export default function IntroductionsScreen() {
     setPreviewCache((current) => ({ ...current, [item.introduction_id]: row }));
     setPreviewLoading(false);
     if (!row) setActionError(copy.previewUnavailable);
+  }
+
+  function closeDetail() {
+    setSelected(null);
+    setActionError(null);
+    setDecisionFeedback(null);
+    setRecognitionConfirm(false);
+    setRecognizedIntroductionId(null);
+    resetDecisionMotion();
   }
 
   function resetDecisionMotion() {
@@ -246,7 +263,7 @@ export default function IntroductionsScreen() {
   }
 
   async function respond(accept: boolean) {
-    if (!selected || actionLoading) return;
+    if (!selected || actionLoading || recognitionConfirm) return;
     setActionLoading(true);
     setActionError(null);
     setDecisionFeedback(null);
@@ -287,12 +304,56 @@ export default function IntroductionsScreen() {
     animateDeclined(() => {
       setSelected(null);
       setDecisionFeedback(null);
+      setRecognitionConfirm(false);
     });
+  }
+
+  async function confirmRecognizedHide() {
+    if (!selected || actionLoading || !recognitionConfirm) return;
+    const introductionId = selected.introduction_id;
+    setActionLoading(true);
+    setActionError(null);
+
+    try {
+      await hideRecognizedIntroductionMember(introductionId);
+      setItems((current) =>
+        current.map((item) =>
+          item.introduction_id === introductionId
+            ? { ...item, status: "cancelled" as IntroductionStatus }
+            : item,
+        ),
+      );
+      setPreviewCache((current) => ({ ...current, [introductionId]: null }));
+      setRecognitionConfirm(false);
+      setRecognizedIntroductionId(introductionId);
+    } catch {
+      setActionError(copy.recognizedError);
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  if (selected && recognizedIntroductionId === selected.introduction_id) {
+    return (
+      <ScreenShell title={copy.detailTitle} rtl={rtl}>
+        <StateCard
+          rtl={rtl}
+          tone="neutral"
+          title={copy.recognizedSuccessTitle}
+          body={copy.recognizedSuccessBody}
+          actionLabel={copy.backToList}
+          onAction={closeDetail}
+        />
+      </ScreenShell>
+    );
   }
 
   if (selected) {
     const preview = previewCache[selected.introduction_id] ?? null;
     const canRespond = selected.status === "offered" && selected.my_decision === "pending";
+    const canRecognize =
+      Boolean(preview) &&
+      (selected.status === "offered" || selected.status === "mutually_accepted");
     const initials = preview?.display_name?.trim().charAt(0) || "م";
     const location = [preview?.city, preview?.country_code].filter(Boolean).join(" · ");
     const hasTrust = Boolean(
@@ -316,12 +377,7 @@ export default function IntroductionsScreen() {
         >
           <Pressable
             accessibilityRole="button"
-            onPress={() => {
-              setSelected(null);
-              setActionError(null);
-              setDecisionFeedback(null);
-              resetDecisionMotion();
-            }}
+            onPress={closeDetail}
             style={({ pressed }) => [
               styles.backButton,
               {
@@ -452,16 +508,16 @@ export default function IntroductionsScreen() {
               <View style={styles.decisionRow}>
                 <DecisionButton
                   direction="left"
-                  disabled={actionLoading}
+                  disabled={actionLoading || recognitionConfirm}
                   label={copy.decline}
                   onPress={() => void respond(false)}
                   sublabel={copy.declineHint}
                 />
                 <DecisionButton
                   direction="right"
-                  disabled={actionLoading}
+                  disabled={actionLoading || recognitionConfirm}
                   label={copy.accept}
-                  loading={actionLoading}
+                  loading={actionLoading && !recognitionConfirm}
                   onPress={() => void respond(true)}
                   sublabel={copy.acceptHint}
                 />
@@ -494,8 +550,23 @@ export default function IntroductionsScreen() {
             </View>
           ) : null}
 
+          {canRecognize ? (
+            <RecognizedPersonAction
+              locale={locale}
+              confirming={recognitionConfirm}
+              loading={actionLoading && recognitionConfirm}
+              onBegin={() => {
+                setRecognitionConfirm(true);
+                setActionError(null);
+              }}
+              onCancel={() => setRecognitionConfirm(false)}
+              onConfirm={() => void confirmRecognizedHide()}
+            />
+          ) : null}
+
           <Pressable
             accessibilityRole="button"
+            disabled={actionLoading}
             onPress={() =>
               router.push({
                 pathname: "/introduction-safety",
@@ -506,6 +577,7 @@ export default function IntroductionsScreen() {
               styles.safetyLink,
               { flexDirection: rtl ? "row-reverse" : "row" },
               pressed ? styles.pressed : null,
+              actionLoading ? styles.disabled : null,
             ]}
           >
             <Text style={[styles.safetyText, { textAlign, writingDirection }]}>{copy.safety}</Text>
@@ -943,6 +1015,13 @@ function introductionCopy(locale: MobileLocale) {
     mutualBody: ar
       ? "كلاكما اختار المتابعة. يمكنك الآن الانتقال إلى كشف الصورة حسب الاختيارات ثم المحادثة الخاصة."
       : "You both chose to continue. You can now move into the photo-reveal choices and private conversation.",
+    recognizedSuccessTitle: ar ? "لن تظهروا لبعضكم مرة أخرى" : "You won’t be shown to each other again",
+    recognizedSuccessBody: ar
+      ? "تم إخفاء هذا التقاطع بشكل خاص وإغلاق أي تعارف أو محادثة نشطة بينكما. لم نخبر الشخص الآخر أنك اخترت ذلك."
+      : "This pair was privately hidden and any active introduction or conversation between you was closed. Mithaq did not tell the other person you chose this.",
+    recognizedError: ar
+      ? "تعذر حفظ خيار الخصوصية هذا الآن. لم نغيّر التعارف. حاول مرة أخرى."
+      : "We couldn’t save this privacy choice. The introduction was not changed. Try again.",
     safety: ar ? "الأمان · إبلاغ أو حظر" : "Safety · report or block",
     continueAfterMutual: ar ? "متابعة إلى الخطوة التالية" : "Continue to the next step",
     emptyTitle: ar ? "لا يوجد تعارف حالياً" : "No introduction right now",
