@@ -41,7 +41,7 @@ select set_config('request.jwt.claim.sub', '94949494-9494-4949-8949-949494949494
 
 select public.register_member_photo(
   '94949494-9494-4949-8949-949494949494/photo-a.jpg',
-  1,
+  1::smallint,
   true
 );
 
