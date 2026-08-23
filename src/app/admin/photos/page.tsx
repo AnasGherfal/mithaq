@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
@@ -117,12 +118,15 @@ export default async function AdminPhotosPage({
               className="overflow-hidden rounded-3xl border border-black/8 bg-white shadow-sm"
               key={photo.item_id}
             >
-              <div className="aspect-[4/5] bg-black/5">
+              <div className="relative aspect-[4/5] bg-black/5">
                 {photo.signedUrl ? (
-                  <img
+                  <Image
                     alt="صورة للمراجعة"
-                    className="h-full w-full object-cover"
+                    className="object-cover"
+                    fill
+                    sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
                     src={photo.signedUrl}
+                    unoptimized
                   />
                 ) : (
                   <div className="grid h-full place-items-center p-6 text-center text-xs font-bold text-red-700">
