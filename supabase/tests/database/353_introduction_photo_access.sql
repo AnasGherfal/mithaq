@@ -65,6 +65,28 @@ insert into auth.users (
   )
 on conflict (id) do nothing;
 
+insert into auth.sessions (id, user_id, created_at, updated_at)
+values
+  (
+    '53535353-dddd-4ddd-8ddd-535353535351',
+    '53535353-5353-4535-8535-535353535351',
+    now(),
+    now()
+  ),
+  (
+    '53535353-dddd-4ddd-8ddd-535353535352',
+    '53535353-5353-4535-8535-535353535352',
+    now(),
+    now()
+  ),
+  (
+    '53535353-dddd-4ddd-8ddd-535353535353',
+    '53535353-5353-4535-8535-535353535353',
+    now(),
+    now()
+  )
+on conflict (id) do nothing;
+
 insert into public.users (id)
 values
   ('53535353-5353-4535-8535-535353535351'),
@@ -233,6 +255,11 @@ select set_config(
   '53535353-5353-4535-8535-535353535352',
   true
 );
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535352","session_id":"53535353-dddd-4ddd-8ddd-535353535352"}',
+  true
+);
 
 create temporary table m11_photo_ids (
   name text primary key,
@@ -292,6 +319,11 @@ select set_config(
   '53535353-5353-4535-8535-535353535351',
   true
 );
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535351","session_id":"53535353-dddd-4ddd-8ddd-535353535351"}',
+  true
+);
 
 select is(
   (
@@ -320,6 +352,11 @@ select set_config(
   '53535353-5353-4535-8535-535353535352',
   true
 );
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535352","session_id":"53535353-dddd-4ddd-8ddd-535353535352"}',
+  true
+);
 
 select is(
   public.respond_to_introduction(
@@ -335,6 +372,11 @@ set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '53535353-5353-4535-8535-535353535351',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535351","session_id":"53535353-dddd-4ddd-8ddd-535353535351"}',
   true
 );
 
@@ -376,6 +418,11 @@ set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '53535353-5353-4535-8535-535353535353',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535353","session_id":"53535353-dddd-4ddd-8ddd-535353535353"}',
   true
 );
 
@@ -421,6 +468,11 @@ set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
   '53535353-5353-4535-8535-535353535351',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"53535353-5353-4535-8535-535353535351","session_id":"53535353-dddd-4ddd-8ddd-535353535351"}',
   true
 );
 
