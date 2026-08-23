@@ -4,7 +4,7 @@ Mithaq is an Arabic-first, privacy-forward product for serious marriage introduc
 
 ## Current milestone
 
-This repository now contains the Stage A web foundation:
+Stage A is complete in code and includes:
 
 - Arabic RTL landing/trust site
 - 18+ gate
@@ -20,7 +20,7 @@ This repository now contains the Stage A web foundation:
 - admin waitlist review/status operations with private audit logging
 - PWA manifest and icon
 
-The existing `mithaq-staging` Supabase project is currently the backend source of truth. It already contains additional profile, marriage-introduction, moderation, messaging and safety infrastructure; those later-stage capabilities are intentionally not exposed by this Stage A UI.
+The existing `mithaq-staging` Supabase project is currently the backend source of truth. It already contains additional profile, marriage-introduction, moderation, messaging and safety infrastructure; those later-stage capabilities are intentionally not exposed by the Stage A UI.
 
 ## Local setup
 
@@ -44,13 +44,13 @@ npm run typecheck
 npm run build
 ```
 
-GitHub Actions runs the same dependency install, typecheck and production build on pull requests and on pushes to `main` or the Stage A feature branch.
+GitHub Actions runs the same dependency install, typecheck and production build on pull requests and on pushes to `main` or the active feature branch.
 
 ## Supabase
 
 Staging project ref: `pelvtwjibbehtlpfhadg`.
 
-New database work from this milestone is tracked under `supabase/migrations/`:
+New database work from Stage A is tracked under `supabase/migrations/`:
 
 - `20260823124449_add_atomic_waitlist_save_rpc.sql`
 - `20260823124508_restrict_save_my_waitlist_execute.sql`
@@ -61,4 +61,4 @@ Earlier staging migrations were created before the application repository was sc
 
 ## Product boundary for Stage A
 
-Stage A collects serious intent and preferences, but does **not** open member discovery, direct messaging, public photos or friendship features. The later marriage flow should only be exposed after product, moderation, legal/privacy and verification readiness are reviewed.
+Stage A collects serious intent and preferences, but does **not** open member discovery, direct messaging, public photos or friendship features. Stage B begins invited-member onboarding while keeping discovery and chat closed.
