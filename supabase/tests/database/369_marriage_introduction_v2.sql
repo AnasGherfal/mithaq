@@ -49,9 +49,9 @@ select is(
   'members cannot resolve raw introduction photo paths'
 );
 
-select like(
-  pg_get_function_result('public.get_introduction_preview(uuid)'::regprocedure),
-  '%age_band_label text%presentation_mode text%alignment_reasons text[]%',
+select ok(
+  pg_get_function_result('public.get_introduction_preview(uuid)'::regprocedure)
+    like '%age_band_label text%presentation_mode text%alignment_reasons text[]%',
   'preview exposes safe stage and reason categories'
 );
 
