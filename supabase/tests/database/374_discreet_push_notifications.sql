@@ -74,7 +74,10 @@ select is(
 );
 
 select ok(
-  position("interval '45 seconds'" in pg_get_functiondef('private.enqueue_member_push_delivery()'::regprocedure)) > 0,
+  position(
+    'interval ''45 seconds''' in
+    pg_get_functiondef('private.enqueue_member_push_delivery()'::regprocedure)
+  ) > 0,
   'rapid private-message notifications are coalesced server-side'
 );
 
