@@ -215,7 +215,7 @@ export default async function IntroductionDetailPage({
         ) : null}
         {query.mutual === "1" ? (
           <div className="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold leading-6 text-green-800">
-            وافق الطرفان على هذه المقدمة. لا توجد مشاركة لأرقام الهواتف، والمحادثة نفسها ما زالت مغلقة حتى نفتح طبقتها الآمنة.
+            وافق الطرفان على هذه المقدمة. يمكنك الآن فتح المحادثة الخاصة داخل ميثاق، بدون مشاركة رقم الهاتف تلقائياً.
           </div>
         ) : null}
         {query.revealed === "1" ? (
@@ -328,8 +328,14 @@ export default async function IntroductionDetailPage({
                 <div className="rounded-3xl border border-green-200 bg-green-50 p-5">
                   <h2 className="text-lg font-black text-green-900">موافقة متبادلة</h2>
                   <p className="mt-2 text-xs leading-6 text-green-800/80">
-                    وافق الطرفان على التعارف داخل ميثاق. لم نفتح المحادثة في هذا الإصدار بعد، ولن نشارك أرقام الهواتف تلقائياً.
+                    وافق الطرفان على التعارف داخل ميثاق. المحادثة النصية الخاصة متاحة الآن ما دامت شروط الأهلية والسلامة مستمرة، ولن نشارك أرقام الهواتف تلقائياً.
                   </p>
+                  <Link
+                    className="mt-4 inline-flex rounded-xl bg-[#153d35] px-5 py-3 text-sm font-black text-white"
+                    href={`/conversations/${id}`}
+                  >
+                    فتح المحادثة الخاصة
+                  </Link>
                 </div>
 
                 {revealState?.can_reveal_photo ? (

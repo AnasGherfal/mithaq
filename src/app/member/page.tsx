@@ -28,6 +28,11 @@ type IntroductionSummary = {
   expires_at: string;
 };
 
+type ConversationUnread = {
+  introduction_id: string;
+  unread_count: number | string;
+};
+
 export default async function MemberPage({
   searchParams,
 }: {
@@ -71,11 +76,13 @@ export default async function MemberPage({
     { data: visibility },
     { data: previewRows },
     { data: introductionData },
+    { data: conversationUnreadData },
   ] = await Promise.all([
     supabase.rpc("get_my_marriage_practical_priorities", {}),
     supabase.rpc("get_my_marriage_visibility", {}),
     supabase.rpc("get_own_introduction_preview", {}),
     rpc.rpc("list_my_introductions", {}),
+    rpc.rpc("list_my_conversation_unread_counts", {}),
   ]);
 
   if (!priorities?.[0]?.completed_at) redirect("/onboarding?step=priorities");
@@ -90,6 +97,14 @@ export default async function MemberPage({
   const pendingDecisionCount = introductions.filter(
     (item) => item.status === "offered" && item.my_decision === "pending",
   ).length;
+  const conversationUnreads = Array.isArray(conversationUnreadData)
+    ? (conversationUnreadData as ConversationUnread[])
+    : [];
+  const openConversationCount = conversationUnreads.length;
+  const totalConversationUnread = conversationUnreads.reduce(
+    (sum, item) => sum + (Number(item.unread_count) || 0),
+    0,
+  );
 
   let ageLabel = "—";
   if (preview?.age_band_id) {
@@ -114,6 +129,9 @@ export default async function MemberPage({
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/introductions">
               المقدمات{pendingDecisionCount > 0 ? ` (${pendingDecisionCount})` : ""}
             </Link>
+            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/conversations">
+              المحادثات{totalConversationUnread > 0 ? ` (${totalConversationUnread})` : ""}
+            </Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/photos">الصور والثقة</Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/settings">الإعدادات</Link>
             <form action="/auth/signout" method="post">
@@ -134,7 +152,7 @@ export default async function MemberPage({
               <p className="text-sm font-black text-[#9d702d]">المرحلة الخاصة</p>
               <h1 className="mt-2 text-3xl font-black text-[#153d35]">ملفك الأساسي جاهز</h1>
               <p className="mt-3 max-w-xl text-sm leading-7 text-black/55">
-                أكملت معلومات الملف والأولويات الأساسية. الاستكشاف محدود بملفات يطابق كل طرف فيها الشروط الأساسية للطرف الآخر، وأي مقدمة تحتاج موافقة جديدة وصريحة من الطرفين.
+                أكملت معلومات الملف والأولويات الأساسية. الاستكشاف محدود بملفات يطابق كل طرف فيها الشروط الأساسية للطرف الآخر، وأي مقدمة تحتاج موافقة جديدة وصريحة من الطرفين قبل فتح محادثة داخل ميثاق.
               </p>
             </div>
             <div className="flex flex-col items-end gap-2">
@@ -210,7 +228,7 @@ export default async function MemberPage({
               <div className={`text-sm font-black ${discoveryReady ? "text-white" : "text-[#153d35]"}`}>الاستكشاف الخاص</div>
               <p className={`mt-2 text-xs leading-6 ${discoveryReady ? "text-white/75" : "text-black/45"}`}>
                 {discoveryReady
-                  ? "شاهد عدداً محدوداً من الملفات المتوافقة وسجل اهتماماً أو تخطياً بدون فتح محادثة."
+                  ? "شاهد عدداً محدوداً من الملفات المتوافقة وسجل اهتماماً أو تخطياً قبل مرحلة المقدمة."
                   : "سيفتح بعد اعتماد ملفك. يمكنك فتح الصفحة الآن لمتابعة حالة المراجعة."}
               </p>
             </Link>
@@ -228,6 +246,22 @@ export default async function MemberPage({
               </div>
               {pendingDecisionCount > 0 ? (
                 <span className="rounded-full bg-amber-50 px-3 py-2 text-xs font-black text-amber-800">{pendingDecisionCount} بانتظارك</span>
+              ) : null}
+            </div>
+          </Link>
+
+          <Link className="mt-4 block rounded-3xl border border-[#153d35]/15 bg-[#153d35]/5 p-5 transition hover:border-[#153d35]/30" href="/conversations">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-black text-[#153d35]">المحادثات الخاصة</div>
+                <p className="mt-2 text-xs leading-6 text-black/48">
+                  {openConversationCount > 0
+                    ? `لديك ${openConversationCount} محادثة مفتوحة${totalConversationUnread > 0 ? ` و${totalConversationUnread} رسالة غير مقروءة` : ""}.`
+                    : "بعد الموافقة المتبادلة يمكن فتح محادثة نصية خاصة داخل ميثاق بدون مشاركة رقم الهاتف تلقائياً."}
+                </p>
+              </div>
+              {totalConversationUnread > 0 ? (
+                <span className="rounded-full bg-[#153d35] px-3 py-2 text-xs font-black text-white">{totalConversationUnread} جديدة</span>
               ) : null}
             </div>
           </Link>
