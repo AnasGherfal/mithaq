@@ -12,7 +12,8 @@ member in the other.
 
 ## Non-mixing contract
 
-The following data and actions are space-scoped and must not cross automatically:
+The following data and actions are space-scoped and must not cross
+automatically:
 
 1. Profile biography and prompts.
 2. Discovery eligibility and ranking inputs.
@@ -28,8 +29,8 @@ interpreted as romantic interest.
 
 ## Shared account controls
 
-A narrow set of controls remains account-wide because splitting them would weaken
-safety or create confusing duplicate identity state:
+A narrow set of controls remains account-wide because splitting them would
+weaken safety or create confusing duplicate identity state:
 
 - phone authentication and secure session;
 - account language and device security;
@@ -42,8 +43,8 @@ space. Space-specific reports and conversations still retain their own context.
 
 ## Profiles and photos
 
-Marriage and Friends have separate profile records. The client must not prefill a
-friendship profile from a marriage profile without a clear member action.
+Marriage and Friends have separate profile records. The client must not prefill
+a friendship profile from a marriage profile without a clear member action.
 
 Approved marriage photos are not automatically visible in Friends. A later photo
 reuse flow may allow the member to select an already approved photo explicitly,
@@ -73,10 +74,10 @@ Friendship profile
 → friendship-only conversation
 ```
 
-The initial Friends profile uses a preferred name, city, friendship introduction,
-and two to eight interest keys. Friendship discovery and cross-member profile
-views remain closed until separate review, ranking, disclosure, request, and
-conversation contracts are implemented and tested.
+The initial Friends profile uses a preferred name, city, friendship
+introduction, and two to eight interest keys. Friendship discovery and
+cross-member profile views remain closed until separate review, ranking,
+disclosure, request, and conversation contracts are implemented and tested.
 
 ## Current implementation slice
 

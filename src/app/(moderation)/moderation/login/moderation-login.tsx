@@ -18,7 +18,9 @@ export function ModerationLogin() {
     if (busy) return;
     const normalizedPhone = phone.trim();
     if (!/^\+[1-9]\d{7,14}$/.test(normalizedPhone)) {
-      setMessage("Enter the staff phone number in international format, starting with +.");
+      setMessage(
+        "Enter the staff phone number in international format, starting with +.",
+      );
       return;
     }
 
@@ -79,10 +81,15 @@ export function ModerationLogin() {
     <main className="flex min-h-svh items-center justify-center px-5 py-10">
       <section className="w-full max-w-md rounded-3xl border border-black/10 bg-white p-7 shadow-sm">
         <div className="mb-7">
-          <p className="text-xs font-semibold tracking-[0.18em] text-[#9A6A24]">MITHAQ INTERNAL</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#12241F]">Moderation sign in</h1>
+          <p className="text-xs font-semibold tracking-[0.18em] text-[#9A6A24]">
+            MITHAQ INTERNAL
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#12241F]">
+            Moderation sign in
+          </h1>
           <p className="mt-3 text-sm leading-6 text-black/60">
-            This console is for explicitly authorized staff accounts only. Member accounts without a staff role are refused after sign-in.
+            This console is for explicitly authorized staff accounts only.
+            Member accounts without a staff role are refused after sign-in.
           </p>
         </div>
 
@@ -96,7 +103,7 @@ export function ModerationLogin() {
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="+218..."
-                className="mt-2 w-full rounded-2xl border border-black/10 bg-[#FAFAF8] px-4 py-3 text-base outline-none ring-[#0F4D3F] focus:ring-2"
+                className="mt-2 w-full rounded-2xl border border-black/10 bg-[#FAFAF8] px-4 py-3 text-base ring-[#0F4D3F] outline-none focus:ring-2"
               />
             </label>
             <button
@@ -118,8 +125,10 @@ export function ModerationLogin() {
                 autoComplete="one-time-code"
                 inputMode="numeric"
                 value={code}
-                onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                className="mt-2 w-full rounded-2xl border border-black/10 bg-[#FAFAF8] px-4 py-3 text-center text-2xl tracking-[0.35em] outline-none ring-[#0F4D3F] focus:ring-2"
+                onChange={(event) =>
+                  setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                className="mt-2 w-full rounded-2xl border border-black/10 bg-[#FAFAF8] px-4 py-3 text-center text-2xl tracking-[0.35em] ring-[#0F4D3F] outline-none focus:ring-2"
               />
             </label>
             <button
@@ -145,7 +154,10 @@ export function ModerationLogin() {
         )}
 
         {message ? (
-          <p role="alert" className="mt-5 rounded-2xl bg-[#FFF1F1] px-4 py-3 text-sm text-[#8D2424]">
+          <p
+            role="alert"
+            className="mt-5 rounded-2xl bg-[#FFF1F1] px-4 py-3 text-sm text-[#8D2424]"
+          >
             {message}
           </p>
         ) : null}

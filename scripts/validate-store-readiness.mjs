@@ -162,7 +162,9 @@ for (const plugin of [
 
 const devClientOptions = expoPluginOptions("expo-dev-client");
 if (devClientOptions.launchMode !== "most-recent") {
-  errors.push("expo-dev-client must use launchMode=most-recent for internal development builds");
+  errors.push(
+    "expo-dev-client must use launchMode=most-recent for internal development builds",
+  );
 }
 
 const notificationOptions = expoPluginOptions("expo-notifications");
@@ -188,7 +190,9 @@ await resolveAsset(
 );
 
 if (easConfig.cli?.appVersionSource !== "remote") {
-  errors.push("EAS appVersionSource must remain remote so native build numbers are server-managed");
+  errors.push(
+    "EAS appVersionSource must remain remote so native build numbers are server-managed",
+  );
 }
 
 const development = easConfig.build?.development;
@@ -212,7 +216,9 @@ if (
   );
 }
 if (preview?.autoIncrement !== true) {
-  errors.push("EAS preview must auto-increment Android versionCode and iOS buildNumber");
+  errors.push(
+    "EAS preview must auto-increment Android versionCode and iOS buildNumber",
+  );
 }
 
 const production = easConfig.build?.production;
@@ -224,7 +230,10 @@ if (production?.autoIncrement !== true) {
 }
 
 const easProjectId = expo.extra?.eas?.projectId;
-if (typeof easProjectId !== "string" || !/^[0-9a-f-]{36}$/i.test(easProjectId)) {
+if (
+  typeof easProjectId !== "string" ||
+  !/^[0-9a-f-]{36}$/i.test(easProjectId)
+) {
   const message =
     "Expo/EAS project is not linked yet; run EAS project linking before the first development build so remote push registration receives a real projectId";
   if (requireEasProject) errors.push(message);

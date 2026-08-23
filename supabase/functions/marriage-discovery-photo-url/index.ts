@@ -1,4 +1,7 @@
-import { ImageMagick, initializeImageMagick } from "npm:@imagemagick/magick-wasm@0.0.42";
+import {
+  ImageMagick,
+  initializeImageMagick,
+} from "npm:@imagemagick/magick-wasm@0.0.42";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
 const memberPhotoBucket = "member-profile-photos";
@@ -18,7 +21,8 @@ const responseHeaders = {
   "content-type": "application/json; charset=utf-8",
   "cache-control": "private, no-store, max-age=0",
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "authorization, content-type, x-client-info, apikey",
+  "access-control-allow-headers":
+    "authorization, content-type, x-client-info, apikey",
   "access-control-allow-methods": "POST, OPTIONS",
 };
 
@@ -45,7 +49,9 @@ function bytesToBase64(bytes: Uint8Array) {
   let binary = "";
   const chunkSize = 0x8000;
   for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+    binary += String.fromCharCode(
+      ...bytes.subarray(offset, offset + chunkSize),
+    );
   }
   return btoa(binary);
 }
@@ -104,11 +110,15 @@ Deno.serve(async (request) => {
     },
   );
 
-  const row = Array.isArray(pathData) ? (pathData[0] as PhotoPathRow | undefined) : undefined;
-  const storagePath = typeof row?.storage_path === "string" ? row.storage_path : null;
-  const displayMode = row?.display_mode === "full" || row?.display_mode === "blurred"
-    ? row.display_mode
-    : null;
+  const row = Array.isArray(pathData)
+    ? (pathData[0] as PhotoPathRow | undefined)
+    : undefined;
+  const storagePath =
+    typeof row?.storage_path === "string" ? row.storage_path : null;
+  const displayMode =
+    row?.display_mode === "full" || row?.display_mode === "blurred"
+      ? row.display_mode
+      : null;
 
   if (pathError || !storagePath || !displayMode) {
     return jsonResponse({ error: "photo_unavailable" }, 404);

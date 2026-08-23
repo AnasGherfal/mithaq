@@ -34,7 +34,9 @@ const allTests = readdirSync(testRoot)
   .sort((left, right) => left.localeCompare(right));
 
 const releaseTests = allTests.filter((name) => !supersededTests.has(name));
-const missingHistoricalTests = [...supersededTests].filter((name) => !allTests.includes(name));
+const missingHistoricalTests = [...supersededTests].filter(
+  (name) => !allTests.includes(name),
+);
 
 if (missingHistoricalTests.length > 0) {
   console.error("Superseded database test registry is stale:");
@@ -47,19 +49,35 @@ if (releaseTests.length === 0) {
   process.exit(1);
 }
 
-console.log(`Running ${releaseTests.length} Marriage release database test files.`);
-console.log(`Keeping ${supersededTests.size} superseded suites out of the release gate:`);
+console.log(
+  `Running ${releaseTests.length} Marriage release database test files.`,
+);
+console.log(
+  `Keeping ${supersededTests.size} superseded suites out of the release gate:`,
+);
 for (const name of [...supersededTests].sort()) console.log(`- ${name}`);
-console.log("Run `pnpm test:db:all` when intentionally auditing historical suites.");
+console.log(
+  "Run `pnpm test:db:all` when intentionally auditing historical suites.",
+);
 
-const relativeTests = releaseTests.map((name) => relative(repoRoot, resolve(testRoot, name)));
+const relativeTests = releaseTests.map((name) =>
+  relative(repoRoot, resolve(testRoot, name)),
+);
 const pnpmExecPath = process.env.npm_execpath;
 
 if (pnpmExecPath && existsSync(pnpmExecPath)) {
-  run(process.execPath, [pnpmExecPath, "exec", "supabase", "test", "db", ...relativeTests], false);
+  run(
+    process.execPath,
+    [pnpmExecPath, "exec", "supabase", "test", "db", ...relativeTests],
+    false,
+  );
 } else {
   const windows = process.platform === "win32";
-  run(windows ? "pnpm.cmd" : "pnpm", ["exec", "supabase", "test", "db", ...relativeTests], windows);
+  run(
+    windows ? "pnpm.cmd" : "pnpm",
+    ["exec", "supabase", "test", "db", ...relativeTests],
+    windows,
+  );
 }
 
 function run(command, args, shell) {

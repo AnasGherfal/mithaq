@@ -78,8 +78,12 @@ function buildPushMessage(row: ClaimedDelivery) {
   };
 }
 
-function readTickets(payload: ExpoResponse, expected: number): ExpoTicket[] | null {
-  if (!Array.isArray(payload.data) || payload.data.length !== expected) return null;
+function readTickets(
+  payload: ExpoResponse,
+  expected: number,
+): ExpoTicket[] | null {
+  if (!Array.isArray(payload.data) || payload.data.length !== expected)
+    return null;
   return payload.data.map((ticket) =>
     ticket && typeof ticket === "object" ? (ticket as ExpoTicket) : {},
   );
@@ -111,7 +115,8 @@ Deno.serve(async (request) => {
     return response({ error: "method_not_allowed" }, 405);
   }
 
-  const workerToken = request.headers.get("x-mithaq-worker-token")?.trim() ?? "";
+  const workerToken =
+    request.headers.get("x-mithaq-worker-token")?.trim() ?? "";
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -222,12 +227,15 @@ Deno.serve(async (request) => {
       else if (result.outcome === "retry") retried += 1;
       else failed += 1;
 
-      const { error: finishError } = await admin.rpc("finish_member_push_delivery", {
-        p_worker_token: workerToken,
-        p_delivery_id: row.delivery_id,
-        p_outcome: result.outcome,
-        p_error_code: result.errorCode,
-      });
+      const { error: finishError } = await admin.rpc(
+        "finish_member_push_delivery",
+        {
+          p_worker_token: workerToken,
+          p_delivery_id: row.delivery_id,
+          p_outcome: result.outcome,
+          p_error_code: result.errorCode,
+        },
+      );
       if (finishError) logOperationalError("finish_failed");
     }),
   );

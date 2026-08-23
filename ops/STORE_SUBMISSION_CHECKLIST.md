@@ -16,15 +16,16 @@ Before creating a store binary:
 - Mobile TypeScript, formatting, and Expo Doctor must be green.
 - The native beta stack must remain on the reviewed Expo SDK 54 / React Native
   0.81 line until an explicit upgrade is reviewed. `expo-dev-client`,
-  `expo-screen-capture`, notifications, SecureStore, local authentication,
-  image picker, and Expo Router are release dependencies rather than optional
-  local tooling.
+  `expo-screen-capture`, notifications, SecureStore, local authentication, image
+  picker, and Expo Router are release dependencies rather than optional local
+  tooling.
 - `apps/mobile/app.json` must keep the reviewed iOS bundle identifier, Android
   package, semantic version, native build baselines, canonical Mithaq artwork,
   splash configuration, notification plugin, and Face ID permission explanation.
-- `apps/mobile/eas.json` must keep `development` as an internal development-client
-  profile, `preview` as the internal staging/acceptance profile, and `production`
-  as the production profile with native build auto-increment enabled.
+- `apps/mobile/eas.json` must keep `development` as an internal
+  development-client profile, `preview` as the internal staging/acceptance
+  profile, and `production` as the production profile with native build
+  auto-increment enabled.
 - The public website must expose localized privacy, account-deletion, and
   contact/support pages.
 - The account-deletion page must direct members to the authenticated in-app
@@ -106,7 +107,8 @@ completed from source control:
 ## Final binary acceptance
 
 For both platforms, accept only binaries built from the exact reviewed commit
-after hosted staging has passed. On physical devices verify all of the following:
+after hosted staging has passed. On physical devices verify all of the
+following:
 
 - Arabic RTL and English LTR on small and current-size phones.
 - OTP delivery, onboarding, profile review, and returning-session behavior.
@@ -117,8 +119,8 @@ after hosted staging has passed. On physical devices verify all of the following
 - Finite Marriage Discover, interested/not-for-me directional transitions, and
   no endless swipe loop.
 - Private introduction acceptance without leaking a one-sided response.
-- Mutual acceptance, private conversation, Activity lifecycle, report/block,
-  and clean introduction/conversation ending.
+- Mutual acceptance, private conversation, Activity lifecycle, report/block, and
+  clean introduction/conversation ending.
 - Discreet notifications: Neutral lock-screen copy by default and no member
   name, photo, message text, phone number, or profile facts in push previews.
 - Screenshot and screen-record protection on Discover when identifiable content

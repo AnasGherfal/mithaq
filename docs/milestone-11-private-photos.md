@@ -16,7 +16,8 @@ controlled-introduction model.
   review-state presentation, ordering, deletion confirmation, and private
   self-preview URLs.
 - Account entry point for private photos.
-- SDK 54-compatible `expo-image-picker` and `expo-image-manipulator` integration.
+- SDK 54-compatible `expo-image-picker` and `expo-image-manipulator`
+  integration.
 - System photo selection without requesting broad access to the full library.
 - Automatic centered 4:5 portrait crop, maximum 1280 px output width, JPEG
   recompression, minimum-resolution validation, and an 8 MB post-processing
@@ -31,10 +32,10 @@ controlled-introduction model.
   clients except through the narrow self-queue RPC.
 - One-command preview dependency bootstrap that removes the stale SDK 57 graph,
   installs the pinned SDK 54 stack, and runs mobile checks.
-- Guarded introduction photo references that expose opaque photo IDs rather
-  than storage paths.
-- Five-minute signed introduction URLs issued by the
-  `introduction-photo-url` Edge Function only after server authorization.
+- Guarded introduction photo references that expose opaque photo IDs rather than
+  storage paths.
+- Five-minute signed introduction URLs issued by the `introduction-photo-url`
+  Edge Function only after server authorization.
 - Approved-photo disclosure currently opens only for a mutually accepted
   introduction when the owner selected `after_mutual_interest`.
 - Other privacy choices remain closed until their specific workflow exists.
@@ -47,12 +48,11 @@ controlled-introduction model.
 3. A member cannot approve their own photo.
 4. A pending, rejected, or changes-required photo never resolves for an
    introduction.
-5. A participant cannot see the other person's photos before mutual
-   acceptance.
+5. A participant cannot see the other person's photos before mutual acceptance.
 6. A non-participant cannot list photo references for an introduction.
 7. Raw private storage paths are service-role-only.
-8. Signed introduction URLs are short-lived and returned with no-store
-   response headers.
+8. Signed introduction URLs are short-lived and returned with no-store response
+   headers.
 9. Missing explicit-approval, blurred-photo, and family-involvement workflows
    fail closed rather than silently revealing a full image.
 10. If Storage upload succeeds but metadata registration fails, the client

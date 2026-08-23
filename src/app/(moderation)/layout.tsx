@@ -12,7 +12,11 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 
-export default function ModerationRootLayout({ children }: { children: ReactNode }) {
+export default function ModerationRootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <html lang="en" dir="ltr">
       <body className={`${inter.variable} min-h-svh bg-[#F7F7F5] antialiased`}>

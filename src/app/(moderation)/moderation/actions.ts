@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type ModerationKind = "profile" | "photo" | "report";
-type ReportIntent = "triaged" | "investigating" | "actioned" | "dismissed" | "closed";
+type ReportIntent =
+  "triaged" | "investigating" | "actioned" | "dismissed" | "closed";
 type EnforcementIntent = "restrict" | "suspend" | "ban" | "restore";
 type ModerationAccessRow = {
   moderation_role: string;
@@ -13,7 +14,8 @@ type ModerationAccessRow = {
   can_enforce: boolean;
 };
 
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const profileIntents = {
   approve: "approved",
   changes: "needs_changes",
@@ -31,7 +33,12 @@ const reportIntents: ReportIntent[] = [
   "dismissed",
   "closed",
 ];
-const enforcementIntents: EnforcementIntent[] = ["restrict", "suspend", "ban", "restore"];
+const enforcementIntents: EnforcementIntent[] = [
+  "restrict",
+  "suspend",
+  "ban",
+  "restore",
+];
 
 function value(formData: FormData, key: string) {
   const entry = formData.get(key);
@@ -42,20 +49,34 @@ function isUuid(valueToCheck: string) {
   return uuidPattern.test(valueToCheck);
 }
 
-function isModerationKind(valueToCheck: string): valueToCheck is ModerationKind {
-  return valueToCheck === "profile" || valueToCheck === "photo" || valueToCheck === "report";
+function isModerationKind(
+  valueToCheck: string,
+): valueToCheck is ModerationKind {
+  return (
+    valueToCheck === "profile" ||
+    valueToCheck === "photo" ||
+    valueToCheck === "report"
+  );
 }
 
 function isReportIntent(valueToCheck: string): valueToCheck is ReportIntent {
   return reportIntents.some((intent) => intent === valueToCheck);
 }
 
-function isEnforcementIntent(valueToCheck: string): valueToCheck is EnforcementIntent {
+function isEnforcementIntent(
+  valueToCheck: string,
+): valueToCheck is EnforcementIntent {
   return enforcementIntents.some((intent) => intent === valueToCheck);
 }
 
-function isModerationAccessRow(valueToCheck: unknown): valueToCheck is ModerationAccessRow {
-  if (typeof valueToCheck !== "object" || valueToCheck === null || Array.isArray(valueToCheck)) {
+function isModerationAccessRow(
+  valueToCheck: unknown,
+): valueToCheck is ModerationAccessRow {
+  if (
+    typeof valueToCheck !== "object" ||
+    valueToCheck === null ||
+    Array.isArray(valueToCheck)
+  ) {
     return false;
   }
   const row = valueToCheck as Record<string, unknown>;
@@ -69,7 +90,8 @@ function isModerationAccessRow(valueToCheck: unknown): valueToCheck is Moderatio
 function safeReason(formData: FormData) {
   const reason = value(formData, "reasonCode");
   if (!reason) return null;
-  if (reason.length > 80 || !/^[A-Za-z0-9._:-]+$/.test(reason)) return undefined;
+  if (reason.length > 80 || !/^[A-Za-z0-9._:-]+$/.test(reason))
+    return undefined;
   return reason;
 }
 

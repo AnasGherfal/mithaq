@@ -9,7 +9,8 @@ const responseHeaders = {
   "content-type": "application/json; charset=utf-8",
   "cache-control": "private, no-store, max-age=0",
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "authorization, content-type, x-client-info, apikey",
+  "access-control-allow-headers":
+    "authorization, content-type, x-client-info, apikey",
   "access-control-allow-methods": "POST, OPTIONS",
 };
 

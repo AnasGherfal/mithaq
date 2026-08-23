@@ -9,8 +9,8 @@ introductions, conversations, and activity contracts.
 
 - Keep the SDK 54 Expo Go branch usable for rapid physical-device UX testing
   while SDK 57 remains the production target.
-- Maintain deterministic dependency contracts and green mobile type/format/
-  Expo checks.
+- Maintain deterministic dependency contracts and green mobile type/format/ Expo
+  checks.
 - Provision hosted staging, apply migrations, configure maintenance workers,
   verify test OTP accounts, and exercise RLS/security against hosted services.
 - Configure real phone delivery and produce signed preview builds when external
@@ -25,8 +25,8 @@ for acceptance testing.
 
 - Rebuild member-facing surfaces around one purpose and one obvious primary
   action per screen.
-- Keep bottom navigation persistent only for primary destinations; focused
-  flows such as conversation and setup use dedicated navigation.
+- Keep bottom navigation persistent only for primary destinations; focused flows
+  such as conversation and setup use dedicated navigation.
 - Complete Arabic RTL and English LTR parity across authentication,
   questionnaire, consent, profile, Home, Introductions, Activity, Account,
   privacy, safety, security, and conversation.
@@ -140,8 +140,8 @@ Friends.
 ### Exit
 
 Two devices can receive a marriage introduction or a friendship connection,
-enter the correct separate conversation, receive privacy-safe notifications,
-and converse reliably.
+enter the correct separate conversation, receive privacy-safe notifications, and
+converse reliably.
 
 ## M14 — Verification and operating tools
 
@@ -180,8 +180,8 @@ requires monetization at launch.
 
 ### Exit
 
-Free and paid accounts behave correctly and securely across renewal, expiry,
-and restore scenarios.
+Free and paid accounts behave correctly and securely across renewal, expiry, and
+restore scenarios.
 
 ## M16 — Production launch and stores
 
@@ -190,8 +190,8 @@ and restore scenarios.
 - Select and test the final production authentication delivery strategy,
   including Libya carrier and diaspora coverage.
 - Port the approved SDK 54 preview UX to the current SDK 57 production target.
-- Complete signed EAS builds, TestFlight/internal testing, closed beta fixes, and
-  final physical-device acceptance.
+- Complete signed EAS builds, TestFlight/internal testing, closed beta fixes,
+  and final physical-device acceptance.
 - Complete App Store and Play Store records, screenshots in Arabic and English,
   icon/splash assets, privacy declarations, data-safety forms, support and
   deletion URLs, age rating, and subscription disclosures where applicable.

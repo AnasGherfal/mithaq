@@ -23,8 +23,8 @@ The first Friends product loop is now implemented in source:
 - private friend requests stored in the private schema;
 - incoming and outgoing request views;
 - explicit accept, decline, and withdraw actions;
-- accepted friendship connections kept in the Friends request/connection
-  context only;
+- accepted friendship connections kept in the Friends request/connection context
+  only;
 - no direct raw-table access for authenticated clients;
 - pgTAP coverage for discovery eligibility, block enforcement, private request
   storage, request direction, duplicate prevention, acceptance, and the rule
@@ -237,8 +237,8 @@ mutual connections, safe conversations, and useful off-app outcomes.
 
 Mithaq+ may improve discovery through advanced controls, more context, deeper
 compatibility explanations, or a modestly larger finite discovery set. It must
-not sell unlimited access to people, reveal who privately expressed interest,
-or bypass another member's preferences.
+not sell unlimited access to people, reveal who privately expressed interest, or
+bypass another member's preferences.
 
 Premium capabilities are space-scoped. Buying a Friends capability cannot
 increase Marriage exposure, and a Marriage benefit cannot reveal friendship
