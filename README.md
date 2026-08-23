@@ -4,23 +4,22 @@ Mithaq is an Arabic-first, privacy-forward product for serious marriage introduc
 
 ## Current milestone
 
-Stage A is complete in code and includes:
+Stage A is complete and merged to `main`.
 
-- Arabic RTL landing/trust site
-- 18+ gate
-- phone OTP sign-in with Supabase Auth
-- referral open / started / verified / submitted milestones
-- authenticated multi-step waitlist questionnaire
-- atomic questionnaire persistence through `save_my_waitlist`
-- versioned mandatory consent finalization through the existing `finalize_waitlist` RPC
-- waitlist status + referral sharing screen
-- account settings and 30-day account deletion request flow
-- public safety/trust, pre-launch terms and privacy pages
-- admin aggregate waitlist analytics
-- admin waitlist review/status operations with private audit logging
-- PWA manifest and icon
+Stage B is now building the invited-member experience. The current Stage B slice includes:
 
-The existing `mithaq-staging` Supabase project is currently the backend source of truth. It already contains additional profile, marriage-introduction, moderation, messaging and safety infrastructure; those later-stage capabilities are intentionally not exposed by the Stage A UI.
+- database-enforced invitation gate for marriage-member features
+- automatic marriage-space activation only after invitation
+- three-step invited-member onboarding
+  - display profile and about-me
+  - practical marriage priorities
+  - disclosure and visibility privacy choices
+- private-by-default marriage visibility
+- member landing page with a privacy-aware profile preview
+- invitation CTA from the waitlist status screen
+- discovery, messaging and photos still closed
+
+The existing `mithaq-staging` Supabase project remains the backend source of truth. It already contains later marriage-introduction, photo, moderation, messaging, notification and safety infrastructure that will be exposed in controlled stages.
 
 ## Local setup
 
@@ -44,21 +43,23 @@ npm run typecheck
 npm run build
 ```
 
-GitHub Actions runs the same dependency install, typecheck and production build on pull requests and on pushes to `main` or the active feature branch.
+GitHub Actions runs the same dependency install, typecheck and production build on pull requests and on pushes to `main`.
 
 ## Supabase
 
 Staging project ref: `pelvtwjibbehtlpfhadg`.
 
-New database work from Stage A is tracked under `supabase/migrations/`:
+Repository-tracked migrations added after the initial backend build include:
 
 - `20260823124449_add_atomic_waitlist_save_rpc.sql`
 - `20260823124508_restrict_save_my_waitlist_execute.sql`
 - `20260823125834_stage_a_admin_waitlist_analytics.sql`
 - `20260823130650_stage_a_waitlist_admin_operations.sql`
+- `20260823131527_stage_b_invited_member_boundary.sql`
+- `20260823131553_stage_b_pause_noninvited_marriage_spaces.sql`
 
 Earlier staging migrations were created before the application repository was scaffolded and are not yet mirrored here. Before production, export/baseline the complete schema and keep all future migrations in Git.
 
-## Product boundary for Stage A
+## Current product boundary
 
-Stage A collects serious intent and preferences, but does **not** open member discovery, direct messaging, public photos or friendship features. Stage B begins invited-member onboarding while keeping discovery and chat closed.
+Only users whose waitlist application is explicitly marked `invited` can enter Stage B member onboarding. Discovery, direct messaging, member photos and friendship remain closed until their dedicated milestones are built and reviewed.
