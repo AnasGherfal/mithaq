@@ -1,0 +1,43 @@
+name: Bootstrap Stage A
+
+on:
+  push:
+    branches:
+      - stage-a/web-foundation
+
+permissions:
+  contents: write
+
+jobs:
+  lock-and-verify:
+    if: ${{ !contains(github.event.head_commit.message, '[lockfile]') }}
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://pelvtwjibbehtlpfhadg.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_build_placeholder
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: stage-a/web-foundation
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Generate lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit lockfile when needed
+        run: |
+          if git diff --quiet -- package-lock.json && git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore: lock Stage A dependencies [lockfile]"
+          git push
+      - name: Install exact dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
