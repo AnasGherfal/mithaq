@@ -1,0 +1,23 @@
+revoke execute on function public.save_my_waitlist(
+  public.gender,
+  smallint,
+  public.residency_type,
+  text,
+  text,
+  text,
+  public.marital_status,
+  boolean,
+  boolean,
+  public.marriage_timeline,
+  boolean,
+  public.photo_privacy_preference,
+  public.family_involvement_preference,
+  public.tristate_preference,
+  boolean,
+  boolean,
+  smallint,
+  smallint,
+  public.tristate_preference,
+  public.marital_status[],
+  text[]
+) from anon;

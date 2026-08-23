@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Mithaq">
+  <rect width="512" height="512" rx="112" fill="#153d35"/>
+  <path d="M147 176c0-25 20-45 45-45h128c25 0 45 20 45 45v160c0 25-20 45-45 45H192c-25 0-45-20-45-45V176Z" fill="#f7f1e6"/>
+  <path d="M200 213h112M200 256h112M200 299h72" stroke="#153d35" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="316" cy="306" r="28" fill="#c99a52"/>
+</svg>
