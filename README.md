@@ -14,7 +14,9 @@ This repository now contains the Stage A web foundation:
 - atomic questionnaire persistence through `save_my_waitlist`
 - versioned mandatory consent finalization through the existing `finalize_waitlist` RPC
 - waitlist status + referral sharing screen
-- pre-launch terms and privacy pages
+- account settings and 30-day account deletion request flow
+- public safety/trust, pre-launch terms and privacy pages
+- admin-only aggregate waitlist analytics (no raw member records)
 - PWA manifest and icon
 
 The existing `mithaq-staging` Supabase project is currently the backend source of truth. It already contains additional profile, marriage-introduction, moderation, messaging and safety infrastructure; those later-stage capabilities are intentionally not exposed by this Stage A UI.
@@ -51,6 +53,7 @@ New database work from this milestone is tracked under `supabase/migrations/`:
 
 - `20260823124449_add_atomic_waitlist_save_rpc.sql`
 - `20260823124508_restrict_save_my_waitlist_execute.sql`
+- `20260823125834_stage_a_admin_waitlist_analytics.sql`
 
 Earlier staging migrations were created before the application repository was scaffolded and are not yet mirrored here. Before production, export/baseline the complete schema and keep all future migrations in Git.
 

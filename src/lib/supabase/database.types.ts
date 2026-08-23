@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export type Gender = "woman" | "man";
 export type ResidencyType = "libya" | "diaspora";
 export type MaritalStatus = "never_married" | "divorced" | "widowed" | "married";
@@ -27,6 +35,13 @@ export type WaitlistStatus =
   | "withdrawn"
   | "declined"
   | "deleted";
+export type DeletionScope = "waitlist_data" | "entire_account";
+export type DeletionStatus =
+  | "requested"
+  | "identity_confirmed"
+  | "in_progress"
+  | "completed"
+  | "rejected";
 
 export type Database = {
   __InternalSupabase: {
@@ -50,6 +65,38 @@ export type Database = {
           sort_order: number;
         };
         Update: Partial<Database["public"]["Tables"]["age_bands"]["Insert"]>;
+        Relationships: [];
+      };
+      deletion_requests: {
+        Row: {
+          id: string;
+          user_id: string;
+          request_scope: DeletionScope;
+          status: DeletionStatus;
+          requested_at: string;
+          confirmed_at: string | null;
+          due_at: string | null;
+          completed_at: string | null;
+          user_visible_note_code: string | null;
+          processing_started_at: string | null;
+          attempt_count: number;
+          last_error_code: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          request_scope?: DeletionScope;
+          status?: DeletionStatus;
+          requested_at?: string;
+          confirmed_at?: string | null;
+          due_at?: string | null;
+          completed_at?: string | null;
+          user_visible_note_code?: string | null;
+          processing_started_at?: string | null;
+          attempt_count?: number;
+          last_error_code?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["deletion_requests"]["Insert"]>;
         Relationships: [];
       };
       waitlist_applications: {
@@ -230,6 +277,24 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: number;
       };
+      request_account_deletion: {
+        Args: {
+          p_locale: string;
+        };
+        Returns: string;
+      };
+      get_admin_waitlist_analytics: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      get_my_moderation_access: {
+        Args: Record<PropertyKey, never>;
+        Returns: Array<{
+          moderation_role: string;
+          can_review: boolean;
+          can_enforce: boolean;
+        }>;
+      };
     };
     Enums: {
       gender: Gender;
@@ -240,6 +305,8 @@ export type Database = {
       family_involvement_preference: FamilyInvolvementPreference;
       tristate_preference: TristatePreference;
       waitlist_status: WaitlistStatus;
+      deletion_scope: DeletionScope;
+      deletion_status: DeletionStatus;
     };
     CompositeTypes: {
       [_ in never]: never;
