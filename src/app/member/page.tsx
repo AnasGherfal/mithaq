@@ -72,6 +72,7 @@ export default async function MemberPage({
             ميثاق
           </Link>
           <div className="flex items-center gap-1">
+            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/photos">الصور والثقة</Link>
             <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/settings">الإعدادات</Link>
             <form action="/auth/signout" method="post">
               <button className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" type="submit">تسجيل الخروج</button>
@@ -89,9 +90,9 @@ export default async function MemberPage({
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
               <p className="text-sm font-black text-[#9d702d]">المرحلة الخاصة</p>
-              <h1 className="mt-2 text-3xl font-black text-[#153d35]">ملفك جاهز</h1>
+              <h1 className="mt-2 text-3xl font-black text-[#153d35]">ملفك الأساسي جاهز</h1>
               <p className="mt-3 max-w-xl text-sm leading-7 text-black/55">
-                أكملت معلومات الملف والأولويات الأساسية. الاستكشاف والمحادثة لم يُفتحا بعد؛ سنضيف الصور والتحقق قبل فتح التعارف الفعلي.
+                أكملت معلومات الملف والأولويات الأساسية. يمكنك الآن إدارة صورك ومتابعة حالة الثقة، بينما يظل الاستكشاف والمحادثة مغلقين حتى نكمل ضوابط المرحلة التالية.
               </p>
             </div>
             <span className="rounded-full bg-[#153d35]/8 px-4 py-2 text-xs font-black text-[#153d35]">
@@ -141,11 +142,20 @@ export default async function MemberPage({
             </Link>
           </div>
 
-          <div className="mt-6 rounded-3xl border border-[#c99a52]/25 bg-[#c99a52]/8 p-5">
-            <div className="text-sm font-black text-[#8b6228]">الخطوة القادمة: الصور والتحقق</div>
-            <p className="mt-2 text-xs leading-6 text-black/52">
-              لن نطلب إرسال صورة هوية عبر رسالة أو واتساب. أي تحقق رسمي سيظهر داخل ميثاق عندما نبني المرحلة التالية.
-            </p>
+          <Link className="mt-6 block rounded-3xl border border-[#c99a52]/25 bg-[#c99a52]/8 p-5 transition hover:border-[#c99a52]/45" href="/photos">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-black text-[#8b6228]">الصور وحالة الثقة</div>
+                <p className="mt-2 text-xs leading-6 text-black/52">
+                  أضف صوراً خاصة، اختر الرئيسية، تابع المراجعة، وشاهد ما تم التحقق منه فعلياً في حسابك.
+                </p>
+              </div>
+              <span className="text-xl text-[#8b6228]">‹</span>
+            </div>
+          </Link>
+
+          <div className="mt-4 rounded-2xl bg-[#f8f5ef] p-4 text-xs leading-6 text-black/45">
+            تحقق الهوية الرسمي لم يتم ربطه بمزود خارجي بعد. لن نعرض أي علامة تحقق قبل وجود دليل فعلي في النظام.
           </div>
         </section>
       </div>
