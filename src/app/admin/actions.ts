@@ -6,19 +6,30 @@ import { redirect } from "next/navigation";
 import type { WaitlistStatus } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
-const adminStatuses: WaitlistStatus[] = ["submitted", "qualified", "invited", "declined"];
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const adminStatuses: WaitlistStatus[] = [
+  "submitted",
+  "qualified",
+  "invited",
+  "declined",
+];
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function setWaitlistStatus(formData: FormData) {
   const applicationId = String(formData.get("application_id") ?? "");
-  const targetStatus = String(formData.get("target_status") ?? "") as WaitlistStatus;
+  const targetStatus = String(
+    formData.get("target_status") ?? "",
+  ) as WaitlistStatus;
   const currentFilter = String(formData.get("current_filter") ?? "");
 
   const filterSuffix = adminStatuses.includes(currentFilter as WaitlistStatus)
     ? `&status=${encodeURIComponent(currentFilter)}`
     : "";
 
-  if (!uuidPattern.test(applicationId) || !adminStatuses.includes(targetStatus)) {
+  if (
+    !uuidPattern.test(applicationId) ||
+    !adminStatuses.includes(targetStatus)
+  ) {
     redirect(`/admin/waitlist?error=invalid${filterSuffix}`);
   }
 

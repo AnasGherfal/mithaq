@@ -6,15 +6,25 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { asUntypedSupabase } from "@/lib/supabase/untyped";
 
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const allowedStatuses = new Set(["triaged", "investigating", "dismissed", "closed"]);
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const allowedStatuses = new Set([
+  "triaged",
+  "investigating",
+  "dismissed",
+  "closed",
+]);
 
 export async function moderateSafetyReport(formData: FormData) {
   const reportId = String(formData.get("report_id") ?? "");
   const status = String(formData.get("status") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
 
-  if (!uuidPattern.test(reportId) || !allowedStatuses.has(status) || reason.length > 80) {
+  if (
+    !uuidPattern.test(reportId) ||
+    !allowedStatuses.has(status) ||
+    reason.length > 80
+  ) {
     redirect("/admin/safety?error=invalid");
   }
 

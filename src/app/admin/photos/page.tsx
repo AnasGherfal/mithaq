@@ -45,10 +45,13 @@ export default async function AdminPhotosPage({
   const { data: access } = await supabase.rpc("get_my_moderation_access", {});
   if (!access?.some((item) => item.can_review)) notFound();
 
-  const { data: queueData, error: queueError } = await rpc.rpc("list_moderation_queue", {
-    p_kind: "photo",
-    p_limit: 50,
-  });
+  const { data: queueData, error: queueError } = await rpc.rpc(
+    "list_moderation_queue",
+    {
+      p_kind: "photo",
+      p_limit: 50,
+    },
+  );
 
   if (queueError) notFound();
 
@@ -81,10 +84,15 @@ export default async function AdminPhotosPage({
       <div className="mx-auto w-full max-w-6xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <Link className="font-black text-[#153d35]" href="/admin">إدارة ميثاق</Link>
-            <h1 className="mt-2 text-3xl font-black text-[#153d35]">مراجعة الصور</h1>
+            <Link className="font-black text-[#153d35]" href="/admin">
+              إدارة ميثاق
+            </Link>
+            <h1 className="mt-2 text-3xl font-black text-[#153d35]">
+              مراجعة الصور
+            </h1>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-black/48">
-              الصور تبقى داخل مساحة التخزين الخاصة. هذه الصفحة تنشئ روابط مؤقتة لمدة خمس دقائق للمراجعين المخولين فقط.
+              الصور تبقى داخل مساحة التخزين الخاصة. هذه الصفحة تنشئ روابط مؤقتة
+              لمدة خمس دقائق للمراجعين المخولين فقط.
             </p>
           </div>
           <div className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#153d35]">
@@ -105,10 +113,17 @@ export default async function AdminPhotosPage({
 
         <div className="mt-7 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {photos.map((photo) => (
-            <article className="overflow-hidden rounded-3xl border border-black/8 bg-white shadow-sm" key={photo.item_id}>
+            <article
+              className="overflow-hidden rounded-3xl border border-black/8 bg-white shadow-sm"
+              key={photo.item_id}
+            >
               <div className="aspect-[4/5] bg-black/5">
                 {photo.signedUrl ? (
-                  <img alt="صورة للمراجعة" className="h-full w-full object-cover" src={photo.signedUrl} />
+                  <img
+                    alt="صورة للمراجعة"
+                    className="h-full w-full object-cover"
+                    src={photo.signedUrl}
+                  />
                 ) : (
                   <div className="grid h-full place-items-center p-6 text-center text-xs font-bold text-red-700">
                     تعذر إنشاء رابط المراجعة المؤقت لهذه الصورة.
@@ -121,18 +136,27 @@ export default async function AdminPhotosPage({
                     {stateLabels[photo.state] ?? photo.state}
                   </span>
                   <span className="text-xs font-bold text-black/38">
-                    {new Intl.DateTimeFormat("ar-LY", { dateStyle: "medium" }).format(new Date(photo.queued_at))}
+                    {new Intl.DateTimeFormat("ar-LY", {
+                      dateStyle: "medium",
+                    }).format(new Date(photo.queued_at))}
                   </span>
                 </div>
-                <h2 className="mt-3 text-lg font-black text-[#153d35]">{photo.display_label}</h2>
-                <div className="mt-1 font-mono text-[11px] font-bold text-black/30" dir="ltr">
+                <h2 className="mt-3 text-lg font-black text-[#153d35]">
+                  {photo.display_label}
+                </h2>
+                <div
+                  className="mt-1 font-mono text-[11px] font-bold text-black/30"
+                  dir="ltr"
+                >
                   {photo.item_id.slice(0, 8).toUpperCase()}
                 </div>
 
                 <form action={moderatePhoto} className="mt-5 space-y-3">
                   <input name="photo_id" type="hidden" value={photo.item_id} />
                   <label className="block">
-                    <span className="mb-1 block text-xs font-bold text-black/50">سبب مختصر عند طلب التغيير أو الرفض</span>
+                    <span className="mb-1 block text-xs font-bold text-black/50">
+                      سبب مختصر عند طلب التغيير أو الرفض
+                    </span>
                     <input
                       className="focus-ring w-full rounded-xl border border-black/10 px-3 py-3 text-sm"
                       maxLength={80}
@@ -173,8 +197,12 @@ export default async function AdminPhotosPage({
 
           {photos.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-black/15 bg-white p-10 text-center md:col-span-2 xl:col-span-3">
-              <div className="text-lg font-black text-[#153d35]">لا توجد صور تنتظر المراجعة</div>
-              <p className="mt-2 text-sm text-black/42">سيظهر هنا أي رفع جديد بحالة قيد المراجعة أو يحتاج تغييراً.</p>
+              <div className="text-lg font-black text-[#153d35]">
+                لا توجد صور تنتظر المراجعة
+              </div>
+              <p className="mt-2 text-sm text-black/42">
+                سيظهر هنا أي رفع جديد بحالة قيد المراجعة أو يحتاج تغييراً.
+              </p>
             </div>
           ) : null}
         </div>

@@ -8,12 +8,10 @@ export type Json =
 
 export type Gender = "woman" | "man";
 export type ResidencyType = "libya" | "diaspora";
-export type MaritalStatus = "never_married" | "divorced" | "widowed" | "married";
+export type MaritalStatus =
+  "never_married" | "divorced" | "widowed" | "married";
 export type MarriageTimeline =
-  | "within_6_months"
-  | "6_to_12_months"
-  | "1_to_2_years"
-  | "unsure";
+  "within_6_months" | "6_to_12_months" | "1_to_2_years" | "unsure";
 export type PhotoPrivacyPreference =
   | "none"
   | "blurred"
@@ -22,10 +20,7 @@ export type PhotoPrivacyPreference =
   | "after_family_involvement"
   | "discovery_visible";
 export type FamilyInvolvementPreference =
-  | "early"
-  | "after_initial_interest"
-  | "later"
-  | "unsure";
+  "early" | "after_initial_interest" | "later" | "unsure";
 export type TristatePreference = "yes" | "no" | "depends";
 export type WaitlistStatus =
   | "draft"
@@ -37,11 +32,7 @@ export type WaitlistStatus =
   | "deleted";
 export type DeletionScope = "waitlist_data" | "entire_account";
 export type DeletionStatus =
-  | "requested"
-  | "identity_confirmed"
-  | "in_progress"
-  | "completed"
-  | "rejected";
+  "requested" | "identity_confirmed" | "in_progress" | "completed" | "rejected";
 export type ConnectionSpace = "marriage" | "friendship";
 export type ConnectionSpaceMembershipState = "active" | "paused";
 export type MarriageVisibilityMode = "standard" | "private";
@@ -52,10 +43,7 @@ export type LivingArrangement =
   | "flexible";
 export type ChildrenPlan = "want_children" | "do_not_want_children" | "unsure";
 export type WorkAfterMarriage =
-  | "both_work"
-  | "one_may_pause"
-  | "open_to_discuss"
-  | "no_preference";
+  "both_work" | "one_may_pause" | "open_to_discuss" | "no_preference";
 export type WeddingStyle = "simple" | "moderate" | "large" | "discuss_together";
 
 export type AdminWaitlistApplication = {
@@ -126,7 +114,9 @@ export type Database = {
           attempt_count?: number;
           last_error_code?: string | null;
         };
-        Update: Partial<Database["public"]["Tables"]["deletion_requests"]["Insert"]>;
+        Update: Partial<
+          Database["public"]["Tables"]["deletion_requests"]["Insert"]
+        >;
         Relationships: [];
       };
       member_profiles: {
@@ -156,7 +146,9 @@ export type Database = {
           share_education?: boolean;
           share_origin_region?: boolean;
         };
-        Update: Partial<Database["public"]["Tables"]["member_profiles"]["Insert"]>;
+        Update: Partial<
+          Database["public"]["Tables"]["member_profiles"]["Insert"]
+        >;
         Relationships: [];
       };
       waitlist_applications: {
@@ -200,7 +192,9 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["waitlist_applications"]["Insert"]>;
+        Update: Partial<
+          Database["public"]["Tables"]["waitlist_applications"]["Insert"]
+        >;
         Relationships: [];
       };
       waitlist_preferences: {
@@ -232,7 +226,9 @@ export type Database = {
           accepts_partner_with_children?: TristatePreference | null;
           updated_at?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["waitlist_preferences"]["Insert"]>;
+        Update: Partial<
+          Database["public"]["Tables"]["waitlist_preferences"]["Insert"]
+        >;
         Relationships: [];
       };
       waitlist_accepted_marital_statuses: {
@@ -244,7 +240,9 @@ export type Database = {
           application_id: string;
           marital_status: MaritalStatus;
         };
-        Update: Partial<Database["public"]["Tables"]["waitlist_accepted_marital_statuses"]["Insert"]>;
+        Update: Partial<
+          Database["public"]["Tables"]["waitlist_accepted_marital_statuses"]["Insert"]
+        >;
         Relationships: [];
       };
       waitlist_preferred_countries: {
@@ -256,7 +254,9 @@ export type Database = {
           application_id: string;
           country_code: string;
         };
-        Update: Partial<Database["public"]["Tables"]["waitlist_preferred_countries"]["Insert"]>;
+        Update: Partial<
+          Database["public"]["Tables"]["waitlist_preferred_countries"]["Insert"]
+        >;
         Relationships: [];
       };
       referral_codes: {
@@ -278,7 +278,9 @@ export type Database = {
           expires_at?: string | null;
           created_at?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["referral_codes"]["Insert"]>;
+        Update: Partial<
+          Database["public"]["Tables"]["referral_codes"]["Insert"]
+        >;
         Relationships: [];
       };
     };

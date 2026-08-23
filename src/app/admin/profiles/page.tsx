@@ -66,10 +66,13 @@ export default async function AdminProfilesPage({
   const { data: access } = await supabase.rpc("get_my_moderation_access", {});
   if (!access?.some((item) => item.can_review)) notFound();
 
-  const { data: queueData, error: queueError } = await rpc.rpc("list_moderation_queue", {
-    p_kind: "profile",
-    p_limit: 50,
-  });
+  const { data: queueData, error: queueError } = await rpc.rpc(
+    "list_moderation_queue",
+    {
+      p_kind: "profile",
+      p_limit: 50,
+    },
+  );
 
   if (queueError) notFound();
 
@@ -81,7 +84,10 @@ export default async function AdminProfilesPage({
         p_item_id: item.item_id,
       });
 
-      const profile = !error && data && typeof data === "object" ? (data as ProfileCase) : null;
+      const profile =
+        !error && data && typeof data === "object"
+          ? (data as ProfileCase)
+          : null;
       return { ...item, profile };
     }),
   );
@@ -91,10 +97,15 @@ export default async function AdminProfilesPage({
       <div className="mx-auto w-full max-w-6xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <Link className="font-black text-[#153d35]" href="/admin">إدارة ميثاق</Link>
-            <h1 className="mt-2 text-3xl font-black text-[#153d35]">مراجعة الملفات</h1>
+            <Link className="font-black text-[#153d35]" href="/admin">
+              إدارة ميثاق
+            </Link>
+            <h1 className="mt-2 text-3xl font-black text-[#153d35]">
+              مراجعة الملفات
+            </h1>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-black/48">
-              لا يدخل أي ملف إلى الاستكشاف قبل اعتماد محتواه. لا تعرض هذه الصفحة رقم الهاتف أو الاسم القانوني للمستخدم.
+              لا يدخل أي ملف إلى الاستكشاف قبل اعتماد محتواه. لا تعرض هذه الصفحة
+              رقم الهاتف أو الاسم القانوني للمستخدم.
             </p>
           </div>
           <div className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#153d35]">
@@ -117,7 +128,10 @@ export default async function AdminProfilesPage({
           {profiles.map((item) => {
             const profile = item.profile;
             return (
-              <article className="rounded-3xl border border-black/8 bg-white p-5 shadow-sm sm:p-6" key={item.item_id}>
+              <article
+                className="rounded-3xl border border-black/8 bg-white p-5 shadow-sm sm:p-6"
+                key={item.item_id}
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800">
@@ -126,46 +140,68 @@ export default async function AdminProfilesPage({
                     <h2 className="mt-3 text-xl font-black text-[#153d35]">
                       {profile?.displayName ?? item.display_label}
                     </h2>
-                    <div className="mt-1 font-mono text-[11px] font-bold text-black/30" dir="ltr">
+                    <div
+                      className="mt-1 font-mono text-[11px] font-bold text-black/30"
+                      dir="ltr"
+                    >
                       {item.item_id.slice(0, 8).toUpperCase()}
                     </div>
                   </div>
                   <span className="text-xs font-bold text-black/38">
-                    {new Intl.DateTimeFormat("ar-LY", { dateStyle: "medium" }).format(new Date(item.queued_at))}
+                    {new Intl.DateTimeFormat("ar-LY", {
+                      dateStyle: "medium",
+                    }).format(new Date(item.queued_at))}
                   </span>
                 </div>
 
                 {profile ? (
                   <div className="mt-5 space-y-4">
                     <div className="flex flex-wrap gap-2 text-xs font-bold text-black/52">
-                      {profile.city ? <span className="rounded-full bg-[#f8f5ef] px-3 py-2">{profile.city}</span> : null}
+                      {profile.city ? (
+                        <span className="rounded-full bg-[#f8f5ef] px-3 py-2">
+                          {profile.city}
+                        </span>
+                      ) : null}
                       {profile.maritalStatus ? (
                         <span className="rounded-full bg-[#f8f5ef] px-3 py-2">
-                          {maritalLabels[profile.maritalStatus] ?? profile.maritalStatus}
+                          {maritalLabels[profile.maritalStatus] ??
+                            profile.maritalStatus}
                         </span>
                       ) : null}
                       {profile.hasChildren !== null ? (
                         <span className="rounded-full bg-[#f8f5ef] px-3 py-2">
-                          {profile.hasChildren ? "لديه/لديها أطفال" : "بدون أطفال"}
+                          {profile.hasChildren
+                            ? "لديه/لديها أطفال"
+                            : "بدون أطفال"}
                         </span>
                       ) : null}
                     </div>
 
                     <div className="rounded-2xl bg-[#f8f5ef] p-4">
-                      <div className="text-xs font-black text-[#8b6228]">النبذة</div>
-                      <p className="mt-2 whitespace-pre-line text-sm leading-7 text-black/62">
+                      <div className="text-xs font-black text-[#8b6228]">
+                        النبذة
+                      </div>
+                      <p className="mt-2 text-sm leading-7 whitespace-pre-line text-black/62">
                         {profile.aboutMe || "لا توجد نبذة."}
                       </p>
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-2xl border border-black/7 p-4">
-                        <div className="text-xs font-bold text-black/40">المهنة</div>
-                        <div className="mt-1 text-sm font-black text-[#153d35]">{profile.occupation || "—"}</div>
+                        <div className="text-xs font-bold text-black/40">
+                          المهنة
+                        </div>
+                        <div className="mt-1 text-sm font-black text-[#153d35]">
+                          {profile.occupation || "—"}
+                        </div>
                       </div>
                       <div className="rounded-2xl border border-black/7 p-4">
-                        <div className="text-xs font-bold text-black/40">التعليم</div>
-                        <div className="mt-1 text-sm font-black text-[#153d35]">{profile.education || "—"}</div>
+                        <div className="text-xs font-bold text-black/40">
+                          التعليم
+                        </div>
+                        <div className="mt-1 text-sm font-black text-[#153d35]">
+                          {profile.education || "—"}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -178,7 +214,9 @@ export default async function AdminProfilesPage({
                 <form action={moderateProfile} className="mt-5 space-y-3">
                   <input name="user_id" type="hidden" value={item.item_id} />
                   <label className="block">
-                    <span className="mb-1 block text-xs font-bold text-black/50">سبب مختصر عند طلب التعديل أو الرفض</span>
+                    <span className="mb-1 block text-xs font-bold text-black/50">
+                      سبب مختصر عند طلب التعديل أو الرفض
+                    </span>
                     <input
                       className="focus-ring w-full rounded-xl border border-black/10 px-3 py-3 text-sm"
                       maxLength={120}
@@ -222,8 +260,12 @@ export default async function AdminProfilesPage({
 
           {profiles.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-black/15 bg-white p-10 text-center lg:col-span-2">
-              <div className="text-lg font-black text-[#153d35]">لا توجد ملفات تنتظر المراجعة</div>
-              <p className="mt-2 text-sm text-black/42">أي ملف جديد أو معدل سيعود تلقائياً إلى طابور المراجعة.</p>
+              <div className="text-lg font-black text-[#153d35]">
+                لا توجد ملفات تنتظر المراجعة
+              </div>
+              <p className="mt-2 text-sm text-black/42">
+                أي ملف جديد أو معدل سيعود تلقائياً إلى طابور المراجعة.
+              </p>
             </div>
           ) : null}
         </div>
