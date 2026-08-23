@@ -19,26 +19,23 @@ export async function setWaitlistStatus(formData: FormData) {
     : "";
 
   if (!uuidPattern.test(applicationId) || !adminStatuses.includes(targetStatus)) {
-    redirect(`/admin?error=invalid${filterSuffix}`);
+    redirect(`/admin/waitlist?error=invalid${filterSuffix}`);
   }
 
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
 
-  if (!claimsData?.claims?.sub) {
-    redirect("/join");
-  }
+  if (!claimsData?.claims?.sub) redirect("/join");
 
   const { error } = await supabase.rpc("admin_set_waitlist_status", {
     p_application_id: applicationId,
     p_to_status: targetStatus,
   });
 
-  if (error) {
-    redirect(`/admin?error=transition${filterSuffix}`);
-  }
+  if (error) redirect(`/admin/waitlist?error=transition${filterSuffix}`);
 
   revalidatePath("/admin");
+  revalidatePath("/admin/waitlist");
   revalidatePath("/waitlist");
-  redirect(`/admin?updated=1${filterSuffix}`);
+  redirect(`/admin/waitlist?updated=1${filterSuffix}`);
 }
