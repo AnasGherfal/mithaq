@@ -42,6 +42,21 @@ export type DeletionStatus =
   | "in_progress"
   | "completed"
   | "rejected";
+export type ConnectionSpace = "marriage" | "friendship";
+export type ConnectionSpaceMembershipState = "active" | "paused";
+export type MarriageVisibilityMode = "standard" | "private";
+export type LivingArrangement =
+  | "independent_home"
+  | "with_family_initially"
+  | "with_family_long_term"
+  | "flexible";
+export type ChildrenPlan = "want_children" | "do_not_want_children" | "unsure";
+export type WorkAfterMarriage =
+  | "both_work"
+  | "one_may_pause"
+  | "open_to_discuss"
+  | "no_preference";
+export type WeddingStyle = "simple" | "moderate" | "large" | "discuss_together";
 
 export type AdminWaitlistApplication = {
   application_id: string;
@@ -112,6 +127,36 @@ export type Database = {
           last_error_code?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["deletion_requests"]["Insert"]>;
+        Relationships: [];
+      };
+      member_profiles: {
+        Row: {
+          user_id: string;
+          display_name: string | null;
+          about_me: string | null;
+          occupation: string | null;
+          education: string | null;
+          profile_completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+          share_occupation: boolean;
+          share_education: boolean;
+          share_origin_region: boolean;
+        };
+        Insert: {
+          user_id: string;
+          display_name?: string | null;
+          about_me?: string | null;
+          occupation?: string | null;
+          education?: string | null;
+          profile_completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          share_occupation?: boolean;
+          share_education?: boolean;
+          share_origin_region?: boolean;
+        };
+        Update: Partial<Database["public"]["Tables"]["member_profiles"]["Insert"]>;
         Relationships: [];
       };
       waitlist_applications: {
@@ -324,6 +369,92 @@ export type Database = {
         };
         Returns: WaitlistStatus;
       };
+      join_my_connection_space: {
+        Args: { p_space: ConnectionSpace };
+        Returns: boolean;
+      };
+      list_my_connection_spaces: {
+        Args: Record<PropertyKey, never>;
+        Returns: Array<{
+          space: ConnectionSpace;
+          membership_state: ConnectionSpaceMembershipState;
+          is_current: boolean;
+          profile_completed: boolean;
+        }>;
+      };
+      save_member_profile: {
+        Args: {
+          p_display_name: string;
+          p_about_me: string;
+          p_occupation?: string | null;
+          p_education?: string | null;
+        };
+        Returns: Array<{
+          profile_completed: boolean;
+          profile_completed_at: string | null;
+        }>;
+      };
+      set_profile_disclosure_preferences: {
+        Args: {
+          p_share_occupation: boolean;
+          p_share_education: boolean;
+          p_share_origin_region: boolean;
+        };
+        Returns: Array<{
+          share_occupation: boolean;
+          share_education: boolean;
+          share_origin_region: boolean;
+        }>;
+      };
+      save_my_marriage_practical_priorities: {
+        Args: {
+          p_living_arrangement: LivingArrangement;
+          p_children_plan: ChildrenPlan;
+          p_work_after_marriage: WorkAfterMarriage;
+          p_wedding_style: WeddingStyle;
+        };
+        Returns: Array<{
+          living_arrangement: LivingArrangement;
+          children_plan: ChildrenPlan;
+          work_after_marriage: WorkAfterMarriage;
+          wedding_style: WeddingStyle;
+          completed_at: string;
+        }>;
+      };
+      get_my_marriage_practical_priorities: {
+        Args: Record<PropertyKey, never>;
+        Returns: Array<{
+          living_arrangement: LivingArrangement;
+          children_plan: ChildrenPlan;
+          work_after_marriage: WorkAfterMarriage;
+          wedding_style: WeddingStyle;
+          completed_at: string;
+        }>;
+      };
+      get_my_marriage_visibility: {
+        Args: Record<PropertyKey, never>;
+        Returns: MarriageVisibilityMode;
+      };
+      set_my_marriage_visibility: {
+        Args: { p_visibility_mode: MarriageVisibilityMode };
+        Returns: MarriageVisibilityMode;
+      };
+      get_own_introduction_preview: {
+        Args: Record<PropertyKey, never>;
+        Returns: Array<{
+          display_name: string;
+          about_me: string;
+          occupation: string | null;
+          education: string | null;
+          gender: Gender;
+          age_band_id: number;
+          country_code: string;
+          city: string;
+          origin_region: string | null;
+          marital_status: MaritalStatus;
+          has_children: boolean;
+        }>;
+      };
     };
     Enums: {
       gender: Gender;
@@ -336,6 +467,9 @@ export type Database = {
       waitlist_status: WaitlistStatus;
       deletion_scope: DeletionScope;
       deletion_status: DeletionStatus;
+      connection_space: ConnectionSpace;
+      connection_space_membership_state: ConnectionSpaceMembershipState;
+      marriage_visibility_mode: MarriageVisibilityMode;
     };
     CompositeTypes: {
       [_ in never]: never;
