@@ -11,11 +11,12 @@ runNpm(["--version"]);
 
 console.log("Resetting only generated mobile dependencies and caches...");
 rmSync(resolve(mobileRoot, "node_modules"), { recursive: true, force: true });
-rmSync(resolve(mobileRoot, "package-lock.json"), { force: true });
 rmSync(resolve(mobileRoot, ".expo"), { recursive: true, force: true });
 
 console.log("Installing the pinned Expo SDK 54 preview stack...");
-runNpm(["install", "--legacy-peer-deps", "--no-package-lock"]);
+// Keep package-lock.json so Expo Doctor, CI, and native builds all use the same
+// resolved dependency graph. If the lockfile is missing, npm creates it here.
+runNpm(["install", "--legacy-peer-deps"]);
 
 console.log("Running mobile TypeScript and formatting checks...");
 runNpm(["run", "check"]);
