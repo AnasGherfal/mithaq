@@ -43,6 +43,21 @@ export type DeletionStatus =
   | "completed"
   | "rejected";
 
+export type AdminWaitlistApplication = {
+  application_id: string;
+  status: WaitlistStatus;
+  gender: Gender | null;
+  age_band_label: string | null;
+  residency_type: ResidencyType | null;
+  current_country_code: string | null;
+  current_city: string | null;
+  marital_status: MaritalStatus | null;
+  has_children: boolean | null;
+  submitted_at: string | null;
+  created_at: string;
+  referred_by_invite: boolean;
+};
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.15";
@@ -294,6 +309,20 @@ export type Database = {
           can_review: boolean;
           can_enforce: boolean;
         }>;
+      };
+      list_admin_waitlist_applications: {
+        Args: {
+          p_status?: WaitlistStatus | null;
+          p_limit?: number;
+        };
+        Returns: AdminWaitlistApplication[];
+      };
+      admin_set_waitlist_status: {
+        Args: {
+          p_application_id: string;
+          p_to_status: WaitlistStatus;
+        };
+        Returns: WaitlistStatus;
       };
     };
     Enums: {
