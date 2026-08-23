@@ -1,42 +1,57 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
+import {
+  MarriageActivityTimeline,
+  type MarriageActivityItem,
+  type MarriageActivityKind,
+} from "@/features/marriage-activity";
 import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
-type NotificationRow = {
-  notification_id: string;
-  notification_kind: "introduction_offered" | "introduction_mutually_accepted" | "message_received";
-  introduction_id: string;
-  created_at: string;
-  is_read: boolean;
-};
-
 const PAGE_SIZE = 50;
+
+const activityKinds: MarriageActivityKind[] = [
+  "interest_saved",
+  "introduction_offered",
+  "my_choice_saved",
+  "mutual_acceptance",
+  "conversation_started",
+  "message_received",
+  "my_photo_shared",
+  "photo_shared_with_me",
+  "my_trusted_contact_shared",
+  "trusted_contact_shared_with_me",
+  "introduction_closed_by_me",
+  "introduction_closed",
+  "introduction_expired",
+  "conversation_ended_by_me",
+  "conversation_closed",
+];
+
+const introductionStatuses = ["offered", "mutually_accepted", "declined", "expired", "cancelled", "closed"] as const;
 
 export default function ActivityScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
   const locale: MobileLocale = params.locale === "en" ? "en" : "ar";
   const rtl = locale === "ar";
+  const textAlign = rtl ? "right" : "left";
+  const writingDirection = rtl ? "rtl" : "ltr";
   const copy = useMemo(() => activityCopy(locale), [locale]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [items, setItems] = useState<NotificationRow[]>([]);
+  const [items, setItems] = useState<MarriageActivityItem[]>([]);
   const [hasOlder, setHasOlder] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [olderError, setOlderError] = useState<string | null>(null);
 
-  const markVisibleRead = useCallback(async (rows: NotificationRow[]) => {
-    const newest = rows[0];
-    if (!newest) return;
-    await supabase.rpc("mark_my_notifications_read_v2", {
-      p_through_created_at: newest.created_at,
-      p_through_notification_id: newest.notification_id,
-    });
+  const markAlertsRead = useCallback(async () => {
+    await supabase.rpc("mark_my_notifications_read", { p_through: null });
   }, []);
 
   const load = useCallback(async () => {
@@ -50,28 +65,30 @@ export default function ActivityScreen() {
       setLoading(false);
       return;
     }
+
     if (!sessionData.session) {
       router.replace({ pathname: "/auth", params: { locale } });
       return;
     }
 
-    const { data, error } = await supabase.rpc("list_my_notifications_v2", {
-      p_before_created_at: null,
-      p_before_notification_id: null,
+    const { data, error } = await supabase.rpc("list_my_marriage_activity", {
+      p_before_occurred_at: null,
+      p_before_activity_id: null,
       p_limit: PAGE_SIZE,
     });
+
     if (error) {
       setLoadError(true);
       setLoading(false);
       return;
     }
 
-    const rows = (data ?? []) as NotificationRow[];
+    const rows = normalizeActivityRows(data);
     setItems(rows);
     setHasOlder(rows.length === PAGE_SIZE);
     setLoading(false);
-    void markVisibleRead(rows);
-  }, [locale, markVisibleRead]);
+    void markAlertsRead();
+  }, [locale, markAlertsRead]);
 
   useEffect(() => {
     void load();
@@ -84,11 +101,13 @@ export default function ActivityScreen() {
 
     setLoadingOlder(true);
     setOlderError(null);
-    const { data, error } = await supabase.rpc("list_my_notifications_v2", {
-      p_before_created_at: oldest.created_at,
-      p_before_notification_id: oldest.notification_id,
+
+    const { data, error } = await supabase.rpc("list_my_marriage_activity", {
+      p_before_occurred_at: oldest.occurredAt,
+      p_before_activity_id: oldest.activityId,
       p_limit: PAGE_SIZE,
     });
+
     setLoadingOlder(false);
 
     if (error) {
@@ -96,20 +115,51 @@ export default function ActivityScreen() {
       return;
     }
 
-    const rows = (data ?? []) as NotificationRow[];
+    const rows = normalizeActivityRows(data);
     setItems((current) => {
-      const existing = new Set(current.map((item) => item.notification_id));
-      return [...current, ...rows.filter((item) => !existing.has(item.notification_id))];
+      const existing = new Set(current.map((item) => item.activityId));
+      return [...current, ...rows.filter((item) => !existing.has(item.activityId))];
     });
     setHasOlder(rows.length === PAGE_SIZE);
-    void markVisibleRead(rows);
   }
 
-  function openItem(item: NotificationRow) {
-    if (item.notification_kind === "message_received" || item.notification_kind === "introduction_mutually_accepted") {
+  function openItem(item: MarriageActivityItem) {
+    if (item.kind === "interest_saved") {
+      router.push({ pathname: "/marriage-discover", params: { locale } });
+      return;
+    }
+
+    if (!item.introductionId) {
+      router.push({ pathname: "/introductions", params: { locale } });
+      return;
+    }
+
+    if (item.kind === "my_trusted_contact_shared" || item.kind === "trusted_contact_shared_with_me") {
+      router.push({
+        pathname: "/trusted-contacts",
+        params: { locale, introductionId: item.introductionId },
+      });
+      return;
+    }
+
+    if (
+      item.introductionStatus === "mutually_accepted" &&
+      (item.kind === "mutual_acceptance" || item.kind === "my_photo_shared" || item.kind === "photo_shared_with_me")
+    ) {
+      router.push({
+        pathname: "/introduction-handoff",
+        params: { locale, introductionId: item.introductionId },
+      });
+      return;
+    }
+
+    if (
+      item.introductionStatus === "mutually_accepted" &&
+      (item.kind === "conversation_started" || item.kind === "message_received")
+    ) {
       router.push({
         pathname: "/conversation",
-        params: { locale, introductionId: item.introduction_id },
+        params: { locale, introductionId: item.introductionId },
       });
       return;
     }
@@ -118,17 +168,7 @@ export default function ActivityScreen() {
   }
 
   return (
-    <ScreenShell
-      eyebrow={copy.eyebrow}
-      title={copy.title}
-      body={copy.body}
-      rtl={rtl}
-      footer={
-        <PrimaryButton tone="quiet" onPress={() => router.replace({ pathname: "/status", params: { locale } })}>
-          {copy.back}
-        </PrimaryButton>
-      }
-    >
+    <ScreenShell title={copy.title} body={copy.body} rtl={rtl}>
       {loading ? (
         <View style={styles.loadingState} accessibilityLabel={copy.loading}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -143,73 +183,32 @@ export default function ActivityScreen() {
           onAction={() => void load()}
         />
       ) : items.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <View style={styles.emptyMark}>
-            <Text style={styles.emptyMarkText}>✦</Text>
+        <View style={[styles.emptyState, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+          <View style={styles.emptyIcon}>
+            <AppIcon name="activity" active size={27} />
           </View>
-          <Text style={[styles.emptyTitle, { textAlign: "center" }]}>{copy.emptyTitle}</Text>
-          <Text style={[styles.emptyBody, { textAlign: "center" }]}>{copy.emptyBody}</Text>
+          <Text style={[styles.emptyTitle, { textAlign, writingDirection }]}>{copy.emptyTitle}</Text>
+          <Text style={[styles.emptyBody, { textAlign, writingDirection }]}>{copy.emptyBody}</Text>
         </View>
       ) : (
-        <View style={styles.stack}>
-          <View style={styles.privacyCard}>
-            <Text style={[styles.privacyTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyTitle}</Text>
-            <Text style={[styles.privacyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.privacyBody}</Text>
+        <View style={styles.page}>
+          <View style={[styles.privacyNote, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+            <View style={styles.privacyIcon}>
+              <AppIcon name="privacy" active size={18} />
+            </View>
+            <Text style={[styles.privacyText, { textAlign, writingDirection }]}>{copy.privacyBody}</Text>
           </View>
 
-          <View style={styles.list}>
-            {items.map((item) => {
-              const isMessage = item.notification_kind === "message_received";
-              const isMutual = item.notification_kind === "introduction_mutually_accepted";
-              const date = new Date(item.created_at).toLocaleString(locale === "ar" ? "ar-LY" : "en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              });
-              const title = isMessage ? copy.messageTitle : isMutual ? copy.mutualTitle : copy.introductionTitle;
-              const body = isMessage ? copy.messageBody : isMutual ? copy.mutualBody : copy.introductionBody;
-
-              return (
-                <Pressable
-                  key={item.notification_id}
-                  accessibilityRole="button"
-                  onPress={() => openItem(item)}
-                  style={({ pressed }) => [
-                    styles.itemCard,
-                    !item.is_read ? styles.itemUnread : null,
-                    pressed ? styles.pressed : null,
-                  ]}
-                >
-                  <View style={[styles.itemTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-                    <View
-                      style={[
-                        styles.itemMark,
-                        isMessage ? styles.messageMark : null,
-                        isMutual ? styles.mutualMark : null,
-                      ]}
-                    >
-                      <Text style={styles.itemMarkText}>{isMessage ? "•" : isMutual ? "✓" : "✦"}</Text>
-                    </View>
-                    <View style={styles.itemCopy}>
-                      <Text style={[styles.itemTitle, { textAlign: rtl ? "right" : "left" }]}>{title}</Text>
-                      <Text style={[styles.itemBody, { textAlign: rtl ? "right" : "left" }]}>{body}</Text>
-                      <Text style={[styles.itemDate, { textAlign: rtl ? "right" : "left" }]}>{date}</Text>
-                    </View>
-                    {!item.is_read ? <View style={styles.unreadDot} /> : null}
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
+          <MarriageActivityTimeline items={items} locale={locale} onOpen={openItem} />
 
           {hasOlder ? (
             <PrimaryButton tone="quiet" loading={loadingOlder} onPress={() => void loadOlder()}>
               {copy.loadEarlier}
             </PrimaryButton>
           ) : null}
+
           {olderError ? (
-            <Text accessibilityRole="alert" style={[styles.error, { textAlign: rtl ? "right" : "left" }]}>
+            <Text accessibilityRole="alert" style={[styles.error, { textAlign, writingDirection }]}>
               {olderError}
             </Text>
           ) : null}
@@ -219,120 +218,128 @@ export default function ActivityScreen() {
   );
 }
 
+function normalizeActivityRows(value: unknown): MarriageActivityItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry): MarriageActivityItem[] => {
+    if (!isRecord(entry)) return [];
+    if (
+      typeof entry.activity_id !== "string" ||
+      !isActivityKind(entry.activity_kind) ||
+      typeof entry.occurred_at !== "string"
+    ) {
+      return [];
+    }
+
+    const introductionId = typeof entry.introduction_id === "string" ? entry.introduction_id : null;
+    const introductionStatus = isIntroductionStatus(entry.introduction_status) ? entry.introduction_status : null;
+
+    return [
+      {
+        activityId: entry.activity_id,
+        kind: entry.activity_kind,
+        introductionId,
+        introductionStatus,
+        occurredAt: entry.occurred_at,
+        isUnread: entry.is_unread === true,
+      },
+    ];
+  });
+}
+
+function isActivityKind(value: unknown): value is MarriageActivityKind {
+  return typeof value === "string" && activityKinds.includes(value as MarriageActivityKind);
+}
+
+function isIntroductionStatus(value: unknown): value is MarriageActivityItem["introductionStatus"] & string {
+  return typeof value === "string" && introductionStatuses.includes(value as (typeof introductionStatuses)[number]);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function activityCopy(locale: MobileLocale) {
   if (locale === "ar") {
     return {
-      eyebrow: "نشاطك الخاص",
-      title: "مركز النشاط",
-      body: "مكان واحد للتنبيهات المهمة داخل ميثاق، من دون عرض محتوى الرسائل أو أي بيانات تعريفية حساسة في قائمة النشاط.",
-      loading: "جارٍ تحميل مركز النشاط",
-      errorTitle: "تعذر تحميل النشاط",
+      title: "النشاط",
+      body: "رحلة تعارفك الخاصة مرتبة من الاهتمام الأول إلى التواصل ودائرة الثقة.",
+      loading: "جارٍ تحميل النشاط",
+      errorTitle: "تعذر تحميل رحلة النشاط",
       errorBody: "لم نغيّر أي بيانات. تحقق من اتصالك وحاول مرة أخرى.",
       retry: "إعادة المحاولة",
-      back: "العودة إلى الحساب",
-      emptyTitle: "لا يوجد نشاط جديد",
-      emptyBody: "عندما ينشئ ميثاق تعارفاً خاصاً لك أو تصلك رسالة داخل تعارف مقبول، ستظهر الإشارة هنا.",
-      privacyTitle: "إشعارات مصممة للخصوصية",
+      emptyTitle: "رحلتك ستظهر هنا",
+      emptyBody: "عندما تحفظ اهتماماً أو يبدأ تعارف خاص، سترى المراحل المهمة هنا بترتيب واضح.",
       privacyBody:
-        "قائمة النشاط لا تعرض نص الرسالة ولا رقم الهاتف ولا معرف الطرف الآخر. افتح التعارف نفسه لرؤية ما يسمح به ميثاق فقط.",
-      introductionTitle: "تعارف خاص جديد",
-      introductionBody: "أنشأ ميثاق تعارفاً خاصاً لك. افتح التعارف لمراجعة الملف المسموح به واتخاذ قرارك.",
-      mutualTitle: "تم قبول التعارف من الطرفين",
-      mutualBody: "أصبح التواصل الخاص لهذا التعارف متاحاً الآن. افتحه عندما تكون جاهزاً.",
-      messageTitle: "رسالة جديدة",
-      messageBody: "وصلت رسالة داخل تعارف تم قبوله من الطرفين.",
-      loadEarlier: "عرض نشاط أقدم",
+        "هذا سجل خاص بك. لا نعرض نص الرسائل أو أرقام الهواتف أو هوية الطرف الآخر هنا، ولا نكشف قراره الخاص قبل القبول المتبادل.",
+      loadEarlier: "عرض مراحل أقدم",
       olderError: "تعذر تحميل النشاط الأقدم. حاول مرة أخرى.",
     };
   }
 
   return {
-    eyebrow: "Private activity",
-    title: "Activity Center",
-    body: "One place for important Mithaq activity without exposing message content or sensitive identifying data in the notification list.",
-    loading: "Loading Activity Center",
-    errorTitle: "We couldn’t load activity",
+    title: "Activity",
+    body: "Your private introduction journey, from first interest to conversation and Trusted Circle.",
+    loading: "Loading activity",
+    errorTitle: "We couldn’t load your activity journey",
     errorBody: "No data was changed. Check your connection and try again.",
     retry: "Try again",
-    back: "Back to account",
-    emptyTitle: "No new activity",
+    emptyTitle: "Your journey will appear here",
     emptyBody:
-      "When Mithaq creates a private introduction for you or a message arrives in a mutually accepted introduction, it will appear here.",
-    privacyTitle: "Privacy-minimal notifications",
+      "When you save interest or enter a private introduction, the important stages will appear here in order.",
     privacyBody:
-      "Activity never shows message text, phone numbers, or the other member’s identifier. Open the introduction to see only what Mithaq permits.",
-    introductionTitle: "New private introduction",
-    introductionBody:
-      "Mithaq created a private introduction for you. Open it to review the permitted profile and make your decision.",
-    mutualTitle: "Introduction accepted by both sides",
-    mutualBody: "Private communication for this introduction is now available. Open it when you are ready.",
-    messageTitle: "New message",
-    messageBody: "A message arrived inside a mutually accepted introduction.",
-    loadEarlier: "Show earlier activity",
+      "This timeline is private to you. It never shows message text, phone numbers, the other person’s identity, or their private decision before mutual acceptance.",
+    loadEarlier: "Show earlier stages",
     olderError: "We couldn’t load earlier activity. Try again.",
   };
 }
 
 const styles = StyleSheet.create({
-  loadingState: { minHeight: 220, alignItems: "center", justifyContent: "center" },
-  stack: { gap: 14 },
-  list: { gap: 10 },
-  privacyCard: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
+  loadingState: { minHeight: 320, alignItems: "center", justifyContent: "center" },
+  page: { width: "100%", gap: 18 },
+  privacyNote: {
+    width: "100%",
+    alignItems: "center",
+    gap: 11,
     borderRadius: radius.lg,
     backgroundColor: colors.primaryWash,
-    padding: 17,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
   },
-  privacyTitle: { color: colors.primary, fontSize: 15, fontWeight: "800" },
-  privacyBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 6 },
-  itemCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
+  privacyIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: colors.surfaceRaised,
-    padding: 15,
   },
-  itemUnread: { borderColor: colors.borderStrong, backgroundColor: colors.primaryWash },
-  itemTop: { alignItems: "flex-start", gap: 12 },
-  itemMark: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: "center",
+  privacyText: { flex: 1, color: colors.muted, fontSize: 11, lineHeight: 19 },
+  emptyState: {
+    width: "100%",
+    minHeight: 350,
     justifyContent: "center",
-    backgroundColor: colors.primary,
-  },
-  messageMark: { backgroundColor: colors.foreground },
-  mutualMark: { backgroundColor: colors.gold },
-  itemMarkText: { color: colors.white, fontSize: 17, fontWeight: "900" },
-  itemCopy: { flex: 1 },
-  itemTitle: { color: colors.foreground, fontSize: 15, fontWeight: "800" },
-  itemBody: { color: colors.muted, fontSize: 13, lineHeight: 20, marginTop: 5 },
-  itemDate: { color: colors.mutedSoft, fontSize: 11, marginTop: 8 },
-  unreadDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.primary, marginTop: 4 },
-  emptyCard: {
-    minHeight: 260,
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.surfaceRaised,
     padding: 24,
   },
-  emptyMark: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+  emptyIcon: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.primaryWash,
-    marginBottom: 14,
   },
-  emptyMarkText: { color: colors.primary, fontSize: 24, fontWeight: "900" },
-  emptyTitle: { color: colors.foreground, fontSize: 17, fontWeight: "800" },
-  emptyBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 7, maxWidth: 320 },
-  pressed: { opacity: 0.72 },
-  error: { color: colors.danger, fontSize: 12, lineHeight: 19 },
+  emptyTitle: {
+    width: "100%",
+    color: colors.foreground,
+    fontSize: 20,
+    lineHeight: 31,
+    fontWeight: "800",
+    marginTop: 16,
+  },
+  emptyBody: { width: "100%", color: colors.muted, fontSize: 14, lineHeight: 25, marginTop: 7 },
+  error: { width: "100%", color: colors.danger, fontSize: 12, lineHeight: 19 },
 });

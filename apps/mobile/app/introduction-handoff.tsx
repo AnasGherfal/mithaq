@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
+import { ProfilePortrait } from "@/components/profile-portrait";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
+import { TrustBadges } from "@/components/trust-badges";
 import type { MobileLocale } from "@/i18n";
+import {
+  getMyIntroductionRevealState,
+  revealMyIntroductionPhoto,
+  type IntroductionRevealState,
+} from "@/lib/introduction-reveal";
 import { supabase } from "@/lib/supabase";
 import { colors, radius } from "@/theme";
 
@@ -15,6 +22,10 @@ type IntroductionRow = {
 
 type PreviewRow = {
   display_name: string | null;
+  primary_photo_url: string | null;
+  real_person_verified: boolean | null;
+  age_18_plus_verified: boolean | null;
+  identity_verified: boolean | null;
 };
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -29,13 +40,17 @@ export default function IntroductionHandoffScreen() {
   const [loading, setLoading] = useState(validIntroduction);
   const [loadError, setLoadError] = useState(false);
   const [ready, setReady] = useState(false);
-  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [preview, setPreview] = useState<PreviewRow | null>(null);
+  const [revealState, setRevealState] = useState<IntroductionRevealState | null>(null);
+  const [revealLoading, setRevealLoading] = useState(false);
+  const [confirmReveal, setConfirmReveal] = useState(false);
+  const [revealMessage, setRevealMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!validIntroduction) return;
-
     setLoading(true);
     setLoadError(false);
+    setRevealMessage(null);
 
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) {
@@ -64,24 +79,51 @@ export default function IntroductionHandoffScreen() {
       return;
     }
 
-    const { data: previewData, error: previewError } = await supabase.rpc("get_introduction_preview", {
-      p_introduction_id: introductionId,
-    });
-    if (previewError) {
+    try {
+      const [previewResult, nextRevealState] = await Promise.all([
+        supabase.rpc("get_introduction_preview", { p_introduction_id: introductionId }),
+        getMyIntroductionRevealState(introductionId),
+      ]);
+      if (previewResult.error) throw previewResult.error;
+      const nextPreview = ((Array.isArray(previewResult.data) ? previewResult.data[0] : previewResult.data) ??
+        null) as PreviewRow | null;
+      setPreview(nextPreview);
+      setRevealState(nextRevealState);
+      setReady(true);
+    } catch {
       setLoadError(true);
+    } finally {
       setLoading(false);
+    }
+  }, [introductionId, locale, validIntroduction]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load]),
+  );
+
+  async function revealPhoto() {
+    if (!revealState?.canRevealPhoto || revealLoading) return;
+    if (!confirmReveal) {
+      setConfirmReveal(true);
+      setRevealMessage(null);
       return;
     }
 
-    const preview = ((Array.isArray(previewData) ? previewData[0] : previewData) ?? null) as PreviewRow | null;
-    setDisplayName(preview?.display_name ?? null);
-    setReady(true);
-    setLoading(false);
-  }, [introductionId, locale, validIntroduction]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+    setRevealLoading(true);
+    setRevealMessage(null);
+    try {
+      await revealMyIntroductionPhoto(introductionId);
+      setRevealState(await getMyIntroductionRevealState(introductionId));
+      setConfirmReveal(false);
+      setRevealMessage(copy.photoShared);
+    } catch {
+      setRevealMessage(copy.photoShareError);
+    } finally {
+      setRevealLoading(false);
+    }
+  }
 
   if (!validIntroduction) {
     return (
@@ -98,6 +140,11 @@ export default function IntroductionHandoffScreen() {
       </ScreenShell>
     );
   }
+
+  const hasVerifiedTrust = Boolean(
+    preview?.real_person_verified || preview?.age_18_plus_verified || preview?.identity_verified,
+  );
+  const portraitInitial = preview?.display_name?.trim().charAt(0) || "م";
 
   return (
     <ScreenShell
@@ -133,9 +180,84 @@ export default function IntroductionHandoffScreen() {
               <Text style={styles.mutualMarkText}>✓</Text>
             </View>
             <Text style={[styles.mutualTitle, { textAlign: rtl ? "right" : "left" }]}>
-              {displayName ? copy.mutualWithName(displayName) : copy.mutual}
+              {preview?.display_name ? copy.mutualWithName(preview.display_name) : copy.mutual}
             </Text>
             <Text style={[styles.mutualBody, { textAlign: rtl ? "right" : "left" }]}>{copy.mutualBody}</Text>
+          </View>
+
+          <View style={styles.partnerPortraitCard}>
+            <Text style={[styles.partnerPortraitTitle, { textAlign: rtl ? "right" : "left" }]}>
+              {copy.partnerPhotoTitle}
+            </Text>
+            <Text style={[styles.partnerPortraitBody, { textAlign: rtl ? "right" : "left" }]}>
+              {preview?.primary_photo_url ? copy.partnerPhotoRevealed : copy.partnerPhotoPrivate}
+            </Text>
+            <ProfilePortrait
+              height={250}
+              initials={portraitInitial}
+              privacyLabel={copy.partnerPhotoPrivacyLabel}
+              rtl={rtl}
+              uri={preview?.primary_photo_url}
+            />
+          </View>
+
+          {hasVerifiedTrust ? (
+            <View style={styles.trustCard}>
+              <Text style={[styles.trustTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.trustTitle}</Text>
+              <TrustBadges
+                locale={locale}
+                realPersonVerified={Boolean(preview?.real_person_verified)}
+                age18PlusVerified={Boolean(preview?.age_18_plus_verified)}
+                identityVerified={Boolean(preview?.identity_verified)}
+              />
+              <Text style={[styles.trustBody, { textAlign: rtl ? "right" : "left" }]}>{copy.trustBody}</Text>
+            </View>
+          ) : null}
+
+          {revealState ? (
+            <View style={styles.revealCard}>
+              <Text style={[styles.revealTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.photoTitle}</Text>
+              <Text style={[styles.revealBody, { textAlign: rtl ? "right" : "left" }]}>
+                {photoStateBody(revealState, copy)}
+              </Text>
+              {revealState.canRevealPhoto ? (
+                <View style={styles.revealActions}>
+                  {confirmReveal ? (
+                    <Text style={[styles.confirmText, { textAlign: rtl ? "right" : "left" }]}>{copy.photoConfirm}</Text>
+                  ) : null}
+                  <PrimaryButton loading={revealLoading} onPress={() => void revealPhoto()}>
+                    {confirmReveal ? copy.photoConfirmButton : copy.photoShareButton}
+                  </PrimaryButton>
+                  {confirmReveal ? (
+                    <PrimaryButton tone="quiet" disabled={revealLoading} onPress={() => setConfirmReveal(false)}>
+                      {copy.cancel}
+                    </PrimaryButton>
+                  ) : null}
+                </View>
+              ) : null}
+              {revealMessage ? (
+                <Text
+                  accessibilityLiveRegion="polite"
+                  style={[styles.revealMessage, { textAlign: rtl ? "right" : "left" }]}
+                >
+                  {revealMessage}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
+
+          <View style={styles.trustedCircleCard}>
+            <Text style={[styles.trustedCircleEyebrow, { textAlign: rtl ? "right" : "left" }]}>
+              {copy.trustedEyebrow}
+            </Text>
+            <Text style={[styles.trustedCircleTitle, { textAlign: rtl ? "right" : "left" }]}>{copy.trustedTitle}</Text>
+            <Text style={[styles.trustedCircleBody, { textAlign: rtl ? "right" : "left" }]}>{copy.trustedBody}</Text>
+            <PrimaryButton
+              onPress={() => router.push({ pathname: "/trusted-contacts", params: { locale, introductionId } })}
+            >
+              {copy.trustedButton}
+            </PrimaryButton>
+            <Text style={[styles.trustedCircleNote, { textAlign: rtl ? "right" : "left" }]}>{copy.trustedNote}</Text>
           </View>
 
           <View style={styles.ruleCard}>
@@ -157,12 +279,7 @@ export default function IntroductionHandoffScreen() {
             <Text style={[styles.safetyBody, { textAlign: rtl ? "right" : "left" }]}>{copy.safetyBody}</Text>
             <PrimaryButton
               tone="quiet"
-              onPress={() =>
-                router.push({
-                  pathname: "/introduction-safety",
-                  params: { locale, introductionId },
-                })
-              }
+              onPress={() => router.push({ pathname: "/introduction-safety", params: { locale, introductionId } })}
             >
               {copy.safetyButton}
             </PrimaryButton>
@@ -171,12 +288,7 @@ export default function IntroductionHandoffScreen() {
           <View style={styles.communicationActions}>
             <StateCard rtl={rtl} tone="success" title={copy.communicationTitle} body={copy.communicationBody} />
             <PrimaryButton
-              onPress={() =>
-                router.push({
-                  pathname: "/conversation",
-                  params: { locale, introductionId },
-                })
-              }
+              onPress={() => router.push({ pathname: "/conversation", params: { locale, introductionId } })}
             >
               {copy.communicationButton}
             </PrimaryButton>
@@ -185,6 +297,15 @@ export default function IntroductionHandoffScreen() {
       )}
     </ScreenShell>
   );
+}
+
+function photoStateBody(state: IntroductionRevealState, copy: ReturnType<typeof handoffCopy>) {
+  if (state.photoRevealed) return copy.photoAlreadyShared;
+  if (state.canRevealPhoto) return copy.photoReadyToShare;
+  if (!state.approvedPhotoAvailable) return copy.photoNotRequired;
+  if (state.photoPreference === "after_family_involvement") return copy.photoAfterFamily;
+  if (state.photoPreference === "none") return copy.photoStaysPrivate;
+  return copy.photoFollowsSetting;
 }
 
 function Boundary({ rtl, mark, title, body }: { rtl: boolean; mark: string; title: string; body: string }) {
@@ -202,144 +323,209 @@ function Boundary({ rtl, mark, title, body }: { rtl: boolean; mark: string; titl
 }
 
 function handoffCopy(locale: MobileLocale) {
-  if (locale === "ar") {
-    return {
-      eyebrow: "قبول متبادل",
-      title: "الخطوة التالية تبدأ من هنا",
-      body: "هذا الانتقال لا يفتح دليلاً عاماً ولا يكشف بيانات اتصال. هو امتداد خاص لنفس التعارف الذي وافقتما عليه.",
-      loading: "جارٍ التحقق من التعارف",
-      errorTitle: "تعذر التحقق من التعارف",
-      errorBody: "لم يتم فتح أي تواصل أو تغيير أي قرار. تحقق من اتصالك وحاول مرة أخرى.",
-      retry: "إعادة المحاولة",
-      unavailableTitle: "الانتقال غير متاح",
-      unavailableBody: "تتوفر هذه الخطوة فقط بعد قبول التعارف من الطرفين وبقاء التعارف مؤهلاً وغير محظور.",
-      back: "العودة إلى التعارفات",
-      mutual: "تم القبول من الطرفين",
-      mutualWithName: (name: string) => `أنت و${name} اخترتما المتابعة`,
-      mutualBody: "لا نعرض أي قبول من طرف واحد. ظهور هذه الصفحة يعني أن القرار أصبح متبادلاً فعلاً.",
-      nextEyebrow: "حدود التواصل",
-      nextTitle: "التواصل سيبقى مرتبطاً بهذا التعارف",
-      nextBody:
-        "لا توجد رسائل عامة أو إمكانية البحث عن أعضاء. المحادثة تفتح فقط لهذا التعارف وبعد تحقق الخادم من الأهلية والحظر والسلامة.",
-      boundaryOneTitle: "لا أرقام هاتف تلقائياً",
-      boundaryOneBody: "لا يحتاج الطرفان إلى كشف رقم الهاتف أو بيانات الاتصال لبدء التواصل داخل ميثاق.",
-      boundaryTwoTitle: "الحظر يوقف المسار",
-      boundaryTwoBody: "إذا حظر أحد الطرفين الآخر، يتوقف التعارف ولا يفتح تواصل جديد بينهما.",
-      boundaryThreeTitle: "السلامة متاحة دائماً",
-      boundaryThreeBody: "الإبلاغ والحظر يبقيان متاحين من نفس التعارف قبل وأثناء أي تواصل لاحق.",
-      safetyTitle: "هل تريد مراجعة خيارات السلامة؟",
-      safetyBody: "يمكنك الإبلاغ أو الحظر من دون كشف معرف الطرف الآخر داخل التطبيق.",
-      safetyButton: "الأمان والإبلاغ",
-      communicationTitle: "المحادثة الخاصة جاهزة",
-      communicationBody:
-        "يمكنك الآن بدء محادثة داخل هذا التعارف فقط. الخادم يتحقق من القبول المتبادل وحالة السلامة والحظر قبل فتحها.",
-      communicationButton: "بدء المحادثة الخاصة",
-    };
-  }
-
+  const ar = locale === "ar";
   return {
-    eyebrow: "Mutual acceptance",
-    title: "The next step starts here",
-    body: "This handoff does not open a public directory or reveal contact details. It remains a private extension of the introduction you both accepted.",
-    loading: "Verifying introduction",
-    errorTitle: "We couldn’t verify the introduction",
-    errorBody: "No communication was opened and no decision was changed. Check your connection and try again.",
-    retry: "Try again",
-    unavailableTitle: "Handoff unavailable",
-    unavailableBody:
-      "This step is available only after both members accept and the introduction remains eligible and unblocked.",
-    back: "Back to introductions",
-    mutual: "Both members accepted",
-    mutualWithName: (name: string) => `You and ${name} chose to continue`,
-    mutualBody: "Mithaq never exposes one-sided acceptance. Seeing this page means the decision is genuinely mutual.",
-    nextEyebrow: "Communication boundaries",
-    nextTitle: "Communication stays tied to this introduction",
-    nextBody:
-      "There is no public messaging or member search. The conversation opens only for this introduction after server-side eligibility, blocking, and safety checks.",
-    boundaryOneTitle: "No automatic phone-number sharing",
-    boundaryOneBody:
-      "Neither member needs to reveal a phone number or contact details to begin communicating inside Mithaq.",
-    boundaryTwoTitle: "Blocking stops the path",
-    boundaryTwoBody:
-      "If either member blocks the other, the introduction stops and no new communication opens between them.",
-    boundaryThreeTitle: "Safety stays available",
-    boundaryThreeBody:
-      "Reporting and blocking remain available from the same introduction before and during any later communication.",
-    safetyTitle: "Want to review your safety options?",
-    safetyBody: "Report or block without exposing the other member’s identifier in the app.",
-    safetyButton: "Safety & report",
-    communicationTitle: "Your private conversation is ready",
-    communicationBody:
-      "You can now start a conversation scoped only to this introduction. The server rechecks mutual acceptance, safety status, and blocking before opening it.",
-    communicationButton: "Start private conversation",
+    eyebrow: ar ? "قبول متبادل" : "MUTUAL ACCEPTANCE",
+    title: ar ? "الخطوة التالية تبدأ من هنا" : "The next step starts here",
+    body: ar
+      ? "هذا الانتقال خاص بنفس التعارف. لا يفتح دليلاً عاماً ولا يكشف رقمك أو بيانات اتصالك تلقائياً."
+      : "This remains inside the same private introduction. It does not create a public profile or automatically reveal your phone or contact details.",
+    loading: ar ? "جارٍ التحقق من التعارف" : "Checking the introduction",
+    errorTitle: ar ? "تعذر التحقق من التعارف" : "We couldn’t verify this introduction",
+    errorBody: ar
+      ? "لم يتم فتح أي تواصل أو تغيير أي قرار. تحقق من اتصالك وحاول مرة أخرى."
+      : "No communication or decision was changed. Check your connection and try again.",
+    retry: ar ? "إعادة المحاولة" : "Try again",
+    unavailableTitle: ar ? "الانتقال غير متاح" : "This step is unavailable",
+    unavailableBody: ar
+      ? "تتوفر هذه الخطوة فقط بعد قبول التعارف من الطرفين وبقاء التعارف مؤهلاً وغير محظور."
+      : "This step is available only after both people accept and the introduction remains eligible and unblocked.",
+    back: ar ? "العودة إلى التعارفات" : "Back to introductions",
+    mutual: ar ? "تم القبول من الطرفين" : "Acceptance is mutual",
+    mutualWithName: (name: string) => (ar ? `أنت و${name} اخترتما المتابعة` : `You and ${name} chose to continue`),
+    mutualBody: ar
+      ? "لا نعرض أي قبول من طرف واحد. ظهور هذه الصفحة يعني أن القرار أصبح متبادلاً فعلاً."
+      : "Mithaq never reveals a one-sided yes. Seeing this page means the decision is genuinely mutual.",
+    partnerPhotoTitle: ar ? "صورة الطرف الآخر" : "The other person’s photo",
+    partnerPhotoRevealed: ar
+      ? "سمح الطرف الآخر بعرض صورة معتمدة داخل هذا التعارف. تبقى هذه الشاشة محمية."
+      : "The other member has allowed an approved photo in this introduction. This screen remains protected.",
+    partnerPhotoPrivate: ar
+      ? "لم يسمح الطرف الآخر بعرض صورة هنا بعد. يمكن متابعة التعارف دون صورة."
+      : "The other member has not allowed a photo here yet. You can continue without one.",
+    partnerPhotoPrivacyLabel: ar ? "صورة خاصة محمية" : "Protected private photo",
+    trustTitle: ar ? "ما تحقّق منه ميثاق" : "What Mithaq verified",
+    trustBody: ar
+      ? "تعني الشارات فقط ما تم التحقق منه فعلياً؛ بقية تفاصيل الملف يصرّح بها العضو بنفسه."
+      : "Badges mean only what Mithaq actually verified; other profile details remain member-declared.",
+    photoTitle: ar ? "كشف صورتك يبقى اختيارك" : "Your photo reveal stays your choice",
+    photoAlreadyShared: ar
+      ? "صورتك مسموح بها الآن في هذا التعارف وفق اختيار الخصوصية الذي حفظته."
+      : "Your approved photo is now allowed in this introduction under your saved privacy choice.",
+    photoReadyToShare: ar
+      ? "اخترت الموافقة الصريحة. لن تظهر صورتك حتى تؤكد المشاركة لهذا التعارف."
+      : "You chose explicit approval. Your photo stays private until you confirm it for this introduction.",
+    photoNotRequired: ar
+      ? "لا توجد صورة معتمدة، وهذا لا يمنع المحادثة أو استمرار التعارف."
+      : "You do not have an approved photo, and that does not prevent chat or continuing the introduction.",
+    photoAfterFamily: ar
+      ? "اخترت ظهور الصورة بعد إشراك العائلة. مشاركة جهة اتصال موثوقة من طرفك ستبدأ هذه المرحلة لصورتك أنت فقط."
+      : "You chose photo visibility after family involvement. Sharing your own trusted contact will start that stage for your photo only.",
+    photoStaysPrivate: ar
+      ? "اخترت إبقاء الصورة خاصة. المحادثة لا تتطلب صورة."
+      : "You chose to keep your photo private. Chat does not require a photo.",
+    photoFollowsSetting: ar
+      ? "تتبع صورتك اختيار الخصوصية الذي حفظته سابقاً."
+      : "Your photo follows the privacy choice you saved earlier.",
+    photoConfirm: ar
+      ? "بعد أن يرى الطرف الآخر الصورة لا يمكن جعلها كأنها لم تُرَ."
+      : "Once the other person has seen the photo, it cannot be made unseen.",
+    photoShareButton: ar ? "كشف صورتي لهذا التعارف" : "Reveal my photo here",
+    photoConfirmButton: ar ? "نعم، اكشف الصورة" : "Yes, reveal the photo",
+    cancel: ar ? "إلغاء" : "Cancel",
+    photoShared: ar ? "تم السماح بالصورة لهذا التعارف." : "Your photo is now allowed in this introduction.",
+    photoShareError: ar ? "تعذر تحديث مشاركة الصورة الآن." : "We couldn’t update photo sharing right now.",
+    trustedEyebrow: ar ? "دائرة الثقة" : "TRUSTED CIRCLE",
+    trustedTitle: ar ? "إشراك شخص تثق به" : "Bring in someone you trust",
+    trustedBody: ar
+      ? "بعد القبول المتبادل يمكنك مشاركة أب أو أم أو أخ أو أخت أو ولي أو شخص موثوق. لا يتواصل ميثاق معه تلقائياً."
+      : "After mutual acceptance, you can share a parent, sibling, wali, guardian, relative, or trusted person. Mithaq does not contact them automatically.",
+    trustedButton: ar ? "فتح التسليم العائلي" : "Open trusted-contact handoff",
+    trustedNote: ar
+      ? "كل طرف يختار بنفسه إن كان مستعداً ومتى. لا يشترط أن يشارك الطرفان في نفس الوقت."
+      : "Each person chooses independently whether and when to share. Both sides do not have to do it at the same time.",
+    nextEyebrow: ar ? "المحادثة" : "CONVERSATION",
+    nextTitle: ar ? "التواصل الخاص أصبح متاحاً" : "Private communication is now available",
+    nextBody: ar
+      ? "يمكنكما الحديث داخل ميثاق من دون تبادل أرقام الهواتف أو الصور إذا لم تختارا ذلك."
+      : "You can talk inside Mithaq without exchanging phone numbers or photos unless you choose to.",
+    boundaryOneTitle: ar ? "لا يوجد تواصل غير مطلوب" : "No unsolicited contact",
+    boundaryOneBody: ar
+      ? "المحادثة موجودة فقط لأن القبول متبادل."
+      : "The conversation exists only because acceptance is mutual.",
+    boundaryTwoTitle: ar ? "الصورة ليست شرطاً" : "A photo is not required",
+    boundaryTwoBody: ar
+      ? "يمكن استمرار التعارف حتى مع إبقاء الصور خاصة."
+      : "The introduction can continue while photos remain private.",
+    boundaryThreeTitle: ar ? "العائلة اختيار مقصود" : "Family involvement is deliberate",
+    boundaryThreeBody: ar
+      ? "لا يشارك ميثاق أرقام العائلة أو يتواصل معها من دون قرارك الصريح."
+      : "Mithaq does not share family numbers or contact anyone without your explicit decision.",
+    safetyTitle: ar ? "الأمان يبقى متاحاً" : "Safety remains available",
+    safetyBody: ar
+      ? "يمكن الإبلاغ أو الحظر في أي وقت. الحظر يوقف مسار التعارف والتواصل."
+      : "You can report or block at any time. Blocking stops the introduction and communication path.",
+    safetyButton: ar ? "الأمان والإبلاغ" : "Safety & report",
+    communicationTitle: ar ? "المحادثة جاهزة" : "Conversation is ready",
+    communicationBody: ar
+      ? "يمكن بدء محادثة خاصة الآن سواء شاركتما صوراً أو جهات اتصال موثوقة أم لا."
+      : "You can start a private conversation now whether or not either of you shared photos or trusted contacts.",
+    communicationButton: ar ? "فتح المحادثة الخاصة" : "Open private conversation",
   };
 }
 
 const styles = StyleSheet.create({
-  stack: { gap: 14 },
   action: { marginTop: 14 },
-  loadingState: { minHeight: 220, alignItems: "center", justifyContent: "center" },
+  loadingState: { minHeight: 280, alignItems: "center", justifyContent: "center" },
+  stack: { width: "100%", gap: 14 },
   mutualCard: {
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.goldSoft,
-    backgroundColor: colors.primary,
-    padding: 20,
-  },
-  mutualMark: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
-    marginBottom: 15,
-  },
-  mutualMarkText: { color: colors.primary, fontSize: 24, fontWeight: "900" },
-  mutualTitle: { color: colors.white, fontSize: 19, fontWeight: "800" },
-  mutualBody: { color: "rgba(255,255,255,0.78)", fontSize: 13, lineHeight: 21, marginTop: 7 },
-  ruleCard: {
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
+    borderColor: colors.primarySoft,
     backgroundColor: colors.primaryWash,
     padding: 17,
   },
-  ruleEyebrow: { color: colors.gold, fontSize: 11, fontWeight: "800" },
-  ruleTitle: { color: colors.primary, fontSize: 17, fontWeight: "800", marginTop: 5 },
-  ruleBody: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: 6 },
+  mutualMark: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+    marginBottom: 10,
+  },
+  mutualMarkText: { color: colors.white, fontSize: 18, fontWeight: "900" },
+  mutualTitle: { color: colors.primaryStrong, fontSize: 18, lineHeight: 28, fontWeight: "900" },
+  mutualBody: { color: colors.muted, fontSize: 11, lineHeight: 19, marginTop: 4 },
+  partnerPortraitCard: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceRaised,
+    padding: 14,
+    gap: 8,
+  },
+  partnerPortraitTitle: { color: colors.foreground, fontSize: 14, fontWeight: "900" },
+  partnerPortraitBody: { color: colors.muted, fontSize: 10, lineHeight: 17 },
+  trustCard: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.primarySoft,
+    backgroundColor: colors.surfaceRaised,
+    padding: 14,
+    gap: 8,
+  },
+  trustTitle: { color: colors.primaryStrong, fontSize: 13, fontWeight: "900" },
+  trustBody: { color: colors.muted, fontSize: 9, lineHeight: 16 },
+  revealCard: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.goldSoft,
+    backgroundColor: colors.surfaceRaised,
+    padding: 14,
+    gap: 8,
+  },
+  revealTitle: { color: colors.foreground, fontSize: 14, fontWeight: "900" },
+  revealBody: { color: colors.muted, fontSize: 11, lineHeight: 18 },
+  revealActions: { gap: 8 },
+  confirmText: { color: colors.foreground, fontSize: 10, lineHeight: 17, fontWeight: "700" },
+  revealMessage: { color: colors.primary, fontSize: 10, lineHeight: 17, fontWeight: "700" },
+  trustedCircleCard: {
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.goldSoft,
+    backgroundColor: colors.surfaceRaised,
+    padding: 16,
+    gap: 9,
+  },
+  trustedCircleEyebrow: { color: colors.gold, fontSize: 9, fontWeight: "900" },
+  trustedCircleTitle: { color: colors.foreground, fontSize: 17, lineHeight: 26, fontWeight: "900" },
+  trustedCircleBody: { color: colors.muted, fontSize: 11, lineHeight: 19 },
+  trustedCircleNote: { color: colors.muted, fontSize: 9, lineHeight: 16 },
+  ruleCard: { borderRadius: radius.lg, backgroundColor: colors.primaryWash, padding: 15 },
+  ruleEyebrow: { color: colors.primary, fontSize: 9, fontWeight: "900" },
+  ruleTitle: { color: colors.foreground, fontSize: 15, lineHeight: 23, fontWeight: "900", marginTop: 4 },
+  ruleBody: { color: colors.muted, fontSize: 11, lineHeight: 18, marginTop: 4 },
   boundaryCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceRaised,
-    padding: 16,
+    padding: 14,
   },
-  boundaryRow: { gap: 12, alignItems: "flex-start" },
+  boundaryRow: { alignItems: "flex-start", gap: 10 },
   boundaryMark: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primaryWash,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceMuted,
   },
-  boundaryMarkText: { color: colors.primary, fontSize: 12, fontWeight: "900" },
+  boundaryMarkText: { color: colors.primary, fontSize: 10, fontWeight: "900" },
   boundaryCopy: { flex: 1 },
-  boundaryTitle: { color: colors.foreground, fontSize: 14, fontWeight: "800" },
-  boundaryBody: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 4 },
-  divider: { height: 1, backgroundColor: colors.border, marginVertical: 14 },
+  boundaryTitle: { color: colors.foreground, fontSize: 12, fontWeight: "900" },
+  boundaryBody: { color: colors.muted, fontSize: 10, lineHeight: 17, marginTop: 2 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: 11 },
   safetyCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
-    padding: 17,
-    gap: 10,
+    backgroundColor: colors.surfaceRaised,
+    padding: 14,
+    gap: 8,
   },
-  safetyTitle: { color: colors.foreground, fontSize: 15, fontWeight: "800" },
-  safetyBody: { color: colors.muted, fontSize: 13, lineHeight: 20 },
-  communicationActions: { gap: 10 },
+  safetyTitle: { color: colors.foreground, fontSize: 13, fontWeight: "900" },
+  safetyBody: { color: colors.muted, fontSize: 10, lineHeight: 17 },
+  communicationActions: { gap: 9 },
 });

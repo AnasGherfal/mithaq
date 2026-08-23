@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - "agent/**"
   workflow_dispatch:
 
 permissions:
@@ -94,14 +95,12 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: apps/mobile/package-lock.json
 
       - name: Install mobile dependencies
-        # Expo Router brings optional web peers into the native dependency graph.
-        # Keep the committed lockfile deterministic while allowing npm to honor
-        # the Expo SDK 57 React 19.2.3 native stack despite those optional peers.
-        run: npm ci --legacy-peer-deps
+        # The Expo Go preview intentionally uses the SDK 54 stack without a
+        # committed package-lock. Match the same deterministic package.json
+        # versions and legacy peer handling used by preview:bootstrap.
+        run: npm install --legacy-peer-deps --no-package-lock
 
       - name: Run mobile TypeScript and formatting checks
         run: npm run check

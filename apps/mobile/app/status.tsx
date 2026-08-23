@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 import { PrimaryButton } from "@/components/primary-button";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/state-card";
-import { mobileCopy, type MobileLocale } from "@/i18n";
+import type { MobileLocale } from "@/i18n";
 import { supabase } from "@/lib/supabase";
-import { setBiometricLockEnabled } from "@/security/biometric";
-import { colors, radius } from "@/theme";
+import { colors, radius, shadows } from "@/theme";
 
 type RegistrationState = {
   questionnaireComplete: boolean;
@@ -16,11 +16,24 @@ type RegistrationState = {
   deletionPending: boolean;
 };
 
+type NextStep = {
+  title: string;
+  body: string;
+  action: string;
+  pathname: "/questionnaire" | "/consent" | "/profile" | "/marriage-discover" | "/privacy";
+};
+
+type FlowIcon = "sliders" | "introductions" | "chat";
+type FlowTone = "teal" | "rose" | "gold";
+
 export default function StatusScreen() {
   const params = useLocalSearchParams<{ locale?: string }>();
+  const { height } = useWindowDimensions();
   const locale: MobileLocale = params.locale === "en" ? "en" : "ar";
-  const copy = mobileCopy[locale];
   const rtl = locale === "ar";
+  const compact = height < 760;
+  const textAlign = rtl ? "right" : "left";
+  const writingDirection = rtl ? "rtl" : "ltr";
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [registration, setRegistration] = useState<RegistrationState>({
@@ -76,220 +89,102 @@ export default function StatusScreen() {
     void load();
   }, [load]);
 
-  async function signOut() {
-    await setBiometricLockEnabled(false);
-    await supabase.auth.signOut({ scope: "local" });
-    router.replace("/");
-  }
-
-  const questionnaireLabel = registration.questionnaireComplete
-    ? rtl
-      ? "تعديل إجابات الاستبيان"
-      : "Edit questionnaire answers"
-    : rtl
-      ? "إكمال الاستبيان"
-      : "Complete questionnaire";
-
-  const profileLabel = registration.profileComplete
-    ? rtl
-      ? "تعديل ملفك الخاص"
-      : "Edit private profile"
-    : rtl
-      ? "إكمال ملفك الخاص"
-      : "Complete private profile";
-
   const completedSteps =
     1 +
     Number(registration.questionnaireComplete) +
     Number(registration.submitted) +
     Number(registration.profileComplete);
-  const introductionsReady = registration.submitted && registration.profileComplete && !registration.deletionPending;
+  const readiness = Math.round((completedSteps / 4) * 100);
+  const nextStep = resolveNextStep(registration, rtl);
 
   return (
-    <ScreenShell
-      eyebrow={copy.statusEyebrow}
-      title={copy.statusTitle}
-      body={copy.statusBody}
-      rtl={rtl}
-      footer={
-        <PrimaryButton tone="quiet" onPress={signOut}>
-          {copy.signOut}
-        </PrimaryButton>
-      }
-    >
+    <ScreenShell title={rtl ? "الرئيسية" : "Home"} rtl={rtl} scrollEnabled={false}>
       {loading ? (
-        <View
-          style={styles.loadingState}
-          accessibilityLabel={rtl ? "جارٍ تحميل حالة الحساب" : "Loading account status"}
-        >
+        <View style={styles.loadingState}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
       ) : loadError ? (
         <StateCard
           rtl={rtl}
           tone="error"
-          title={rtl ? "تعذر تحميل حالة حسابك" : "We couldn’t load your account status"}
-          body={
-            rtl
-              ? "لم نغيّر أي بيانات. تحقق من اتصالك وحاول مرة أخرى."
-              : "No data was changed. Check your connection and try again."
-          }
+          title={rtl ? "تعذر تحميل حسابك" : "We couldn’t load your account"}
+          body={rtl ? "تحقق من اتصالك وحاول مرة أخرى." : "Check your connection and try again."}
           actionLabel={rtl ? "إعادة المحاولة" : "Try again"}
           onAction={() => void load()}
         />
       ) : (
-        <View style={styles.list}>
-          {registration.deletionPending ? (
-            <View style={styles.deletionCallout}>
-              <View style={styles.deletionMark}>
-                <Text style={styles.deletionMarkText}>−</Text>
-              </View>
-              <Text style={[styles.deletionTitle, { textAlign: rtl ? "right" : "left" }]}>
-                {rtl ? "طلب حذف الحساب قيد المعالجة" : "Account deletion is pending"}
+        <View style={styles.page}>
+          <View style={styles.progressBlock}>
+            <View style={[styles.progressRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+              <Text style={[styles.progressLabel, { textAlign, writingDirection }]}>
+                {rtl ? "جاهزية الملف" : "Profile readiness"}
               </Text>
-              <Text style={[styles.deletionBody, { textAlign: rtl ? "right" : "left" }]}>
-                {rtl
-                  ? "تم إيقاف مشاركتك في قائمة الانتظار والتحديثات الاختيارية. يمكنك مراجعة تفاصيل الطلب من مركز الخصوصية."
-                  : "Your waitlist participation and optional updates are stopped. Review the request details in the Privacy Center."}
-              </Text>
-              <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/privacy", params: { locale } })}>
-                {rtl ? "عرض مركز الخصوصية" : "Open Privacy Center"}
-              </PrimaryButton>
+              <Text style={[styles.progressValue, { textAlign: rtl ? "left" : "right" }]}>{readiness}%</Text>
             </View>
-          ) : (
-            <>
-              <View style={[styles.overview, { direction: rtl ? "rtl" : "ltr" }]}>
-                <View style={styles.overviewTop}>
-                  <View>
-                    <Text style={[styles.overviewEyebrow, { textAlign: rtl ? "right" : "left" }]}>
-                      {rtl ? "تقدم عضويتك" : "Your membership progress"}
-                    </Text>
-                    <Text style={[styles.overviewTitle, { textAlign: rtl ? "right" : "left" }]}>
-                      {completedSteps}/4
-                    </Text>
-                  </View>
-                  <View style={styles.overviewSeal}>
-                    <Text style={styles.overviewSealText}>{Math.round((completedSteps / 4) * 100)}%</Text>
-                  </View>
-                </View>
-                <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: `${(completedSteps / 4) * 100}%` }]} />
-                </View>
-              </View>
-
-              <StatusRow rtl={rtl} label={copy.phoneVerified} value={rtl ? "مكتمل" : "Complete"} complete />
-              <StatusRow
-                rtl={rtl}
-                label={rtl ? "الاستبيان" : "Questionnaire"}
-                value={
-                  registration.questionnaireComplete ? (rtl ? "مكتمل" : "Complete") : rtl ? "قيد الانتظار" : "Pending"
-                }
-                complete={registration.questionnaireComplete}
-              />
-              <StatusRow
-                rtl={rtl}
-                label={rtl ? "قائمة الانتظار" : "Waitlist"}
-                value={registration.submitted ? (rtl ? "مكتمل" : "Complete") : rtl ? "قيد الانتظار" : "Pending"}
-                complete={registration.submitted}
-              />
-              <StatusRow
-                rtl={rtl}
-                label={rtl ? "الملف الخاص" : "Private profile"}
-                value={
-                  registration.submitted
-                    ? registration.profileComplete
-                      ? rtl
-                        ? "مكتمل"
-                        : "Complete"
-                      : rtl
-                        ? "قيد الانتظار"
-                        : "Pending"
-                    : rtl
-                      ? "بعد إكمال التسجيل"
-                      : "After registration"
-                }
-                complete={registration.profileComplete}
-                future={!registration.submitted}
-              />
-              <StatusRow
-                rtl={rtl}
-                label={copy.identityNotVerified}
-                value={rtl ? "غير متاح بعد" : "Not available yet"}
-                complete={false}
-                future
-              />
-            </>
-          )}
-
-          {introductionsReady ? (
-            <View style={styles.memberHub}>
-              <View style={[styles.memberHubTop, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-                <View style={styles.memberHubMark}>
-                  <Text style={styles.memberHubMarkText}>✦</Text>
-                </View>
-                <View style={styles.memberHubCopy}>
-                  <Text style={[styles.memberHubTitle, { textAlign: rtl ? "right" : "left" }]}>
-                    {rtl ? "التعارف والنشاط الخاص" : "Private introductions & activity"}
-                  </Text>
-                  <Text style={[styles.memberHubBody, { textAlign: rtl ? "right" : "left" }]}>
-                    {rtl
-                      ? "راجع التعارفات التي أنشأها ميثاق لك والتنبيهات المهمة من مكانين منفصلين ومحميين. لا يوجد تصفح عام للملفات."
-                      : "Review introductions created for you and important private activity through separate protected surfaces. There is no public profile browsing."}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.memberHubActions}>
-                <PrimaryButton onPress={() => router.push({ pathname: "/introductions", params: { locale } })}>
-                  {rtl ? "عرض التعارفات" : "View introductions"}
-                </PrimaryButton>
-                <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/activity", params: { locale } })}>
-                  {rtl ? "مركز النشاط" : "Activity Center"}
-                </PrimaryButton>
-              </View>
-            </View>
-          ) : null}
-
-          <View style={[styles.securityCallout, { flexDirection: rtl ? "row-reverse" : "row" }]}>
-            <View style={styles.securityMark}>
-              <Text style={styles.securityMarkText}>◎</Text>
-            </View>
-            <View style={styles.securityCopy}>
-              <Text style={[styles.securityTitle, { textAlign: rtl ? "right" : "left" }]}>
-                {rtl ? "أمان وخصوصية حسابك" : "Account security & privacy"}
-              </Text>
-              <Text style={[styles.securityBody, { textAlign: rtl ? "right" : "left" }]}>
-                {rtl
-                  ? "تحكم في القفل البيومتري وموافقات البيانات والتحديثات من مكان واحد."
-                  : "Manage biometric protection, data consents, and optional updates in one place."}
-              </Text>
+            <View style={[styles.progressTrack, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+              <View style={[styles.progressFill, { width: `${readiness}%` }]} />
             </View>
           </View>
 
-          <View style={styles.action}>
-            {!registration.deletionPending ? (
-              <>
-                {registration.submitted ? (
-                  <PrimaryButton onPress={() => router.push({ pathname: "/profile", params: { locale } })}>
-                    {profileLabel}
-                  </PrimaryButton>
-                ) : null}
-                <PrimaryButton
-                  tone={registration.submitted ? "quiet" : "primary"}
-                  onPress={() => router.push({ pathname: "/questionnaire", params: { locale } })}
-                >
-                  {questionnaireLabel}
-                </PrimaryButton>
-                {!registration.submitted && registration.questionnaireComplete ? (
-                  <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/consent", params: { locale } })}>
-                    {rtl ? "متابعة إلى الموافقة" : "Continue to consent"}
-                  </PrimaryButton>
-                ) : null}
-              </>
-            ) : null}
+          <View
+            style={[
+              styles.nextCard,
+              compact ? styles.nextCardCompact : null,
+              rtl ? styles.nextCardRtl : styles.nextCardLtr,
+              { alignItems: rtl ? "flex-end" : "flex-start" },
+            ]}
+          >
+            <View pointerEvents="none" style={[styles.roseGlow, rtl ? styles.roseGlowRtl : styles.roseGlowLtr]} />
+            <View pointerEvents="none" style={[styles.goldGlow, rtl ? styles.goldGlowRtl : styles.goldGlowLtr]} />
 
-            <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/security", params: { locale } })}>
-              {rtl ? "الأمان والخصوصية" : "Security & privacy"}
-            </PrimaryButton>
+            <View style={[styles.kickerPill, { alignSelf: rtl ? "flex-end" : "flex-start" }]}>
+              <Text style={[styles.kicker, rtl ? styles.kickerArabic : null, { textAlign, writingDirection }]}>
+                {rtl ? "خطوتك الآن" : "YOUR NEXT STEP"}
+              </Text>
+            </View>
+            <Text
+              style={[
+                styles.nextTitle,
+                compact ? styles.nextTitleCompact : null,
+                rtl ? styles.nextTitleArabic : null,
+                { textAlign, writingDirection },
+              ]}
+            >
+              {nextStep.title}
+            </Text>
+            <Text style={[styles.nextBody, rtl ? styles.nextBodyArabic : null, { textAlign, writingDirection }]}>
+              {nextStep.body}
+            </Text>
+            <View style={styles.action}>
+              <PrimaryButton
+                onPress={() =>
+                  router.push({
+                    pathname: nextStep.pathname,
+                    params: { locale },
+                  })
+                }
+              >
+                {nextStep.action}
+              </PrimaryButton>
+            </View>
+          </View>
+
+          <View style={[styles.howItWorks, { alignItems: rtl ? "flex-end" : "flex-start" }]}>
+            <Text style={[styles.howTitle, { textAlign, writingDirection }]}>
+              {rtl ? "رحلة التعارف" : "How introductions work"}
+            </Text>
+            <View style={[styles.flow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
+              <FlowStep icon="sliders" label={rtl ? "توافق" : "Fit"} rtl={rtl} tone="teal" />
+              <View style={styles.flowLine} />
+              <FlowStep icon="introductions" label={rtl ? "اهتمام خاص" : "Private interest"} rtl={rtl} tone="rose" />
+              <View style={styles.flowLine} />
+              <FlowStep icon="chat" label={rtl ? "قبول متبادل" : "Mutual chat"} rtl={rtl} tone="gold" />
+            </View>
+            <Text style={[styles.howBody, { textAlign, writingDirection }]}>
+              {rtl
+                ? "راجع مجموعة صغيرة ومحدودة، واختر اهتمامك بشكل خاص، ولا تبدأ المحادثة إلا بعد القبول المتبادل."
+                : "Review a small finite set, express interest privately, and chat only after mutual acceptance."}
+            </Text>
           </View>
         </View>
       )}
@@ -297,182 +192,290 @@ export default function StatusScreen() {
   );
 }
 
-function StatusRow({
-  rtl,
-  label,
-  value,
-  complete,
-  future = false,
-}: {
-  rtl: boolean;
-  label: string;
-  value: string;
-  complete: boolean;
-  future?: boolean;
-}) {
+function resolveNextStep(registration: RegistrationState, rtl: boolean): NextStep {
+  if (registration.deletionPending) {
+    return {
+      title: rtl ? "راجع طلب حذف حسابك" : "Review your deletion request",
+      body: rtl
+        ? "مشاركتك متوقفة حالياً، ويمكنك متابعة الطلب من مركز الخصوصية."
+        : "Your participation is paused while the deletion request is processed.",
+      action: rtl ? "مركز الخصوصية" : "Privacy Center",
+      pathname: "/privacy",
+    };
+  }
+
+  if (!registration.questionnaireComplete) {
+    return {
+      title: rtl ? "أخبرنا ما الذي يناسبك" : "Tell us what fits you",
+      body: rtl
+        ? "ابدأ بتفضيلاتك وحدودك الأساسية لنتمكن من اختيار تعارف مناسب لك."
+        : "Start with your preferences and boundaries so Mithaq can identify suitable introductions.",
+      action: rtl ? "ابدأ الاستبيان" : "Start questionnaire",
+      pathname: "/questionnaire",
+    };
+  }
+
+  if (!registration.submitted) {
+    return {
+      title: rtl ? "راجع موافقتك" : "Review your consent",
+      body: rtl
+        ? "راجع استخدام بياناتك، ثم أكّد مشاركتك."
+        : "Review how your data is used, then confirm participation.",
+      action: rtl ? "متابعة" : "Continue",
+      pathname: "/consent",
+    };
+  }
+
+  if (!registration.profileComplete) {
+    return {
+      title: rtl ? "أكمل ملفك الخاص" : "Complete your private profile",
+      body: rtl
+        ? "أضف التفاصيل التي نكشفها فقط وفق طريقة الظهور التي تختارها. الصورة ليست مطلوبة."
+        : "Add the details Mithaq reveals according to the presentation you choose. A photo is not required.",
+      action: rtl ? "إكمال الملف" : "Complete profile",
+      pathname: "/profile",
+    };
+  }
+
+  return {
+    title: rtl ? "ملفك جاهز للاكتشاف" : "Your profile is ready for Discover",
+    body: rtl
+      ? "لا توجد ملفات عامة ولا سحب لا نهائي. راجع مجموعة صغيرة ومحدودة؛ يبقى خيار «خصوصية أولاً» مجهولاً، بينما يظهر الملف المفتوح كما اختاره صاحبه."
+      : "No public profiles or endless swiping. Review a small finite set: Private-first members stay anonymous, while Open profiles appear as their owners chose.",
+    action: rtl ? "فتح الاكتشاف" : "Open Discover",
+    pathname: "/marriage-discover",
+  };
+}
+
+function FlowStep({ icon, label, rtl, tone }: { icon: FlowIcon; label: string; rtl: boolean; tone: FlowTone }) {
   return (
-    <View
-      style={[
-        styles.row,
-        complete ? styles.rowComplete : null,
-        future ? styles.rowFuture : null,
-        { flexDirection: rtl ? "row-reverse" : "row" },
-      ]}
-    >
-      <View style={[styles.dot, complete ? styles.dotComplete : null]}>
-        {complete ? <View style={styles.dotCore} /> : null}
+    <View style={styles.flowStep}>
+      <View
+        style={[
+          styles.flowIcon,
+          tone === "rose" ? styles.flowIconRose : tone === "gold" ? styles.flowIconGold : styles.flowIconTeal,
+        ]}
+      >
+        <AppIcon name={icon} active size={17} />
       </View>
-      <View style={styles.rowCopy}>
-        <Text style={[styles.rowLabel, { textAlign: rtl ? "right" : "left" }]}>{label}</Text>
-        <Text style={[styles.rowValue, { textAlign: rtl ? "right" : "left" }]}>{value}</Text>
-      </View>
-      <View style={[styles.badge, complete ? styles.badgeComplete : null]}>
-        <Text style={[styles.badgeText, complete ? styles.badgeTextComplete : null]}>{complete ? "✓" : "•"}</Text>
-      </View>
+      <Text style={[styles.flowLabel, rtl ? styles.flowLabelArabic : null, { writingDirection: rtl ? "rtl" : "ltr" }]}>
+        {label}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  loadingState: { minHeight: 180, alignItems: "center", justifyContent: "center" },
-  list: { gap: 11 },
-  action: { gap: 11, marginTop: 10 },
-  overview: {
-    borderRadius: radius.lg,
-    backgroundColor: colors.primary,
-    padding: 18,
-    marginBottom: 3,
+  loadingState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  overviewTop: {
-    flexDirection: "row",
+  page: {
+    flex: 1,
+    width: "100%",
+    alignItems: "stretch",
+  },
+  progressBlock: { width: "100%" },
+  progressRow: {
+    width: "100%",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 16,
   },
-  overviewEyebrow: { color: "rgba(255,255,255,0.72)", fontSize: 12, fontWeight: "700" },
-  overviewTitle: { color: colors.white, fontSize: 28, lineHeight: 34, fontWeight: "800", marginTop: 3 },
-  overviewSeal: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.28)",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    alignItems: "center",
-    justifyContent: "center",
+  progressLabel: {
+    flex: 1,
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 20,
+    fontWeight: "700",
+    letterSpacing: 0,
   },
-  overviewSealText: { color: colors.white, fontSize: 13, fontWeight: "800" },
+  progressValue: {
+    minWidth: 44,
+    color: colors.primary,
+    fontSize: 12,
+    lineHeight: 20,
+    fontWeight: "900",
+  },
   progressTrack: {
+    width: "100%",
     height: 5,
     borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.18)",
+    backgroundColor: colors.border,
     overflow: "hidden",
-    marginTop: 16,
+    marginTop: 8,
   },
-  progressFill: { height: "100%", borderRadius: 3, backgroundColor: colors.goldSoft },
-  row: {
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: 15,
-    backgroundColor: colors.surfaceMuted,
+  progressFill: {
+    height: "100%",
+    borderRadius: 3,
+    backgroundColor: colors.brandTeal,
   },
-  rowComplete: { backgroundColor: colors.primaryWash, borderColor: colors.borderStrong },
-  rowFuture: { opacity: 0.68 },
-  dot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: colors.borderStrong,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
-  },
-  dotComplete: { borderColor: colors.primary },
-  dotCore: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.primary },
-  rowCopy: { flex: 1 },
-  rowLabel: { color: colors.foreground, fontSize: 14, fontWeight: "800" },
-  rowValue: { color: colors.muted, fontSize: 12, marginTop: 4 },
-  badge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  badgeComplete: { backgroundColor: colors.primary, borderColor: colors.primary },
-  badgeText: { color: colors.muted, fontWeight: "900" },
-  badgeTextComplete: { color: colors.white },
-  deletionCallout: {
-    gap: 11,
+  nextCard: {
+    width: "100%",
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.goldSoft,
-    backgroundColor: colors.primaryWash,
-    padding: 18,
-  },
-  deletionMark: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primary,
-  },
-  deletionMarkText: { color: colors.white, fontSize: 24, fontWeight: "900" },
-  deletionTitle: { color: colors.primary, fontSize: 17, fontWeight: "800" },
-  deletionBody: { color: colors.muted, fontSize: 13, lineHeight: 21 },
-  memberHub: {
-    gap: 14,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.goldSoft,
-    backgroundColor: colors.primaryWash,
-    padding: 17,
-    marginTop: 3,
-  },
-  memberHubTop: { alignItems: "center", gap: 12 },
-  memberHubMark: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.goldSoft,
-  },
-  memberHubMarkText: { color: colors.gold, fontSize: 20, fontWeight: "900" },
-  memberHubCopy: { flex: 1 },
-  memberHubTitle: { color: colors.primary, fontSize: 16, fontWeight: "800" },
-  memberHubBody: { color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 4 },
-  memberHubActions: { gap: 10 },
-  securityCallout: {
-    alignItems: "center",
-    gap: 12,
-    borderRadius: radius.md,
-    borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceRaised,
-    padding: 14,
-    marginTop: 3,
+    paddingHorizontal: 20,
+    paddingVertical: 19,
+    marginTop: 18,
+    overflow: "hidden",
+    ...shadows.card,
   },
-  securityMark: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+  nextCardCompact: {
+    marginTop: 14,
+    paddingVertical: 15,
+  },
+  nextCardRtl: {
+    borderRightWidth: 4,
+    borderRightColor: colors.accent,
+  },
+  nextCardLtr: {
+    borderLeftWidth: 4,
+    borderLeftColor: colors.accent,
+  },
+  roseGlow: {
+    position: "absolute",
+    top: -58,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: colors.accentSoft,
+    opacity: 0.56,
+  },
+  roseGlowLtr: { right: -46 },
+  roseGlowRtl: { left: -46 },
+  goldGlow: {
+    position: "absolute",
+    bottom: -34,
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    backgroundColor: colors.goldSoft,
+    opacity: 0.54,
+  },
+  goldGlowLtr: { left: 64 },
+  goldGlowRtl: { right: 64 },
+  kickerPill: {
+    borderRadius: radius.pill,
+    backgroundColor: colors.accentWash,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  kicker: {
+    color: colors.accent,
+    fontSize: 10,
+    lineHeight: 15,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
+  kickerArabic: {
+    fontSize: 12,
+    lineHeight: 19,
+    letterSpacing: 0,
+  },
+  nextTitle: {
+    width: "100%",
+    color: colors.brandNavy,
+    fontSize: 24,
+    lineHeight: 33,
+    fontWeight: "800",
+    marginTop: 12,
+    letterSpacing: -0.25,
+  },
+  nextTitleCompact: {
+    fontSize: 21,
+    lineHeight: 29,
+    marginTop: 9,
+  },
+  nextTitleArabic: {
+    fontSize: 25,
+    lineHeight: 39,
+    fontWeight: "700",
+    letterSpacing: 0,
+  },
+  nextBody: {
+    width: "100%",
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 22,
+    marginTop: 6,
+  },
+  nextBodyArabic: {
+    fontSize: 14,
+    lineHeight: 25,
+    letterSpacing: 0,
+  },
+  action: {
+    width: "100%",
+    marginTop: 15,
+  },
+  howItWorks: {
+    width: "100%",
+    marginTop: 18,
+  },
+  howTitle: {
+    width: "100%",
+    color: colors.brandNavy,
+    fontSize: 15,
+    lineHeight: 24,
+    fontWeight: "800",
+    letterSpacing: 0,
+  },
+  flow: {
+    width: "100%",
+    alignItems: "flex-start",
+    marginTop: 12,
+  },
+  flowStep: {
+    width: 82,
+    alignItems: "center",
+  },
+  flowIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primaryWash,
+    borderWidth: 1,
   },
-  securityMarkText: { color: colors.primary, fontSize: 20, fontWeight: "900" },
-  securityCopy: { flex: 1 },
-  securityTitle: { color: colors.foreground, fontSize: 14, fontWeight: "800" },
-  securityBody: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 4 },
+  flowIconTeal: {
+    backgroundColor: colors.primaryWash,
+    borderColor: colors.primarySoft,
+  },
+  flowIconRose: {
+    backgroundColor: colors.accentWash,
+    borderColor: colors.accentSoft,
+  },
+  flowIconGold: {
+    backgroundColor: colors.goldSoft,
+    borderColor: colors.goldSoft,
+  },
+  flowLabel: {
+    color: colors.muted,
+    fontSize: 10,
+    lineHeight: 15,
+    fontWeight: "700",
+    marginTop: 5,
+    textAlign: "center",
+    letterSpacing: 0,
+  },
+  flowLabelArabic: {
+    fontSize: 11,
+    lineHeight: 18,
+  },
+  flowLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.borderStrong,
+    marginTop: 18,
+  },
+  howBody: {
+    width: "100%",
+    color: colors.muted,
+    fontSize: 11,
+    lineHeight: 19,
+    marginTop: 8,
+    letterSpacing: 0,
+  },
 });

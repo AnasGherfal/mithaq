@@ -1,167 +1,229 @@
-# Mithaq implementation roadmap
+# Mithaq delivery milestones
 
-This document is the locked implementation roadmap for the current branch.
-Milestones move in order. Existing security/privacy contracts remain binding as
-later milestones are added.
+This roadmap tracks the remaining work from the current repository state to a
+production launch. Earlier milestones M1–M8 established the application,
+privacy/security foundation, member profile, trust and safety, controlled
+introductions, conversations, and activity contracts.
 
-## M1 — Mobile foundation ✅
+## M9 — Hosted preview and release stability
 
-- Expo SDK 57 + React Native 0.86 + Expo Router.
-- Arabic-first RTL member experience with English parity.
-- International E.164 Supabase phone OTP.
-- SecureStore-backed persisted sessions.
-- Native questionnaire, consent/finalization, success, and registration-status
-  flows.
-- Returning-user hydration/editing.
-- Development, preview, and production EAS build profiles.
+- Keep the SDK 54 Expo Go branch usable for rapid physical-device UX testing
+  while SDK 57 remains the production target.
+- Maintain deterministic dependency contracts and green mobile type/format/ Expo
+  checks.
+- Provision hosted staging, apply migrations, configure maintenance workers,
+  verify test OTP accounts, and exercise RLS/security against hosted services.
+- Configure real phone delivery and produce signed preview builds when external
+  credentials are available.
 
-## M2 — Account, security, and privacy ✅
+### Exit
 
-- Opt-in biometric re-entry protection.
-- Session-resume lock and local sign-out hygiene.
-- Revoke other Supabase Auth sessions.
-- OTP resend/rate-limit recovery.
-- Privacy Center with append-only consent history.
-- Reversible optional communications consent.
-- Guarded account-deletion request and privileged deletion execution.
-- Server-controlled lifecycle/write-boundary hardening.
+The preview and hosted staging environments are repeatable, secure, and usable
+for acceptance testing.
 
-## M3 — Premium resilience ✅
+## M10 — Premium native member experience
 
-- Narrow-phone and keyboard-safe layouts.
-- Recoverable loading/network/backend states.
-- Bilingual root error boundary and unknown-route recovery.
-- Private app-switcher cover for sensitive screens.
-- Questionnaire validation and duplicate-submit protection.
-- Accessibility live regions, alerts, and loading labels.
+- Rebuild member-facing surfaces around one purpose and one obvious primary
+  action per screen.
+- Keep bottom navigation persistent only for primary destinations; focused flows
+  such as conversation and setup use dedicated navigation.
+- Complete Arabic RTL and English LTR parity across authentication,
+  questionnaire, consent, profile, Home, Introductions, Activity, Account,
+  privacy, safety, security, and conversation.
+- Lock the Mithaq brand system: logo/wordmark, typography, spacing, motion,
+  loading, empty, error, keyboard, sheet, and haptic behavior.
+- Avoid dashboard-card overload and unnecessary scrolling.
 
-## M4 — Private profile foundation ✅
+### Exit
 
-- RLS-protected self-only member profiles.
-- Guarded profile save path and completeness state.
-- Self-only introduction preview.
-- Server-whitelisted profile disclosure.
-- Privacy-off-by-default optional occupation, education, and origin disclosure.
-- No public member directory, search, or swipe surface.
+The complete member journey feels coherent and native on a physical iPhone in
+both Arabic and English, with no web-dashboard presentation or unclear next
+step.
 
-## M5 — Trust and safety ✅
+## M11 — Private photos and guided profile
 
-- Private member blocking and safety reports.
-- Introduction-scoped report/block actions without exposing raw member IDs.
-- Report-abuse limits and moderation audit trail.
-- Safety participation states and profile-review participation gate.
-- Safety-aware account-deletion retention.
-- Server-side blocked-pair enforcement.
+- Create a private Supabase Storage photo bucket and member-owned photo records.
+- Support a required primary portrait and up to four secondary photos.
+- Add image selection, permission handling, cropping/compression, upload
+  progress, reordering, primary selection, replacement, and deletion.
+- Add review/moderation states; reveal only approved photos.
+- Issue controlled temporary access only through an eligible introduction or a
+  future explicitly authorized discovery surface; no public member image URLs.
+- Rebuild profile setup as a guided sequence: photo, basics, about, preferences,
+  disclosure/privacy, and review.
+- Show the member an accurate preview of what another authorized member can see.
 
-## M6 — Controlled introductions and matching ✅
+### Exit
 
-- Service-only introduction creation.
-- Hard-constraint candidate matching.
-- Pair cooldowns after decline, cancel, expiry, or closure.
-- Expiry worker with private audit records.
-- Member-only introduction listing and whitelisted counterpart preview.
-- Private accept/decline state machine without leaking the other member's
-  pending decision.
-- Mutual-acceptance handoff before communication opens.
+Two staging members can create complete realistic profiles with approved,
+private photos that appear only through permitted product surfaces.
 
-## M7 — Private conversations ✅ foundation
+## M12 — Discovery, Friends, and matching product completion
 
-- Conversation creation only after mutual acceptance.
-- Private raw conversation/message tables.
-- Guarded message send/list RPCs with cursor pagination and rate limits.
-- Idempotent send/retry behavior with client nonces.
-- Conversation closure and safety/participation access gates.
-- Arabic/English native conversation experience.
-- Self-only read cursor and unread counts.
+M12 gives members a reason to open Mithaq before a curated marriage introduction
+arrives, while keeping friendship and marriage as two explicit, non-mixed
+products under one account. Detailed contracts live in
+`docs/m12-discovery-and-matching.md` and `docs/connection-spaces.md`.
 
-## M8 — Activity and notification foundation ✅
+### Shared space foundation
 
-- Private server-side activity inbox for introductions and incoming messages.
-- Privacy-minimal event payloads without message text or counterpart IDs.
-- Guarded self-only list/unread/read RPCs.
-- Cursor-safe pagination, including equal-timestamp boundaries.
-- Arabic/English native Activity Center.
-- Account entry points for introductions and activity.
-- Account-deletion cascade behavior separated from moderation retention.
+- Let a member join Marriage, Friends, or both without silent enrollment.
+- Persist the member's current space and reopen it on returning sessions.
+- Keep profiles, discovery eligibility, interest signals, activity, visibility,
+  and conversations scoped to their originating space.
+- Keep authentication, language, device security, account deletion, and severe
+  safety enforcement account-wide.
+- Never copy marriage biography, photos, or preferences into Friends without an
+  explicit member choice.
 
-## M9 — Production hardening 🚧 hosted acceptance pending
+### Marriage discovery and matching
 
-Credential-free/source-controlled implementation is complete once the exact
-release head is green in CI. Completed independent slices include:
+- Preserve hard eligibility, mutual hard preferences, safety, blocks, and
+  cooldowns as non-negotiable filters.
+- Add a finite privacy-safe Discover surface rather than an infinite swipe deck
+  or public member directory.
+- Let members privately express curiosity/interest from Discover; never reveal
+  that signal directly and never treat it as a match.
+- Feed private discovery interest into compatibility ranking only after hard
+  eligibility and mutual preference gates pass.
+- Add compatibility ranking for supported softer preferences.
+- Add activity/availability and fair-exposure controls without selling access
+  around another member's preferences.
+- Add evidence-based “Why Mithaq introduced you” explanations from actual
+  matching inputs; do not display invented percentages.
+- Complete current, waiting, mutual, declined, expired, and previous
+  introduction states.
+- Add personality/profile prompts and interest signals needed to make profiles
+  feel human rather than demographic forms.
 
-- GitHub Actions pinned to reviewed immutable commit SHAs.
-- Private-schema deny-by-default ACL regression coverage.
-- `SECURITY DEFINER` search-path regression coverage.
-- Production indexes for messaging and unresolved safety hot paths.
-- Idempotent messaging and serialized rate-limit enforcement.
-- Conversation-message and read-activity retention with safety/unread guards.
-- Introduction-expiry and maintenance-run auditing.
-- Account-deletion reconciliation and worker auditing.
-- Service-role-only maintenance backlog, health, and release-readiness checks.
-- Deployable POST-only Edge Function entrypoints for account deletion,
-  introduction expiry, conversation retention, and notification retention.
-- Machine-checked preview/staging/production environment, worker cadence,
-  retention-policy, and release-gate contract.
-- Client-secret exposure and destructive-migration guards bound into the normal
-  release check.
-- Hosted environment preflight commands for staging and production.
-- Hosted release verification for HTTPS, release identity, health cache policy,
-  CSP/security headers, HSTS, and expected commit revision.
-- Root/mobile/Expo release-version and native-build metadata checks.
-- Privacy-safe web release identity and server-error observations without member
-  or request payloads.
-- Tested CSP and baseline web security headers.
-- Public bilingual account-deletion information linked from the legal footer and
-  covered by production E2E.
-- Machine-checked store readiness for bundle/package identifiers, EAS profiles,
-  native 1024×1024 artwork, splash configuration, and localized privacy,
-  deletion, and support routes.
-- Operator release, disaster-recovery, and store-submission checklists.
+### Friends product
 
-### M9 acceptance gate
+- Use a separate friendship profile based on preferred name, city, friendship
+  introduction, interests, and future friendship-specific prompts.
+- Add finite interest- and activity-based friend discovery with independent
+  eligibility, review, visibility, ranking, and exposure controls.
+- Add private friend requests that do not appear as romantic likes or marriage
+  interest.
+- Open a friendship-only conversation only after the Friends connection rules
+  succeed.
+- Keep Friends activity, unread state, notifications, and conversations out of
+  Marriage navigation and vice versa.
+- Add explicit photo reuse/disclosure later; approved marriage photos are not
+  automatically shown in Friends.
+- Add safe staging fixtures/operator tooling to exercise both spaces and verify
+  that cross-space leakage is impossible.
 
-1. Keep root formatting, lint, TypeScript, unit tests, migration/secret/release/
-   store checks, and production build green.
-2. Keep mobile TypeScript, Prettier, and Expo Doctor green.
-3. Keep Supabase pgTAP and the verified OTP/waitlist integration green.
-4. Keep production E2E green, including security-header, health release
-   identity, and public account-deletion coverage.
-5. Keep idempotent retries at exactly one message and one recipient activity
-   event.
-6. Keep retention preserving unresolved safety evidence and unread activity
-   while purging only eligible old data.
-7. Keep Activity pagination free of skips/duplicates at equal timestamps.
-8. Keep all locked requirements in `ops/release-contract.json` machine-checked,
-   including deployable required workers and hosted/store release gates.
-9. Credential-free/source-controlled M9 work is complete only when CI is green
-   on the exact reviewed head.
-10. M9 exits only after hosted `mithaq-staging`, required worker scheduling and
-    first successful runs, real SMS delivery, EAS preview build, and physical
-    iPhone/Android acceptance pass using operator credentials before production
-    rollout.
+### Exit
 
-## External gates after independent M9 work
+A staging account can use one or both spaces. Marriage discovery can lead into
+the controlled introduction flow only after compatibility and safety gates.
+Friends discovery can lead into a mutual friendship connection using separate
+profile, signal, activity, and conversation contracts. No friendship-only member
+appears in marriage matching, and no marriage signal or message appears inside
+Friends.
 
-These are release gates, not reasons to weaken source/database security:
+## M13 — Messaging and notifications
 
-- hosted `mithaq-staging` and production Supabase projects/environment values
-- hosted schedules and first successful runs for deletion, expiry, and retention
-  workers
-- reviewed production conversation and notification retention-policy values
-- production SMS-provider credentials and Libya/diaspora delivery testing
-- EAS account/project credentials and real environment values
-- physical iPhone/Android signed-build acceptance
-- Apple Developer/App Store Connect/TestFlight signing, app records, and review
-- Google Play signing/console access and testing tracks
-- final hosted production privacy/deletion/support URLs for store records
-- external push delivery and device-token registration
+- Polish conversation into native private messengers with keyboard-safe
+  composers, bubbles, timestamps, pagination, retries, unread/read behavior,
+  closure, and safety actions.
+- Keep Marriage and Friends conversations in separate server-owned contexts and
+  separate activity streams.
+- Register Expo device tokens with least-privilege server boundaries.
+- Add privacy-safe push notifications for a new introduction, mutual acceptance,
+  friend connection, and a new message.
+- Add deep links and notification preference controls that preserve the target
+  space.
+- Never place message text, phone numbers, or sensitive counterpart identifiers
+  in notification payloads.
 
-## Deferred product scope
+### Exit
 
-Do not pull these into M9 unless the roadmap is explicitly changed:
+Two devices can receive a marriage introduction or a friendship connection,
+enter the correct separate conversation, receive privacy-safe notifications, and
+converse reliably.
 
-- profile photos and identity/liveness verification
-- payments
-- full admin analytics/moderation console
-- additional family-participation workflows
-- unrelated engagement or discovery mechanics
+## M14 — Verification and operating tools
+
+- Keep phone verification, profile review, photo review, and identity
+  verification as distinct states.
+- Implement the minimum internal operations surface for marriage/friendship
+  profile review, photo review, safety reports, blocks, suspension/reactivation,
+  deletion status, connection state, and moderation audit.
+- Decide and integrate an identity/liveness provider only after legal, privacy,
+  cost, and Libya/diaspora coverage review.
+- Never claim identity verification before the verification process genuinely
+  succeeds.
+
+### Exit
+
+Mithaq can safely operate a private beta without manual database editing.
+
+## M15 — Mithaq+ entitlements and payments
+
+This milestone does not block the first private/public beta unless the business
+requires monetization at launch.
+
+- Keep the complete core journey functional for free in both spaces: profile,
+  finite discovery, private connection decisions, conversation, and safety.
+- Define premium value around advanced preferences, deeper compatibility
+  explanations, a modestly larger finite discovery set, greater
+  active-introduction capacity, priority consideration, and optional high-touch
+  services—not unlimited swipes.
+- Keep space-specific entitlements explicit; a Friends benefit must not silently
+  change Marriage exposure or vice versa.
+- Build server-owned entitlements before UI paywalls.
+- Add Apple/Google subscriptions, receipt validation, restore purchase,
+  cancellation, expiry, and clear subscription disclosures.
+- Payment must never bypass compatibility, safety, blocking, consent, or another
+  member's preferences.
+
+### Exit
+
+Free and paid accounts behave correctly and securely across renewal, expiry, and
+restore scenarios.
+
+## M16 — Production launch and stores
+
+- Provision and verify production Supabase, worker schedules, backups,
+  observability, support, rate limits, and final retention values.
+- Select and test the final production authentication delivery strategy,
+  including Libya carrier and diaspora coverage.
+- Port the approved SDK 54 preview UX to the current SDK 57 production target.
+- Complete signed EAS builds, TestFlight/internal testing, closed beta fixes,
+  and final physical-device acceptance.
+- Complete App Store and Play Store records, screenshots in Arabic and English,
+  icon/splash assets, privacy declarations, data-safety forms, support and
+  deletion URLs, age rating, and subscription disclosures where applicable.
+
+### Exit
+
+Mithaq is published and monitored in production.
+
+## Delivery order from the current branch
+
+1. Finish M9 dependency/release stability while continuing independent M10 UI
+   slices.
+2. Finish M10 across the whole member journey.
+3. Finish M11 private photos and guided profile.
+4. Complete M12 Marriage discovery, separate Friends, and matching behavior.
+5. Complete M13 separate messaging and push contexts.
+6. Complete the minimum M14 operating tools and private beta.
+7. Complete M16 production/store release.
+8. Add M15 monetization before or after launch according to the business plan.
+
+## Scope guardrails
+
+- No infinite swipe deck or unrestricted public member directory.
+- No public member photos; every photo surface requires an explicit authorized
+  disclosure contract.
+- No public follower counts, popularity scores, public likes, or open DMs.
+- No service-role or private credentials in client code.
+- No fabricated compatibility claims, verification claims, user counts, or
+  testimonials.
+- Marriage discovery interest is private and cannot bypass compatibility,
+  safety, blocking, consent, or another member's preferences.
+- Marriage and Friends are explicit separate spaces. Profile data, discovery
+  signals, activity, and conversations do not cross automatically.
+- Arabic/English parity, RLS boundaries, private decisions, and safety gates are
+  release requirements rather than optional polish.

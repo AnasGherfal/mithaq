@@ -1,30 +1,45 @@
 export const colors = {
-  background: "#F4F0E6",
-  backgroundDeep: "#ECE6D8",
-  surface: "#FFFDF8",
+  background: "#FFF8F4",
+  backgroundDeep: "#F4E9E3",
+  surface: "#FFFCFA",
   surfaceRaised: "#FFFFFF",
-  surfaceMuted: "#F8F5ED",
-  foreground: "#12211B",
-  muted: "#65716A",
-  mutedSoft: "#8C968F",
-  primary: "#0B4A3B",
-  primaryStrong: "#07382E",
-  primarySoft: "#E7EFEA",
-  primaryWash: "#F0F5F1",
-  border: "#D8D3C6",
-  borderStrong: "#C7C0B0",
-  gold: "#AA8240",
-  goldSoft: "#F3E9D3",
-  danger: "#A33C3F",
+  surfaceMuted: "#F8F0EC",
+  foreground: "#17243B",
+  muted: "#70696B",
+  mutedSoft: "#A39898",
+
+  // Interactive teal: intentionally darker than the logo teal so white button
+  // text remains readable while the product still feels connected to the mark.
+  primary: "#08747A",
+  primaryStrong: "#075964",
+  primarySoft: "#D7EEEC",
+  primaryWash: "#EFF8F6",
+
+  // The supplied Mithaq mark remains the source of truth for brand accents.
+  brandNavy: "#08345E",
+  brandTeal: "#04909B",
+  brandGold: "#D09C51",
+
+  // A restrained rose accent adds warmth to introductions and guided moments
+  // without turning the product into a playful swipe app.
+  accent: "#A95661",
+  accentSoft: "#F1D7D9",
+  accentWash: "#FCF0F1",
+
+  border: "#EDE1DB",
+  borderStrong: "#DCCEC7",
+  gold: "#8E6227",
+  goldSoft: "#F7E8C9",
+  danger: "#B64658",
   white: "#FFFFFF",
-  scrim: "rgba(18, 33, 27, 0.08)",
+  scrim: "rgba(23, 36, 59, 0.10)",
 } as const;
 
 export const radius = {
   sm: 12,
   md: 18,
-  lg: 26,
-  xl: 34,
+  lg: 24,
+  xl: 32,
   pill: 999,
 } as const;
 
@@ -39,17 +54,24 @@ export const spacing = {
 
 export const shadows = {
   card: {
-    shadowColor: colors.foreground,
-    shadowOpacity: 0.08,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 4,
+    shadowColor: colors.brandNavy,
+    shadowOpacity: 0.055,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 3,
   },
   button: {
-    shadowColor: colors.primary,
-    shadowOpacity: 0.2,
+    shadowColor: colors.primaryStrong,
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+  },
+  navigation: {
+    shadowColor: colors.brandNavy,
+    shadowOpacity: 0.06,
     shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 5,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 9,
   },
 } as const;

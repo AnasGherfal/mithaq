@@ -316,8 +316,8 @@ select is(
     order by recorded_at desc, id desc
     limit 1
   ),
-  'profile-change',
-  'the automatic reset identifies profile change as the actor source'
+  'member-profile-save',
+  'the automatic reset identifies the guarded member profile save as the actor source'
 );
 
 select is(

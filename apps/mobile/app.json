@@ -10,18 +10,42 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.mithaq.app",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.mithaq.app",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "../../public/icons/icon-maskable-1024.png",
-        "backgroundColor": "#F7F3E9"
+        "backgroundColor": "#FFF8F4"
       }
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-dev-client",
+        {
+          "launchMode": "most-recent"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "private-updates",
+          "enableBackgroundRemoteNotifications": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Mithaq to access the photo you choose for your private profile.",
+          "cameraPermission": "Allow Mithaq to take a private profile photo.",
+          "microphonePermission": false
+        }
+      ],
       [
         "expo-local-authentication",
         {
@@ -37,12 +61,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F7F3E9",
+          "backgroundColor": "#FFF8F4",
           "image": "../../public/icons/icon-1024.png",
           "imageWidth": 160,
           "resizeMode": "contain",
           "dark": {
-            "backgroundColor": "#F7F3E9",
+            "backgroundColor": "#FFF8F4",
             "image": "../../public/icons/icon-1024.png"
           }
         }

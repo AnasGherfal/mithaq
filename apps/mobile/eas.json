@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 19.1.0"
+    "version": ">= 19.1.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -11,9 +12,7 @@
     "preview": {
       "distribution": "internal",
       "environment": "preview",
-      "ios": {
-        "autoIncrement": "buildNumber"
-      }
+      "autoIncrement": true
     },
     "production": {
       "environment": "production",

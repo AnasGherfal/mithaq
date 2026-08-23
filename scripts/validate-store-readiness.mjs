@@ -5,6 +5,7 @@ import sharp from "sharp";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const mobileRoot = resolve(repositoryRoot, "apps/mobile");
+const requireEasProject = process.argv.includes("--require-eas-project");
 
 const appConfig = JSON.parse(
   await readFile(resolve(mobileRoot, "app.json"), "utf8"),
@@ -12,15 +13,50 @@ const appConfig = JSON.parse(
 const easConfig = JSON.parse(
   await readFile(resolve(mobileRoot, "eas.json"), "utf8"),
 );
+const mobilePackage = JSON.parse(
+  await readFile(resolve(mobileRoot, "package.json"), "utf8"),
+);
 
 const errors = [];
+const warnings = [];
 const expo = appConfig.expo ?? {};
+const dependencies = mobilePackage.dependencies ?? {};
 
 function requirePositiveInteger(value, label) {
   const number = Number(value);
   if (!Number.isSafeInteger(number) || number < 1) {
     errors.push(`${label} must be a positive integer`);
   }
+}
+
+function requireDependency(name, expectedPrefix) {
+  const version = dependencies[name];
+  if (typeof version !== "string") {
+    errors.push(`Mobile dependency ${name} is required`);
+    return;
+  }
+  if (expectedPrefix && !version.startsWith(expectedPrefix)) {
+    errors.push(
+      `Mobile dependency ${name} must stay on ${expectedPrefix}x for this beta branch (found ${version})`,
+    );
+  }
+}
+
+function findExpoPlugin(name) {
+  return (expo.plugins ?? []).find((plugin) =>
+    Array.isArray(plugin) ? plugin[0] === name : plugin === name,
+  );
+}
+
+function hasExpoPlugin(name) {
+  return Boolean(findExpoPlugin(name));
+}
+
+function expoPluginOptions(name) {
+  const plugin = findExpoPlugin(name);
+  return Array.isArray(plugin) && plugin[1] && typeof plugin[1] === "object"
+    ? plugin[1]
+    : {};
 }
 
 async function resolveAsset(relativePath, label) {
@@ -66,12 +102,23 @@ if (expo.slug !== "mithaq") {
 if (!/^\d+\.\d+\.\d+$/.test(expo.version ?? "")) {
   errors.push("Expo version must be a semantic x.y.z version");
 }
+if (expo.scheme !== "mithaq") {
+  errors.push("Expo deep-link scheme must remain mithaq");
+}
 
 const bundleIdentifier = expo.ios?.bundleIdentifier;
 if (!/^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(bundleIdentifier ?? "")) {
   errors.push("iOS bundleIdentifier must be a reverse-DNS identifier");
 }
+if (bundleIdentifier !== "com.mithaq.app") {
+  errors.push("iOS bundleIdentifier must remain com.mithaq.app");
+}
 requirePositiveInteger(expo.ios?.buildNumber, "iOS buildNumber");
+if (expo.ios?.config?.usesNonExemptEncryption !== false) {
+  errors.push(
+    "iOS usesNonExemptEncryption must remain false while Mithaq uses only exempt platform/transport encryption",
+  );
+}
 
 const androidPackage = expo.android?.package;
 if (
@@ -81,7 +128,54 @@ if (
 ) {
   errors.push("Android package must be a reverse-DNS identifier");
 }
+if (androidPackage !== "com.mithaq.app") {
+  errors.push("Android package must remain com.mithaq.app");
+}
 requirePositiveInteger(expo.android?.versionCode, "Android versionCode");
+
+// Native beta stack. SDK 54 intentionally stays pinned for the current closed
+// beta because it targets Android API 36 and EAS supports Xcode 26 for iOS.
+requireDependency("expo", "~54.");
+requireDependency("react", "19.1.");
+requireDependency("react-native", "0.81.");
+requireDependency("expo-dev-client", "~6.0.");
+requireDependency("expo-screen-capture", "~8.0.");
+requireDependency("expo-notifications", "~0.32.");
+requireDependency("expo-secure-store", "~15.0.");
+requireDependency("expo-local-authentication", "~17.0.");
+requireDependency("expo-image-picker", "~17.0.");
+requireDependency("expo-router", "~6.0.");
+
+for (const plugin of [
+  "expo-router",
+  "expo-dev-client",
+  "expo-notifications",
+  "expo-image-picker",
+  "expo-local-authentication",
+  "expo-secure-store",
+  "expo-splash-screen",
+]) {
+  if (!hasExpoPlugin(plugin)) {
+    errors.push(`Expo plugin ${plugin} is required for native beta builds`);
+  }
+}
+
+const devClientOptions = expoPluginOptions("expo-dev-client");
+if (devClientOptions.launchMode !== "most-recent") {
+  errors.push(
+    "expo-dev-client must use launchMode=most-recent for internal development builds",
+  );
+}
+
+const notificationOptions = expoPluginOptions("expo-notifications");
+if (notificationOptions.defaultChannel !== "private-updates") {
+  errors.push("expo-notifications defaultChannel must remain private-updates");
+}
+if (notificationOptions.enableBackgroundRemoteNotifications !== false) {
+  errors.push(
+    "iOS background remote notifications must remain disabled for the privacy-minimal beta",
+  );
+}
 
 await requireNativeIcon(expo.icon, "Expo icon");
 await requireNativeIcon(
@@ -89,10 +183,28 @@ await requireNativeIcon(
   "Android adaptive foreground",
 );
 
-const splashPlugin = (expo.plugins ?? []).find(
-  (plugin) => Array.isArray(plugin) && plugin[0] === "expo-splash-screen",
+const splashPlugin = findExpoPlugin("expo-splash-screen");
+await resolveAsset(
+  Array.isArray(splashPlugin) ? splashPlugin?.[1]?.image : null,
+  "Splash image",
 );
-await resolveAsset(splashPlugin?.[1]?.image, "Splash image");
+
+if (easConfig.cli?.appVersionSource !== "remote") {
+  errors.push(
+    "EAS appVersionSource must remain remote so native build numbers are server-managed",
+  );
+}
+
+const development = easConfig.build?.development;
+if (
+  development?.developmentClient !== true ||
+  development?.environment !== "development" ||
+  development?.distribution !== "internal"
+) {
+  errors.push(
+    "EAS development must be an internal development-client build using the development environment",
+  );
+}
 
 const preview = easConfig.build?.preview;
 if (
@@ -103,8 +215,10 @@ if (
     "EAS preview must remain an internal build using the preview environment",
   );
 }
-if (preview?.ios?.autoIncrement !== "buildNumber") {
-  errors.push("EAS preview must auto-increment the iOS build number");
+if (preview?.autoIncrement !== true) {
+  errors.push(
+    "EAS preview must auto-increment Android versionCode and iOS buildNumber",
+  );
 }
 
 const production = easConfig.build?.production;
@@ -113,6 +227,17 @@ if (production?.environment !== "production") {
 }
 if (production?.autoIncrement !== true) {
   errors.push("EAS production must auto-increment native build versions");
+}
+
+const easProjectId = expo.extra?.eas?.projectId;
+if (
+  typeof easProjectId !== "string" ||
+  !/^[0-9a-f-]{36}$/i.test(easProjectId)
+) {
+  const message =
+    "Expo/EAS project is not linked yet; run EAS project linking before the first development build so remote push registration receives a real projectId";
+  if (requireEasProject) errors.push(message);
+  else warnings.push(message);
 }
 
 const requiredPublicStoreRoutes = ["privacy", "account-deletion", "contact"];
@@ -134,6 +259,11 @@ try {
   errors.push("Missing ops/STORE_SUBMISSION_CHECKLIST.md");
 }
 
+if (warnings.length > 0) {
+  console.warn("Native beta readiness notes:");
+  for (const warning of warnings) console.warn(`- ${warning}`);
+}
+
 if (errors.length > 0) {
   console.error("Store readiness validation failed:");
   for (const error of errors) console.error(`- ${error}`);
@@ -141,5 +271,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, 1024px native artwork present, EAS preview/production profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
+  `Store readiness valid: ${bundleIdentifier} / ${androidPackage}, Expo SDK 54 native beta stack present, discreet notification channel locked, iOS export compliance declared, remote native versioning enabled, 1024px native artwork present, development/preview/production EAS profiles locked, and ${requiredPublicStoreRoutes.length} public review routes present.`,
 );
