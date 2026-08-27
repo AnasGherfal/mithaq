@@ -23,6 +23,7 @@ function normalizePhone(value: string) {
 export function PhoneOtpForm() {
   const router = useRouter();
   const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [deliveryConfirmed, setDeliveryConfirmed] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
   const [verifiedPhone, setVerifiedPhone] = useState("");
   const [otp, setOtp] = useState("");
@@ -36,6 +37,11 @@ export function PhoneOtpForm() {
 
     if (!ageConfirmed) {
       setError("يجب تأكيد أن عمرك 18 سنة أو أكثر.");
+      return;
+    }
+
+    if (!deliveryConfirmed) {
+      setError("وافق على استلام رمز تسجيل الدخول عبر قناة التحقق المتاحة لهذا الرقم.");
       return;
     }
 
@@ -113,9 +119,11 @@ export function PhoneOtpForm() {
         </div>
 
         <div className="rounded-2xl border border-[#153d35]/10 bg-[#153d35]/5 px-4 py-4 text-sm leading-7 text-[#153d35]">
-          أرسلنا رمزاً من 6 أرقام إلى
+          أرسلنا رمزاً من 6 أرقام إلى قناة التحقق المتاحة للرقم
           <span dir="ltr" className="mr-1 font-black">{verifiedPhone}</span>
-          <span className="mt-1 block text-xs font-bold text-black/40">قد يستغرق وصول الرسالة لحظات حسب شركة الاتصالات.</span>
+          <span className="mt-1 block text-xs font-bold text-black/40">
+            قد يصل الرمز عبر واتساب أو تيليجرام بحسب القناة المتاحة لهذا الرقم.
+          </span>
         </div>
 
         <label className="block">
@@ -209,6 +217,23 @@ export function PhoneOtpForm() {
         <span>
           <span className="block text-sm font-black leading-6 text-black/68">أؤكد أن عمري 18 سنة أو أكثر.</span>
           <span className="mt-1 block text-xs leading-5 text-black/38">ميثاق غير مخصص للقاصرين.</span>
+        </span>
+      </label>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-black/8 bg-white p-4 transition has-[:checked]:border-[#153d35]/25 has-[:checked]:bg-[#153d35]/[.035]">
+        <input
+          checked={deliveryConfirmed}
+          className="mt-1 size-4 accent-[#153d35]"
+          onChange={(event) => setDeliveryConfirmed(event.target.checked)}
+          type="checkbox"
+        />
+        <span>
+          <span className="block text-sm font-black leading-6 text-black/68">
+            أوافق على استلام رمز تسجيل الدخول عبر واتساب أو تيليجرام بحسب القناة المتاحة لهذا الرقم.
+          </span>
+          <span className="mt-1 block text-xs leading-5 text-black/38">
+            هذه موافقة للمصادقة فقط وليست موافقة على الرسائل التسويقية، ويمكن أن تختلف القناة من تسجيل لآخر.
+          </span>
         </span>
       </label>
 
