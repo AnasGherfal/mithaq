@@ -32,11 +32,17 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: { message: "Invalid hook signature" } }, 401);
   }
 
-  const phone = event?.user?.phone?.trim() ?? "";
+  const rawPhone = event?.user?.phone?.trim() ?? "";
+  const phone = normalizeHookPhone(rawPhone);
   const otp = event?.sms?.otp?.trim() ?? "";
 
-  if (!/^\+[1-9]\d{7,14}$/.test(phone) || !/^\d{6}$/.test(otp)) {
-    console.error("send-auth-otp: invalid phone or OTP shape");
+  // Supabase Auth may pass its internally-normalized phone without a leading +.
+  // Log only shape metadata so failures can be diagnosed without exposing secrets.
+  if (!phone || !/^\d{6,10}$/.test(otp)) {
+    const phoneDigits = rawPhone.replace(/\D/g, "");
+    console.error(
+      `send-auth-otp: invalid auth message shape phone_present=${rawPhone.length > 0} phone_has_plus=${rawPhone.startsWith("+")} phone_digits=${phoneDigits.length} otp_digits=${otp.replace(/\D/g, "").length}`,
+    );
     return jsonResponse({ error: { message: "Invalid authentication message" } }, 400);
   }
 
@@ -59,7 +65,7 @@ Deno.serve(async (req) => {
         ok: false,
         provider,
         retryable: true,
-        reason: "provider request failed",
+        reason: "PROVIDER_REQUEST_FAILED",
       };
     }
 
@@ -69,8 +75,9 @@ Deno.serve(async (req) => {
       return jsonResponse({}, 200);
     }
 
+    // Provider reason is sanitized to an uppercase code or HTTP status only.
     console.warn(
-      `send-auth-otp: ${result.provider} failed (${result.retryable ? "retryable" : "non-retryable"})`,
+      `send-auth-otp: ${result.provider} failed reason=${safeReason(result.reason)} (${result.retryable ? "retryable" : "non-retryable"})`,
     );
     failures.push(result);
   }
@@ -90,6 +97,14 @@ function verifyHook(payload: string, headers: Headers) {
   const secret = firstSecret.replace(/^v1,whsec_/, "");
   const webhook = new Webhook(secret);
   return webhook.verify(payload, Object.fromEntries(headers.entries()));
+}
+
+function normalizeHookPhone(value: string) {
+  // Supabase's hook docs show +E.164, while Auth internals/provider adapters can
+  // carry the normalized digits only. Accept only those two strict forms.
+  if (/^\+[1-9]\d{7,14}$/.test(value)) return value;
+  if (/^[1-9]\d{7,14}$/.test(value)) return `+${value}`;
+  return null;
 }
 
 function configuredProviderOrder(): Array<"telegram" | "whatsapp"> {
@@ -125,7 +140,39 @@ function whatsappConfigured() {
 async function sendTelegramOtp(phone: string, otp: string): Promise<ProviderResult> {
   const token = Deno.env.get("TELEGRAM_GATEWAY_ACCESS_TOKEN");
   if (!token) {
-    return { ok: false, provider: "telegram", retryable: false, reason: "not configured" };
+    return { ok: false, provider: "telegram", retryable: false, reason: "NOT_CONFIGURED" };
+  }
+
+  // Telegram recommends checking whether the number can receive Gateway messages.
+  // A successful check reserves one charge; using its request_id for the send does
+  // not charge a second time. Failed ability checks are not charged.
+  const abilityResponse = await fetch("https://gatewayapi.telegram.org/checkSendAbility", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ phone_number: phone }),
+  });
+  const abilityBody = await safeJson(abilityResponse);
+
+  if (!abilityResponse.ok || abilityBody?.ok !== true) {
+    return {
+      ok: false,
+      provider: "telegram",
+      retryable: abilityResponse.status === 429 || abilityResponse.status >= 500,
+      reason: telegramErrorCode(abilityBody, abilityResponse.status),
+    };
+  }
+
+  const requestId = abilityBody?.result?.request_id;
+  if (typeof requestId !== "string" || requestId.length === 0) {
+    return {
+      ok: false,
+      provider: "telegram",
+      retryable: false,
+      reason: "ABILITY_RESPONSE_INVALID",
+    };
   }
 
   const ttl = clampNumber(Deno.env.get("OTP_TTL_SECONDS"), 60, 30, 3600);
@@ -137,6 +184,7 @@ async function sendTelegramOtp(phone: string, otp: string): Promise<ProviderResu
     },
     body: JSON.stringify({
       phone_number: phone,
+      request_id: requestId,
       code: otp,
       ttl,
     }),
@@ -151,8 +199,17 @@ async function sendTelegramOtp(phone: string, otp: string): Promise<ProviderResu
     ok: false,
     provider: "telegram",
     retryable: response.status === 429 || response.status >= 500,
-    reason: typeof body?.error === "string" ? body.error.slice(0, 80) : `HTTP ${response.status}`,
+    reason: telegramErrorCode(body, response.status),
   };
+}
+
+function telegramErrorCode(body: any, status: number) {
+  const candidate = typeof body?.error === "string" ? body.error.trim() : "";
+  return /^[A-Z0-9_]{1,80}$/.test(candidate) ? candidate : `HTTP_${status}`;
+}
+
+function safeReason(value: string) {
+  return /^[A-Z0-9_]{1,80}$/.test(value) ? value : "UNSPECIFIED";
 }
 
 async function sendWhatsAppOtp(phone: string, otp: string): Promise<ProviderResult> {
@@ -163,7 +220,7 @@ async function sendWhatsAppOtp(phone: string, otp: string): Promise<ProviderResu
   const languageCode = Deno.env.get("META_WHATSAPP_TEMPLATE_LANGUAGE") ?? "en_US";
 
   if (!accessToken || !phoneNumberId || !apiVersion || !templateName) {
-    return { ok: false, provider: "whatsapp", retryable: false, reason: "not configured" };
+    return { ok: false, provider: "whatsapp", retryable: false, reason: "NOT_CONFIGURED" };
   }
 
   const endpoint = `https://graph.facebook.com/${encodeURIComponent(apiVersion)}/${encodeURIComponent(phoneNumberId)}/messages`;
@@ -205,7 +262,7 @@ async function sendWhatsAppOtp(phone: string, otp: string): Promise<ProviderResu
     ok: false,
     provider: "whatsapp",
     retryable: response.status === 429 || response.status >= 500,
-    reason: `HTTP ${response.status}`,
+    reason: `HTTP_${response.status}`,
   };
 }
 
