@@ -32,11 +32,17 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: { message: "Invalid hook signature" } }, 401);
   }
 
-  const phone = event?.user?.phone?.trim() ?? "";
+  const rawPhone = event?.user?.phone?.trim() ?? "";
+  const phone = normalizeHookPhone(rawPhone);
   const otp = event?.sms?.otp?.trim() ?? "";
 
-  if (!/^\+[1-9]\d{7,14}$/.test(phone) || !/^\d{6}$/.test(otp)) {
-    console.error("send-auth-otp: invalid phone or OTP shape");
+  // Supabase Auth may pass its internally-normalized phone without a leading +.
+  // Log only shape metadata so failures can be diagnosed without exposing secrets.
+  if (!phone || !/^\d{6,10}$/.test(otp)) {
+    const phoneDigits = rawPhone.replace(/\D/g, "");
+    console.error(
+      `send-auth-otp: invalid auth message shape phone_present=${rawPhone.length > 0} phone_has_plus=${rawPhone.startsWith("+")} phone_digits=${phoneDigits.length} otp_digits=${otp.replace(/\D/g, "").length}`,
+    );
     return jsonResponse({ error: { message: "Invalid authentication message" } }, 400);
   }
 
@@ -90,6 +96,14 @@ function verifyHook(payload: string, headers: Headers) {
   const secret = firstSecret.replace(/^v1,whsec_/, "");
   const webhook = new Webhook(secret);
   return webhook.verify(payload, Object.fromEntries(headers.entries()));
+}
+
+function normalizeHookPhone(value: string) {
+  // Supabase's hook docs show +E.164, while Auth internals/provider adapters can
+  // carry the normalized digits only. Accept only those two strict forms.
+  if (/^\+[1-9]\d{7,14}$/.test(value)) return value;
+  if (/^[1-9]\d{7,14}$/.test(value)) return `+${value}`;
+  return null;
 }
 
 function configuredProviderOrder(): Array<"telegram" | "whatsapp"> {
