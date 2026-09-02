@@ -1,16 +1,21 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { MemberPrimaryNav } from "@/components/member-primary-nav";
 import { createClient } from "@/lib/supabase/server";
 import { asUntypedSupabase } from "@/lib/supabase/untyped";
 
 export const dynamic = "force-dynamic";
 
-const maritalLabels: Record<string, string> = {
-  never_married: "لم يسبق له/لها الزواج",
-  divorced: "مطلق/مطلقة",
-  widowed: "أرمل/أرملة",
-  married: "متزوج/متزوجة",
+type IntroductionSummary = {
+  introduction_id: string;
+  status: string;
+  my_decision: string;
+};
+
+type ConversationUnread = {
+  introduction_id: string;
+  unread_count: number | string;
 };
 
 const reviewLabels: Record<string, string> = {
@@ -18,19 +23,6 @@ const reviewLabels: Record<string, string> = {
   approved: "معتمد",
   needs_changes: "يحتاج تعديلاً",
   rejected: "غير معتمد",
-};
-
-type IntroductionSummary = {
-  introduction_id: string;
-  status: string;
-  my_decision: string;
-  created_at: string;
-  expires_at: string;
-};
-
-type ConversationUnread = {
-  introduction_id: string;
-  unread_count: number | string;
 };
 
 export default async function MemberPage({
@@ -47,41 +39,32 @@ export default async function MemberPage({
   if (!userId) redirect("/join");
 
   const [{ data: application }, { data: profile }, { data: spaces }, { data: review }] = await Promise.all([
-    supabase
-      .from("waitlist_applications")
-      .select("status")
-      .eq("user_id", userId)
-      .maybeSingle(),
+    supabase.from("waitlist_applications").select("status").eq("user_id", userId).maybeSingle(),
     supabase
       .from("member_profiles")
-      .select("display_name,about_me,occupation,education,profile_completed_at,share_occupation,share_education,share_origin_region")
+      .select("display_name,profile_completed_at")
       .eq("user_id", userId)
       .maybeSingle(),
     supabase.rpc("list_my_connection_spaces", {}),
-    rpc
-      .from("member_profile_reviews")
-      .select("state,reason_code")
-      .eq("user_id", userId)
-      .maybeSingle(),
+    rpc.from("member_profile_reviews").select("state,reason_code").eq("user_id", userId).maybeSingle(),
   ]);
 
   if (application?.status !== "invited") redirect("/waitlist");
 
-  const hasMarriageSpace =
-    spaces?.some((space) => space.space === "marriage" && space.membership_state === "active") ?? false;
+  const hasMarriageSpace = spaces?.some(
+    (space) => space.space === "marriage" && space.membership_state === "active",
+  ) ?? false;
   if (!profile?.profile_completed_at || !hasMarriageSpace) redirect("/onboarding");
 
   const [
     { data: priorities },
     { data: visibility },
-    { data: previewRows },
-    { data: introductionData },
+    { data: introductionsData },
     { data: conversationUnreadData },
     { data: notificationUnreadData },
   ] = await Promise.all([
     supabase.rpc("get_my_marriage_practical_priorities", {}),
     supabase.rpc("get_my_marriage_visibility", {}),
-    supabase.rpc("get_own_introduction_preview", {}),
     rpc.rpc("list_my_introductions", {}),
     rpc.rpc("list_my_conversation_unread_counts", {}),
     rpc.rpc("get_my_notification_unread_count", {}),
@@ -89,207 +72,150 @@ export default async function MemberPage({
 
   if (!priorities?.[0]?.completed_at) redirect("/onboarding?step=priorities");
 
-  const preview = previewRows?.[0];
   const reviewState = typeof review?.state === "string" ? review.state : "pending";
   const discoveryReady = reviewState === "approved";
-  const introductions = Array.isArray(introductionData) ? (introductionData as IntroductionSummary[]) : [];
-  const activeIntroductionCount = introductions.filter(
-    (item) => item.status === "offered" || item.status === "mutually_accepted",
-  ).length;
-  const pendingDecisionCount = introductions.filter(
+  const introductions = Array.isArray(introductionsData) ? (introductionsData as IntroductionSummary[]) : [];
+  const pendingIntroductions = introductions.filter(
     (item) => item.status === "offered" && item.my_decision === "pending",
+  ).length;
+  const activeIntroductions = introductions.filter(
+    (item) => item.status === "offered" || item.status === "mutually_accepted",
   ).length;
   const conversationUnreads = Array.isArray(conversationUnreadData)
     ? (conversationUnreadData as ConversationUnread[])
     : [];
-  const openConversationCount = conversationUnreads.length;
-  const totalConversationUnread = conversationUnreads.reduce(
+  const unreadMessages = conversationUnreads.reduce(
     (sum, item) => sum + (Number(item.unread_count) || 0),
     0,
   );
-  const notificationUnread = Number(notificationUnreadData) || 0;
+  const unreadActivity = Number(notificationUnreadData) || 0;
 
-  let ageLabel = "—";
-  if (preview?.age_band_id) {
-    const { data: band } = await supabase
-      .from("age_bands")
-      .select("label")
-      .eq("id", preview.age_band_id)
-      .maybeSingle();
-    ageLabel = band?.label ?? "—";
-  }
+  const nextAction = pendingIntroductions > 0
+    ? {
+        eyebrow: "قرار بانتظارك",
+        title: `لديك ${pendingIntroductions} مقدمة تحتاج قرارك`,
+        text: "راجع المقدمة بهدوء. لا تفتح المحادثة إلا بعد موافقة صريحة من الطرفين.",
+        href: "/introductions",
+        label: "مراجعة المقدمات",
+      }
+    : unreadMessages > 0
+      ? {
+          eyebrow: "رسائل جديدة",
+          title: `لديك ${unreadMessages} رسالة غير مقروءة`,
+          text: "افتح المحادثة داخل ميثاق. رقم هاتفك وبيانات اتصالك لا تُشارك تلقائياً.",
+          href: "/conversations",
+          label: "فتح المحادثات",
+        }
+      : discoveryReady
+        ? {
+            eyebrow: "جاهز للاستكشاف",
+            title: "شاهد الملفات المتوافقة مع شروط الطرفين",
+            text: "يعرض ميثاق عدداً محدوداً من الملفات المناسبة، وليس دليلاً عاماً أو سحباً لا نهائياً.",
+            href: "/discovery",
+            label: "ابدأ الاستكشاف",
+          }
+        : {
+            eyebrow: "مراجعة الملف",
+            title: "ملفك لم يدخل الاستكشاف بعد",
+            text: "بعد اعتماد الملف ستظهر لك فقط الملفات التي تحقق الشروط الأساسية للطرفين.",
+            href: "/onboarding?step=profile",
+            label: "مراجعة ملفي",
+          };
 
   return (
-    <main className="min-h-screen px-5 py-8 sm:py-12">
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/waitlist" className="inline-flex items-center gap-2 font-black text-[#153d35]">
-            <span className="grid size-9 place-items-center rounded-xl bg-[#153d35] text-white">م</span>
-            ميثاق
+    <main className="min-h-screen px-5 py-6 sm:py-10">
+      <div className="mx-auto w-full max-w-5xl">
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          <Link href="/member" className="inline-flex items-center gap-3 font-black text-[#153d35]">
+            <span className="grid size-10 place-items-center rounded-2xl bg-[#153d35] text-white">م</span>
+            <span>
+              <span className="block text-lg">ميثاق</span>
+              <span className="block text-[10px] font-bold tracking-[.18em] text-black/35" dir="ltr">MEMBER</span>
+            </span>
           </Link>
-          <div className="flex flex-wrap items-center gap-1">
-            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/discovery">الاستكشاف</Link>
-            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/introductions">
-              المقدمات{pendingDecisionCount > 0 ? ` (${pendingDecisionCount})` : ""}
-            </Link>
-            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/conversations">
-              المحادثات{totalConversationUnread > 0 ? ` (${totalConversationUnread})` : ""}
-            </Link>
-            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/activity">
-              النشاط{notificationUnread > 0 ? ` (${notificationUnread})` : ""}
-            </Link>
-            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/photos">الصور والثقة</Link>
-            <Link className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" href="/settings">الإعدادات</Link>
-            <form action="/auth/signout" method="post">
-              <button className="focus-ring rounded-xl px-3 py-2 text-sm font-bold text-black/45 hover:bg-white" type="submit">تسجيل الخروج</button>
-            </form>
-          </div>
-        </div>
+          <MemberPrimaryNav
+            pendingIntroductions={pendingIntroductions}
+            unreadMessages={unreadMessages}
+            unreadActivity={unreadActivity}
+          />
+        </header>
 
         {params.ready === "1" ? (
-          <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-800">
-            تم حفظ إعداد ملفك بنجاح.
+          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold leading-6 text-amber-900">
+            اكتمل إعداد ملفك. الخطوة التالية هي مراجعة الملف قبل أن يفتح الاستكشاف.
           </div>
         ) : null}
 
-        <section className="mt-7 rounded-[2rem] border border-black/7 bg-white/88 p-6 shadow-[0_25px_70px_rgba(35,43,38,.1)] sm:p-9">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div>
-              <p className="text-sm font-black text-[#9d702d]">المرحلة الخاصة</p>
-              <h1 className="mt-2 text-3xl font-black text-[#153d35]">ملفك الأساسي جاهز</h1>
-              <p className="mt-3 max-w-xl text-sm leading-7 text-black/55">
-                أكملت معلومات الملف والأولويات الأساسية. الاستكشاف محدود بملفات يطابق كل طرف فيها الشروط الأساسية للطرف الآخر، وأي مقدمة تحتاج موافقة جديدة وصريحة من الطرفين قبل فتح محادثة داخل ميثاق.
+        <section className="mt-7 overflow-hidden rounded-[2.25rem] border border-black/7 bg-white shadow-[0_28px_80px_rgba(35,43,38,.10)]">
+          <div className="grid lg:grid-cols-[1.15fr_.85fr]">
+            <div className="p-6 sm:p-9">
+              <p className="text-sm font-black text-[#9d702d]">مساحتك الخاصة</p>
+              <h1 className="mt-2 text-3xl font-black leading-tight text-[#153d35] sm:text-4xl">
+                أهلاً {profile?.display_name ? `، ${profile.display_name}` : "بك"}
+              </h1>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-black/52">
+                ركّز على خطوة واحدة في كل مرة. ميثاق لا يعرض دليلاً عاماً للأعضاء، ولا يفتح التواصل قبل اهتمام متبادل وموافقة جديدة من الطرفين.
               </p>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <span className="rounded-full bg-[#153d35]/8 px-4 py-2 text-xs font-black text-[#153d35]">
-                الظهور: {visibility === "standard" ? "عادي" : "خاص"}
-              </span>
-              <span className={`rounded-full px-4 py-2 text-xs font-black ${discoveryReady ? "bg-green-50 text-green-800" : "bg-amber-50 text-amber-800"}`}>
-                مراجعة الملف: {reviewLabels[reviewState] ?? reviewState}
-              </span>
-            </div>
-          </div>
 
-          {review?.reason_code && reviewState !== "approved" ? (
-            <div className="mt-5 rounded-2xl bg-orange-50 p-4 text-xs font-bold leading-6 text-orange-800">
-              ملاحظة المراجعة: {review.reason_code}
-            </div>
-          ) : null}
-
-          <div className="mt-7 rounded-3xl border border-black/8 bg-[#f8f5ef] p-5 sm:p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-black text-[#9d702d]">معاينة</p>
-                <h2 className="mt-1 text-xl font-black text-[#153d35]">ما قد يظهر عنك</h2>
+              <div className="mt-7 rounded-3xl bg-[#153d35] p-6 text-white">
+                <p className="text-xs font-black text-[#e6c995]">{nextAction.eyebrow}</p>
+                <h2 className="mt-2 text-2xl font-black">{nextAction.title}</h2>
+                <p className="mt-3 text-sm leading-7 text-white/70">{nextAction.text}</p>
+                <Link className="focus-ring mt-5 inline-flex rounded-2xl bg-white px-5 py-3 text-sm font-black text-[#153d35]" href={nextAction.href}>
+                  {nextAction.label}
+                </Link>
               </div>
-              <Link className="text-xs font-black text-[#8b6228] underline" href="/onboarding?step=privacy">تعديل الخصوصية</Link>
             </div>
 
-            {preview ? (
-              <div className="mt-5 rounded-3xl bg-white p-5 shadow-sm">
-                <h3 className="text-2xl font-black text-[#153d35]">{preview.display_name}</h3>
-                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold text-black/45">
-                  <span>{preview.gender === "man" ? "رجل" : "امرأة"}</span>
-                  <span>{ageLabel}</span>
-                  <span>{preview.city}</span>
-                  <span>{maritalLabels[preview.marital_status] ?? preview.marital_status}</span>
-                  <span>{preview.has_children ? "لديه/لديها أطفال" : "بدون أطفال"}</span>
+            <aside className="border-t border-black/7 bg-[#f8f5ef] p-6 lg:border-r lg:border-t-0 sm:p-8">
+              <p className="text-xs font-black text-[#9d702d]">حالة الحساب</p>
+              <div className="mt-4 space-y-3">
+                <div className="rounded-2xl bg-white p-4">
+                  <div className="text-xs font-bold text-black/38">مراجعة الملف</div>
+                  <div className={`mt-1 font-black ${discoveryReady ? "text-green-800" : "text-amber-800"}`}>
+                    {reviewLabels[reviewState] ?? reviewState}
+                  </div>
                 </div>
-                <p className="mt-4 whitespace-pre-line text-sm leading-7 text-black/62">{preview.about_me}</p>
-                <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold">
-                  {preview.occupation ? <span className="rounded-full bg-[#153d35]/7 px-3 py-2 text-[#153d35]">{preview.occupation}</span> : null}
-                  {preview.education ? <span className="rounded-full bg-[#153d35]/7 px-3 py-2 text-[#153d35]">{preview.education}</span> : null}
-                  {preview.origin_region ? <span className="rounded-full bg-[#153d35]/7 px-3 py-2 text-[#153d35]">الأصل: {preview.origin_region}</span> : null}
+                <div className="rounded-2xl bg-white p-4">
+                  <div className="text-xs font-bold text-black/38">وضع الظهور</div>
+                  <div className="mt-1 font-black text-[#153d35]">{visibility === "standard" ? "عادي" : "خاص"}</div>
+                </div>
+                <div className="rounded-2xl bg-white p-4">
+                  <div className="text-xs font-bold text-black/38">مقدمات نشطة</div>
+                  <div className="mt-1 text-2xl font-black text-[#153d35]">{activeIntroductions}</div>
                 </div>
               </div>
-            ) : (
-              <p className="mt-4 text-sm text-black/45">تعذر تجهيز المعاينة الآن.</p>
-            )}
-          </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <Link className="rounded-3xl border border-black/8 bg-white p-5 transition hover:border-[#153d35]/25" href="/onboarding?step=profile">
-              <div className="text-sm font-black text-[#153d35]">تعديل ملفي</div>
-              <p className="mt-2 text-xs leading-6 text-black/45">الاسم الظاهر، النبذة، المهنة والتعليم. أي تعديل جوهري يعيد الملف للمراجعة.</p>
-            </Link>
-            <Link className="rounded-3xl border border-black/8 bg-white p-5 transition hover:border-[#153d35]/25" href="/onboarding?step=priorities">
-              <div className="text-sm font-black text-[#153d35]">تعديل أولويات الزواج</div>
-              <p className="mt-2 text-xs leading-6 text-black/45">السكن، الأطفال، العمل وحجم حفل الزواج.</p>
-            </Link>
-          </div>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <Link className="block rounded-3xl border border-[#c99a52]/25 bg-[#c99a52]/8 p-5 transition hover:border-[#c99a52]/45" href="/photos">
-              <div className="text-sm font-black text-[#8b6228]">الصور وحالة الثقة</div>
-              <p className="mt-2 text-xs leading-6 text-black/52">
-                أضف صوراً خاصة، اختر الرئيسية، تابع المراجعة، وشاهد ما تم التحقق منه فعلياً.
-              </p>
-            </Link>
-
-            <Link
-              className={`block rounded-3xl border p-5 transition ${discoveryReady ? "border-[#153d35]/20 bg-[#153d35] text-white hover:bg-[#12362f]" : "border-black/8 bg-black/[.025] text-black/45"}`}
-              href="/discovery"
-            >
-              <div className={`text-sm font-black ${discoveryReady ? "text-white" : "text-[#153d35]"}`}>الاستكشاف الخاص</div>
-              <p className={`mt-2 text-xs leading-6 ${discoveryReady ? "text-white/75" : "text-black/45"}`}>
-                {discoveryReady
-                  ? "شاهد عدداً محدوداً من الملفات المتوافقة وسجل اهتماماً أو تخطياً قبل مرحلة المقدمة."
-                  : "سيفتح بعد اعتماد ملفك. يمكنك فتح الصفحة الآن لمتابعة حالة المراجعة."}
-              </p>
-            </Link>
-          </div>
-
-          <Link className="mt-4 block rounded-3xl border border-black/8 bg-white p-5 transition hover:border-[#153d35]/25" href="/introductions">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-black text-[#153d35]">المقدمات الخاصة</div>
-                <p className="mt-2 text-xs leading-6 text-black/45">
-                  {activeIntroductionCount > 0
-                    ? `لديك ${activeIntroductionCount} مقدمة نشطة${pendingDecisionCount > 0 ? `، منها ${pendingDecisionCount} تحتاج قرارك` : ""}.`
-                    : "عند وجود اهتمام متبادل ستظهر مقدمة محدودة المدة وتحتاج موافقة صريحة من الطرفين."}
-                </p>
-              </div>
-              {pendingDecisionCount > 0 ? (
-                <span className="rounded-full bg-amber-50 px-3 py-2 text-xs font-black text-amber-800">{pendingDecisionCount} بانتظارك</span>
+              {review?.reason_code && reviewState !== "approved" ? (
+                <div className="mt-4 rounded-2xl bg-orange-50 p-4 text-xs font-bold leading-6 text-orange-800">
+                  ملاحظة المراجعة: {review.reason_code}
+                </div>
               ) : null}
-            </div>
-          </Link>
-
-          <Link className="mt-4 block rounded-3xl border border-[#153d35]/15 bg-[#153d35]/5 p-5 transition hover:border-[#153d35]/30" href="/conversations">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-black text-[#153d35]">المحادثات الخاصة</div>
-                <p className="mt-2 text-xs leading-6 text-black/48">
-                  {openConversationCount > 0
-                    ? `لديك ${openConversationCount} محادثة مفتوحة${totalConversationUnread > 0 ? ` و${totalConversationUnread} رسالة غير مقروءة` : ""}.`
-                    : "بعد الموافقة المتبادلة يمكن فتح محادثة نصية خاصة داخل ميثاق بدون مشاركة رقم الهاتف تلقائياً."}
-                </p>
-              </div>
-              {totalConversationUnread > 0 ? (
-                <span className="rounded-full bg-[#153d35] px-3 py-2 text-xs font-black text-white">{totalConversationUnread} جديدة</span>
-              ) : null}
-            </div>
-          </Link>
-
-          <Link className="mt-4 block rounded-3xl border border-[#c99a52]/20 bg-[#c99a52]/5 p-5 transition hover:border-[#c99a52]/40" href="/activity">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-black text-[#8b6228]">مركز النشاط</div>
-                <p className="mt-2 text-xs leading-6 text-black/48">
-                  إشعارات مختصرة عن المقدمات والموافقة والرسائل بدون عرض نص الرسائل أو بيانات اتصال خاصة.
-                </p>
-              </div>
-              {notificationUnread > 0 ? (
-                <span className="rounded-full bg-[#8b6228] px-3 py-2 text-xs font-black text-white">{notificationUnread} جديد</span>
-              ) : null}
-            </div>
-          </Link>
-
-          <div className="mt-4 rounded-2xl bg-[#f8f5ef] p-4 text-xs leading-6 text-black/45">
-            تحقق الهوية الرسمي لم يتم ربطه بمزود خارجي بعد. لن نعرض أي علامة تحقق قبل وجود دليل فعلي في النظام.
+            </aside>
           </div>
         </section>
+
+        <section className="mt-5 grid gap-4 md:grid-cols-3">
+          <Link className="rounded-3xl border border-black/8 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lg" href="/onboarding?step=profile">
+            <div className="text-xs font-black text-[#9d702d]">ملفي</div>
+            <div className="mt-2 text-lg font-black text-[#153d35]">تعديل المعلومات</div>
+            <p className="mt-2 text-xs leading-6 text-black/45">الاسم الظاهر والنبذة والمعلومات الاختيارية. التعديلات الجوهرية قد تعيد الملف للمراجعة.</p>
+          </Link>
+          <Link className="rounded-3xl border border-black/8 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lg" href="/photos">
+            <div className="text-xs font-black text-[#9d702d]">الثقة</div>
+            <div className="mt-2 text-lg font-black text-[#153d35]">الصور والخصوصية</div>
+            <p className="mt-2 text-xs leading-6 text-black/45">أدر صورك الخاصة وحالة مراجعتها بدون جعلها عامة على الإنترنت.</p>
+          </Link>
+          <Link className="rounded-3xl border border-black/8 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lg" href="/activity">
+            <div className="text-xs font-black text-[#9d702d]">آخر المستجدات</div>
+            <div className="mt-2 text-lg font-black text-[#153d35]">النشاط {unreadActivity > 0 ? `· ${unreadActivity}` : ""}</div>
+            <p className="mt-2 text-xs leading-6 text-black/45">إشعارات مختصرة بدون نص الرسائل أو بيانات اتصال الطرف الآخر.</p>
+          </Link>
+        </section>
+
+        <div className="mt-5 rounded-3xl border border-[#c99a52]/20 bg-[#c99a52]/8 p-5 text-xs leading-6 text-black/50">
+          رقم هاتفك مخصص للدخول والأمان ولا يظهر تلقائياً في ملفك أو المقدمات أو المحادثات.
+        </div>
       </div>
     </main>
   );
