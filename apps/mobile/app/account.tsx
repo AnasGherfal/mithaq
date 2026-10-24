@@ -29,6 +29,7 @@ type AccountPath =
   | "/safety"
   | "/notification-privacy"
   | "/security"
+  | "/help"
   | "/dev-family-handoff"
   | "/dev-recognition"
   | "/dev-activity";
@@ -83,6 +84,8 @@ export default function AccountScreen() {
         activityPreviewBody: "راجع تسلسل الاهتمام والتعارف والقبول والمحادثة ودائرة الثقة ببيانات محلية وهمية.",
         recognitionPreview: "معاينة معرفة الشخص",
         recognitionPreviewBody: "جرّب خيار «أعرف هذا الشخص» والإخفاء المتبادل بدون عضو حقيقي أو تغيير أي بيانات.",
+        help: "دليل ميثاق",
+        helpBody: "إجابات واضحة عن الدعوات والتوافق والتعارف والخصوصية.",
         app: "التطبيق",
         language: "اللغة",
         languageBody: "العربية · اضغط للتبديل إلى English",
@@ -133,6 +136,8 @@ export default function AccountScreen() {
         recognitionPreview: "Recognized-person preview",
         recognitionPreviewBody:
           "Test “I know this person” and the reciprocal privacy hide without a real member or database change.",
+        help: "Mithaq guide",
+        helpBody: "Clear answers about invitations, compatibility, introductions and privacy.",
         app: "App",
         language: "Language",
         languageBody: "English · tap to switch to العربية",
@@ -367,6 +372,13 @@ export default function AccountScreen() {
           ) : null}
 
           <SettingsGroup title={copy.app} rtl={rtl}>
+            <SettingsRow
+              rtl={rtl}
+              icon="chat"
+              title={copy.help}
+              body={copy.helpBody}
+              onPress={() => open("/help")}
+            />
             <SettingsRow
               rtl={rtl}
               icon="language"
