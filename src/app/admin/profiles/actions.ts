@@ -31,7 +31,11 @@ export async function moderateProfile(formData: FormData) {
   if (!claimsData?.claims?.sub) redirect("/join");
 
   const { data: access } = await supabase.rpc("get_my_moderation_access", {});
-  if (!Array.isArray(access) || !access.some((item: { can_review: boolean }) => item.can_review)) redirect("/waitlist");
+  if (
+    !Array.isArray(access) ||
+    !access.some((item: { can_review: boolean }) => item.can_review)
+  )
+    redirect("/waitlist");
 
   const { error } = await rpc.rpc("moderate_profile_case", {
     p_user_id: parsed.data.userId,

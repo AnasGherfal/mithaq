@@ -31,7 +31,11 @@ export async function moderatePhoto(formData: FormData) {
   if (!claimsData?.claims?.sub) redirect("/join");
 
   const { data: access } = await supabase.rpc("get_my_moderation_access", {});
-  if (!Array.isArray(access) || !access.some((item: { can_review: boolean }) => item.can_review)) redirect("/waitlist");
+  if (
+    !Array.isArray(access) ||
+    !access.some((item: { can_review: boolean }) => item.can_review)
+  )
+    redirect("/waitlist");
 
   const { error } = await rpc.rpc("moderate_photo_case", {
     p_photo_id: parsed.data.photoId,
