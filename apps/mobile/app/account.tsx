@@ -372,13 +372,7 @@ export default function AccountScreen() {
           ) : null}
 
           <SettingsGroup title={copy.app} rtl={rtl}>
-            <SettingsRow
-              rtl={rtl}
-              icon="chat"
-              title={copy.help}
-              body={copy.helpBody}
-              onPress={() => open("/help")}
-            />
+            <SettingsRow rtl={rtl} icon="chat" title={copy.help} body={copy.helpBody} onPress={() => open("/help")} />
             <SettingsRow
               rtl={rtl}
               icon="language"

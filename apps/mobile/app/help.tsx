@@ -59,7 +59,10 @@ const questions: Question[] = [
   },
   {
     id: "verification",
-    question: { ar: "هل التحقق بالهاتف يعني التحقق من الهوية؟", en: "Does phone verification mean identity verification?" },
+    question: {
+      ar: "هل التحقق بالهاتف يعني التحقق من الهوية؟",
+      en: "Does phone verification mean identity verification?",
+    },
     answer: {
       ar: "لا. التحقق برمز الهاتف يثبت القدرة على الوصول إلى الرقم، ولا يُعتبر إثبات هوية حكومية. أي شارة تحقق لا تظهر إلا إذا اجتاز العضو عملية التحقق المعنية فعلاً.",
       en: "No. Phone OTP confirms access to a phone number, not government identity. Verification badges should only appear after the specific verification process has actually succeeded.",
@@ -83,7 +86,10 @@ const questions: Question[] = [
   },
   {
     id: "deletion",
-    question: { ar: "هل أستطيع سحب الموافقة أو طلب حذف حسابي؟", en: "Can I change consent or request account deletion?" },
+    question: {
+      ar: "هل أستطيع سحب الموافقة أو طلب حذف حسابي؟",
+      en: "Can I change consent or request account deletion?",
+    },
     answer: {
       ar: "نعم. يمكنك مراجعة الموافقات والتحديثات الاختيارية وطلب حذف الحساب من قسم الخصوصية في حسابك.",
       en: "Yes. Review consent, optional communications and account-deletion requests in the Privacy area of your account.",
@@ -120,16 +126,11 @@ export default function HelpScreen() {
           {rtl ? "رحلتك داخل ميثاق" : "YOUR PATH"}
         </Text>
         {journey.map((step, index) => (
-          <View
-            key={index}
-            style={[styles.stepRow, { flexDirection: rtl ? "row-reverse" : "row" }]}
-          >
+          <View key={index} style={[styles.stepRow, { flexDirection: rtl ? "row-reverse" : "row" }]}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>{index + 1}</Text>
             </View>
-            <Text style={[styles.stepText, { textAlign, writingDirection }]}>
-              {step[locale]}
-            </Text>
+            <Text style={[styles.stepText, { textAlign, writingDirection }]}>{step[locale]}</Text>
           </View>
         ))}
       </View>
@@ -152,15 +153,11 @@ export default function HelpScreen() {
                   pressed ? styles.pressed : null,
                 ]}
               >
-                <Text style={[styles.questionText, { textAlign, writingDirection }]}>
-                  {item.question[locale]}
-                </Text>
+                <Text style={[styles.questionText, { textAlign, writingDirection }]}>{item.question[locale]}</Text>
                 <Text style={styles.expandMark}>{expanded ? "−" : "+"}</Text>
               </Pressable>
               {expanded ? (
-                <Text style={[styles.answerText, { textAlign, writingDirection }]}>
-                  {item.answer[locale]}
-                </Text>
+                <Text style={[styles.answerText, { textAlign, writingDirection }]}>{item.answer[locale]}</Text>
               ) : null}
             </View>
           );
@@ -176,16 +173,10 @@ export default function HelpScreen() {
             ? "يمكنك مراجعة ضوابط السلامة والخصوصية داخل التطبيق. لا تُرسل بيانات شخصية حساسة لأي طرف يدّعي أنه دعم ميثاق."
             : "Review safety and privacy controls in the app. Do not send sensitive account details to anyone claiming to be Mithaq support."}
         </Text>
-        <PrimaryButton
-          tone="quiet"
-          onPress={() => router.push({ pathname: "/safety", params: { locale } })}
-        >
+        <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/safety", params: { locale } })}>
           {rtl ? "مركز السلامة" : "Safety Center"}
         </PrimaryButton>
-        <PrimaryButton
-          tone="quiet"
-          onPress={() => router.push({ pathname: "/privacy", params: { locale } })}
-        >
+        <PrimaryButton tone="quiet" onPress={() => router.push({ pathname: "/privacy", params: { locale } })}>
           {rtl ? "الخصوصية والموافقات" : "Privacy and consent"}
         </PrimaryButton>
       </View>
