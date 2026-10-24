@@ -55,6 +55,15 @@ insert into public.users (id)
 values ('61616161-6161-4616-8616-616161616161')
 on conflict (id) do nothing;
 
+-- Joining the member Marriage space requires an approved waitlist invitation.
+insert into public.waitlist_applications (
+  id, user_id, status, submitted_at, questionnaire_completed_at
+) values (
+  '61616161-aaaa-4aaa-8aaa-616161616161',
+  '61616161-6161-4616-8616-616161616161',
+  'invited', now(), now()
+);
+
 set local role authenticated;
 select set_config('request.jwt.claim.sub','61616161-6161-4616-8616-616161616161',true);
 select public.join_my_connection_space('marriage'::public.connection_space);
