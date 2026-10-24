@@ -222,7 +222,7 @@ export default async function AdminWaitlistPage({
   if (analyticsError || applicationsError || !analyticsData) notFound();
 
   const analytics = analyticsData as unknown as AnalyticsPayload;
-  const items = applications ?? [];
+  const items = (applications ?? []) as AdminWaitlistApplication[];
 
   const submittedCount =
     currentFilter === "submitted" ? items.length : undefined;
