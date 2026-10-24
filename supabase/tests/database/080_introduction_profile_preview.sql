@@ -206,8 +206,8 @@ select set_config(
 select throws_ok(
   $$select * from public.get_own_introduction_preview()$$,
   'P0001',
-  'profile preview unavailable',
-  'pre-submission members cannot retrieve an introduction preview'
+  'invitation required',
+  'pre-invitation members cannot retrieve an introduction preview'
 );
 
 reset role;
