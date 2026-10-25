@@ -29,3 +29,7 @@ export async function createSupabaseServerClient() {
     },
   );
 }
+
+// Compatibility name used by the protected operations routes.
+// Both names share the same cookie-aware, publishable-key server client.
+export { createSupabaseServerClient as createClient };

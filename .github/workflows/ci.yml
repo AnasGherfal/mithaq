@@ -35,14 +35,44 @@ jobs:
         uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
         with:
           runtime: node@24
-          cache: true
+          # A corrupted hosted-runner pnpm SQLite store can survive cache
+          # restores and fail installs with "database disk image is malformed".
+          # Prefer a clean content-addressable store for release-candidate CI.
+          cache: false
           install: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run formatting, lint, type, unit, and build checks
-        run: pnpm check
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Run lint
+        run: pnpm lint
+
+      - name: Run TypeScript check
+        run: pnpm typecheck
+
+      - name: Run unit tests
+        run: pnpm test
+
+      - name: Check client secret boundary
+        run: pnpm client-secret-boundary:check
+
+      - name: Check migration safety
+        run: pnpm migration:safety:check
+
+      - name: Check release contract
+        run: pnpm release:contract:check
+
+      - name: Check release metadata
+        run: pnpm release:metadata:check
+
+      - name: Check store readiness
+        run: pnpm release:store:check
+
+      - name: Build production application
+        run: pnpm build
 
       - name: Show root formatting diff on failure
         if: failure()
@@ -131,7 +161,9 @@ jobs:
         uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
         with:
           runtime: node@24
-          cache: true
+          # Keep release-candidate database jobs independent of a potentially
+          # corrupted shared pnpm store cache as well.
+          cache: false
           install: false
 
       - name: Install dependencies

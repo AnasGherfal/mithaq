@@ -22,13 +22,28 @@ insert into public.users (id)
 values ('94949494-9494-4949-8949-949494949494')
 on conflict (id) do nothing;
 
-insert into public.waitlist_applications (id, user_id, status, submitted_at)
+insert into public.waitlist_applications (id, user_id, status, submitted_at, questionnaire_completed_at)
 values (
   'f4949494-9494-4949-8949-949494949494',
   '94949494-9494-4949-8949-949494949494',
-  'submitted',
+  'invited',
+  now(),
   now()
 );
+
+
+-- Photo actions require invited, fully set-up Marriage members.
+insert into public.member_profiles (user_id, display_name, about_me, profile_completed_at)
+values
+  ('94949494-9494-4949-8949-949494949494', 'Test Member 1', 'A complete private marriage profile for testing the member photo boundary.', now());
+
+insert into public.member_connection_spaces (user_id, space, membership_state, is_current)
+values
+  ('94949494-9494-4949-8949-949494949494', 'marriage', 'active', true)
+on conflict (user_id, space) do update
+set membership_state = excluded.membership_state,
+    is_current = true,
+    updated_at = now();
 
 insert into storage.objects (bucket_id, name)
 values (

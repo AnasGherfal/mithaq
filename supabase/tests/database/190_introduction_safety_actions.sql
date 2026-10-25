@@ -27,6 +27,12 @@ insert into auth.users (id, instance_id, aud, role, created_at, updated_at) valu
   ('19191919-1919-4919-8919-191919191913', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', now(), now())
 on conflict (id) do nothing;
 
+insert into auth.sessions (id, user_id, created_at, updated_at) values
+  ('19191919-dddd-4ddd-8ddd-191919191911', '19191919-1919-4919-8919-191919191911', now(), now()),
+  ('19191919-dddd-4ddd-8ddd-191919191912', '19191919-1919-4919-8919-191919191912', now(), now()),
+  ('19191919-dddd-4ddd-8ddd-191919191913', '19191919-1919-4919-8919-191919191913', now(), now())
+on conflict (id) do nothing;
+
 insert into public.users (id) values
   ('19191919-1919-4919-8919-191919191911'),
   ('19191919-1919-4919-8919-191919191912'),
@@ -38,9 +44,9 @@ insert into public.waitlist_applications (
   current_country_code, current_city, marital_status, has_children,
   questionnaire_completed_at, submitted_at
 ) values
-  ('19191919-aaaa-4aaa-8aaa-191919191911', '19191919-1919-4919-8919-191919191911', 'submitted', 'man', 2, 'libya', 'LY', 'Tripoli', 'never_married', false, now(), now()),
-  ('19191919-bbbb-4bbb-8bbb-191919191912', '19191919-1919-4919-8919-191919191912', 'submitted', 'woman', 2, 'libya', 'LY', 'Benghazi', 'never_married', false, now(), now()),
-  ('19191919-cccc-4ccc-8ccc-191919191913', '19191919-1919-4919-8919-191919191913', 'submitted', 'woman', 2, 'libya', 'LY', 'Misrata', 'never_married', false, now(), now());
+  ('19191919-aaaa-4aaa-8aaa-191919191911', '19191919-1919-4919-8919-191919191911', 'invited', 'man', 2, 'libya', 'LY', 'Tripoli', 'never_married', false, now(), now()),
+  ('19191919-bbbb-4bbb-8bbb-191919191912', '19191919-1919-4919-8919-191919191912', 'invited', 'woman', 2, 'libya', 'LY', 'Benghazi', 'never_married', false, now(), now()),
+  ('19191919-cccc-4ccc-8ccc-191919191913', '19191919-1919-4919-8919-191919191913', 'invited', 'woman', 2, 'libya', 'LY', 'Misrata', 'never_married', false, now(), now());
 
 insert into public.waitlist_preferences (
   application_id, open_to_libya, open_to_diaspora,
@@ -55,6 +61,24 @@ insert into public.member_profiles (user_id, display_name, about_me, profile_com
   ('19191919-1919-4919-8919-191919191911', 'Adam', 'A complete serious profile used only for introduction safety boundary testing.', now()),
   ('19191919-1919-4919-8919-191919191912', 'Basma', 'A complete serious profile used only for introduction safety boundary testing.', now()),
   ('19191919-1919-4919-8919-191919191913', 'Cora', 'A complete serious profile used only for introduction safety boundary testing.', now());
+
+insert into public.member_connection_spaces (
+  user_id, space, membership_state, is_current
+) values
+  ('19191919-1919-4919-8919-191919191911', 'marriage', 'active', true),
+  ('19191919-1919-4919-8919-191919191912', 'marriage', 'active', true),
+  ('19191919-1919-4919-8919-191919191913', 'marriage', 'active', true)
+on conflict (user_id, space) do update
+set membership_state = 'active'::public.connection_space_membership_state,
+    is_current = true,
+    updated_at = now();
+
+insert into private.marriage_practical_priorities (
+  user_id, living_arrangement, children_plan, work_after_marriage, wedding_style, completed_at
+) values
+  ('19191919-1919-4919-8919-191919191911', 'independent_home', 'want_children', 'open_to_discuss', 'moderate', now()),
+  ('19191919-1919-4919-8919-191919191912', 'independent_home', 'want_children', 'open_to_discuss', 'moderate', now()),
+  ('19191919-1919-4919-8919-191919191913', 'independent_home', 'want_children', 'open_to_discuss', 'moderate', now());
 
 set local role service_role;
 select public.set_member_profile_review_state('19191919-1919-4919-8919-191919191911', 'approved', 'm6', 'intro-safety-test', null);
@@ -92,6 +116,11 @@ select is(
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '19191919-1919-4919-8919-191919191913', true);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"19191919-1919-4919-8919-191919191913","session_id":"19191919-dddd-4ddd-8ddd-191919191913"}',
+  true
+);
 select throws_ok(
   $$select public.submit_introduction_safety_report(
     (select id from intro_safety_ids where name = 'report'),
@@ -107,6 +136,11 @@ select throws_ok(
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '19191919-1919-4919-8919-191919191911', true);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"19191919-1919-4919-8919-191919191911","session_id":"19191919-dddd-4ddd-8ddd-191919191911"}',
+  true
+);
 
 create temporary table report_result (id uuid not null) on commit drop;
 grant select on report_result to service_role;
@@ -139,6 +173,11 @@ select is(
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '19191919-1919-4919-8919-191919191911', true);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"19191919-1919-4919-8919-191919191911","session_id":"19191919-dddd-4ddd-8ddd-191919191911"}',
+  true
+);
 select is(
   public.block_introduction_member((select id from intro_safety_ids where name = 'block')),
   true,
