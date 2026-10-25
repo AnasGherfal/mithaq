@@ -485,6 +485,9 @@ select throws_ok(
   'pending photos cannot be resolved by the delivery service'
 );
 
+-- Fixture update runs as the transaction owner: service_role deliberately lacks
+-- direct table grants and only exercises its narrowly granted photo resolver RPC.
+reset role;
 update public.waitlist_preferences
 set photo_privacy_preference = 'explicit_approval'
 where application_id = '53535353-bbbb-4bbb-8bbb-535353535352';

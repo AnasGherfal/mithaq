@@ -70,7 +70,7 @@ insert into public.waitlist_applications (
   (
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1',
     '99999999-9999-4999-8999-999999999991',
-    'submitted',
+    'invited',
     'man',
     2,
     'LY',
@@ -84,7 +84,7 @@ insert into public.waitlist_applications (
   (
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee2',
     '99999999-9999-4999-8999-999999999992',
-    'submitted',
+    'invited',
     'woman',
     2,
     'LY',

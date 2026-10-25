@@ -86,24 +86,27 @@ values
   ('77777777-7777-4777-8777-777777777777')
 on conflict (id) do nothing;
 
-insert into public.waitlist_applications (id, user_id, status, submitted_at)
+insert into public.waitlist_applications (id, user_id, status, submitted_at, questionnaire_completed_at)
 values
   (
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1',
     '55555555-5555-4555-8555-555555555555',
-    'submitted',
+    'invited',
+    now(),
     now()
   ),
   (
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee2',
     '66666666-6666-4666-8666-666666666666',
-    'submitted',
+    'invited',
+    now(),
     now()
   ),
   (
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee3',
     '77777777-7777-4777-8777-777777777777',
     'draft',
+    null,
     null
   );
 
@@ -183,7 +186,7 @@ select throws_ok(
     null
   )$$,
   'P0001',
-  'waitlist submission required',
+  'invitation required',
   'pre-submission accounts cannot create additional private profile data'
 );
 

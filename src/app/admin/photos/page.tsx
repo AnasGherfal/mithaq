@@ -44,7 +44,11 @@ export default async function AdminPhotosPage({
   if (!claimsData?.claims?.sub) redirect("/join");
 
   const { data: access } = await supabase.rpc("get_my_moderation_access", {});
-  if (!access?.some((item) => item.can_review)) notFound();
+  if (
+    !Array.isArray(access) ||
+    !access.some((item: { can_review: boolean }) => item.can_review)
+  )
+    notFound();
 
   const { data: queueData, error: queueError } = await rpc.rpc(
     "list_moderation_queue",

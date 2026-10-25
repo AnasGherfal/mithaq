@@ -78,7 +78,7 @@ insert into public.waitlist_applications (
   (
     'ffffffff-ffff-4fff-8fff-fffffffffff1',
     '88888888-8888-4888-8888-888888888881',
-    'submitted',
+    'invited',
     'man',
     2,
     'LY',
@@ -91,7 +91,7 @@ insert into public.waitlist_applications (
   (
     'ffffffff-ffff-4fff-8fff-fffffffffff2',
     '88888888-8888-4888-8888-888888888882',
-    'submitted',
+    'invited',
     'woman',
     2,
     'LY',
@@ -206,8 +206,8 @@ select set_config(
 select throws_ok(
   $$select * from public.get_own_introduction_preview()$$,
   'P0001',
-  'profile preview unavailable',
-  'pre-submission members cannot retrieve an introduction preview'
+  'invitation required',
+  'pre-invitation members cannot retrieve an introduction preview'
 );
 
 reset role;

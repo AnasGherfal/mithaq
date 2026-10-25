@@ -57,20 +57,39 @@ insert into public.waitlist_applications (
   id,
   user_id,
   status,
-  submitted_at
+  submitted_at,
+  questionnaire_completed_at
 ) values
   (
     '54545454-aaaa-4aaa-8aaa-545454545451',
     '54545454-5454-4545-8545-545454545451',
-    'submitted',
+    'invited',
+    now(),
     now()
   ),
   (
     '54545454-bbbb-4bbb-8bbb-545454545452',
     '54545454-5454-4545-8545-545454545452',
-    'submitted',
+    'invited',
+    now(),
     now()
   );
+
+
+-- Photo actions require invited, fully set-up Marriage members.
+insert into public.member_profiles (user_id, display_name, about_me, profile_completed_at)
+values
+  ('54545454-5454-4545-8545-545454545451', 'Test Member 1', 'A complete private marriage profile for testing the member photo boundary.', now()),
+  ('54545454-5454-4545-8545-545454545452', 'Test Member 2', 'A complete private marriage profile for testing the member photo boundary.', now());
+
+insert into public.member_connection_spaces (user_id, space, membership_state, is_current)
+values
+  ('54545454-5454-4545-8545-545454545451', 'marriage', 'active', true),
+  ('54545454-5454-4545-8545-545454545452', 'marriage', 'active', true)
+on conflict (user_id, space) do update
+set membership_state = excluded.membership_state,
+    is_current = true,
+    updated_at = now();
 
 insert into storage.objects (bucket_id, name)
 values
