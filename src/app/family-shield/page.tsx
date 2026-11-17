@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { asUntypedSupabase } from "@/lib/supabase/untyped";
 
 import { addFamilyShieldNumber, removeFamilyShieldNumber } from "./actions";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -100,9 +101,9 @@ export default async function FamilyShieldPage({
                 type="tel"
               />
             </label>
-            <button className="mt-3 w-full rounded-xl bg-[#153d35] px-5 py-3 text-sm font-black text-white" type="submit">
+            <SubmitButton className="mt-3 w-full rounded-xl bg-[#153d35] px-5 py-3 text-sm font-black text-white">
               إضافة إلى الدرع
-            </button>
+            </SubmitButton>
           </form>
 
           <div className="mt-7">
@@ -122,9 +123,9 @@ export default async function FamilyShieldPage({
                   </div>
                   <form action={removeFamilyShieldNumber}>
                     <input name="exclusion_id" type="hidden" value={entry.exclusion_id} />
-                    <button className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-700" type="submit">
+                    <SubmitButton className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-700">
                       إزالة
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
               ))}

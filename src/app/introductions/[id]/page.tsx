@@ -10,6 +10,7 @@ import {
   respondToIntroduction,
   revealIntroductionPhoto,
 } from "../actions";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -306,12 +307,12 @@ export default async function IntroductionDetailPage({
                   <form action={respondToIntroduction}>
                     <input name="introduction_id" type="hidden" value={id} />
                     <input name="decision" type="hidden" value="accept" />
-                    <button className="w-full rounded-xl bg-[#153d35] px-4 py-3 text-sm font-black text-white" type="submit">أقبل المقدمة</button>
+                    <SubmitButton className="w-full rounded-xl bg-[#153d35] px-4 py-3 text-sm font-black text-white">أقبل المقدمة</SubmitButton>
                   </form>
                   <form action={respondToIntroduction}>
                     <input name="introduction_id" type="hidden" value={id} />
                     <input name="decision" type="hidden" value="decline" />
-                    <button className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-black text-black/55" type="submit">لا أقبل</button>
+                    <SubmitButton className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-black text-black/55">لا أقبل</SubmitButton>
                   </form>
                 </div>
               </div>
@@ -339,7 +340,7 @@ export default async function IntroductionDetailPage({
                     <p className="mt-1 text-xs leading-6 text-black/50">
                       إعدادك الحالي يتطلب موافقة صريحة منك. هذا الزر يكشف صورك المعتمدة داخل هذه المقدمة فقط.
                     </p>
-                    <button className="mt-3 rounded-xl bg-[#8b6228] px-4 py-3 text-xs font-black text-white" type="submit">أوافق على إظهار صورتي</button>
+                    <SubmitButton className="mt-3 rounded-xl bg-[#8b6228] px-4 py-3 text-xs font-black text-white">أوافق على إظهار صورتي</SubmitButton>
                   </form>
                 ) : null}
 
@@ -357,7 +358,7 @@ export default async function IntroductionDetailPage({
                 </p>
                 <form action={hideRecognizedIntroduction} className="mt-3">
                   <input name="introduction_id" type="hidden" value={id} />
-                  <button className="rounded-xl border border-black/10 px-4 py-2 text-xs font-black text-black/60" type="submit">إخفاء هذا الشخص</button>
+                  <SubmitButton className="rounded-xl border border-black/10 px-4 py-2 text-xs font-black text-black/60">إخفاء هذا الشخص</SubmitButton>
                 </form>
               </details>
 
@@ -366,7 +367,7 @@ export default async function IntroductionDetailPage({
                 <p className="mt-2 text-xs leading-6 text-red-700/75">الحظر أقوى من الإخفاء ويمنع مسارات التفاعل المتاحة بينكما.</p>
                 <form action={blockIntroductionMember} className="mt-3">
                   <input name="introduction_id" type="hidden" value={id} />
-                  <button className="rounded-xl bg-red-700 px-4 py-2 text-xs font-black text-white" type="submit">تأكيد الحظر</button>
+                  <SubmitButton className="rounded-xl bg-red-700 px-4 py-2 text-xs font-black text-white">تأكيد الحظر</SubmitButton>
                 </form>
               </details>
             </div>

@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Cairo } from "next/font/google";
 
 import { siteUrl } from "@/lib/site";
 
 import "./globals.css";
+
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  display: "swap",
+  variable: "--font-cairo",
+});
 
 const title = "ميثاق | تعارف جاد للزواج";
 const description =
@@ -55,7 +62,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className={cairo.variable}>
       <body>{children}</body>
     </html>
   );

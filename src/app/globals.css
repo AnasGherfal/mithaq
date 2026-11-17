@@ -23,7 +23,7 @@ body {
     radial-gradient(circle at 85% 5%, rgba(201, 154, 82, 0.13), transparent 28rem),
     var(--mithaq-cream);
   color: var(--mithaq-ink);
-  font-family: Tahoma, Arial, "Noto Sans Arabic", sans-serif;
+  font-family: var(--font-cairo), Tahoma, Arial, "Noto Sans Arabic", sans-serif;
   text-rendering: optimizeLegibility;
 }
 

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { asUntypedSupabase } from "@/lib/supabase/untyped";
 
 import { hideCandidate, noticeCandidate, skipCandidate } from "./actions";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -316,15 +317,15 @@ export default async function DiscoveryPage({
                   <div className="mt-5 grid grid-cols-2 gap-2">
                     <form action={noticeCandidate}>
                       <input name="candidate_id" type="hidden" value={candidate.user_id} />
-                      <button className="w-full rounded-xl bg-[#153d35] px-4 py-3 text-sm font-black text-white" type="submit">
+                      <SubmitButton className="w-full rounded-xl bg-[#153d35] px-4 py-3 text-sm font-black text-white">
                         مهتم/ة
-                      </button>
+                      </SubmitButton>
                     </form>
                     <form action={skipCandidate}>
                       <input name="candidate_id" type="hidden" value={candidate.user_id} />
-                      <button className="w-full rounded-xl border border-black/10 px-4 py-3 text-sm font-black text-black/55" type="submit">
+                      <SubmitButton className="w-full rounded-xl border border-black/10 px-4 py-3 text-sm font-black text-black/55">
                         تخطي
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
 
@@ -335,9 +336,9 @@ export default async function DiscoveryPage({
                     </p>
                     <form action={hideCandidate} className="mt-2">
                       <input name="candidate_id" type="hidden" value={candidate.user_id} />
-                      <button className="rounded-lg bg-red-700 px-3 py-2 text-xs font-black text-white" type="submit">
+                      <SubmitButton className="rounded-lg bg-red-700 px-3 py-2 text-xs font-black text-white">
                         تأكيد الإخفاء
-                      </button>
+                      </SubmitButton>
                     </form>
                   </details>
                 </div>

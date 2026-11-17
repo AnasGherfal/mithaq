@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 import { requestAccountDeletion } from "./actions";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -107,9 +108,9 @@ export default async function SettingsPage({
                       required
                     />
                   </label>
-                  <button className="focus-ring rounded-2xl bg-red-700 px-5 py-3 font-black text-white hover:bg-red-800" type="submit">
+                  <SubmitButton className="focus-ring rounded-2xl bg-red-700 px-5 py-3 font-black text-white hover:bg-red-800">
                     طلب حذف الحساب
-                  </button>
+                  </SubmitButton>
                 </form>
               </>
             )}

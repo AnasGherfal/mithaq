@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 import { savePrivacy, savePriorities, saveProfile } from "./actions";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -189,9 +190,9 @@ export default async function OnboardingPage({
                 </label>
               </div>
 
-              <button className="focus-ring w-full rounded-2xl bg-[#153d35] px-5 py-4 font-black text-white hover:bg-[#0f2c27]" type="submit">
+              <SubmitButton className="focus-ring w-full rounded-2xl bg-[#153d35] px-5 py-4 font-black text-white hover:bg-[#0f2c27]">
                 حفظ ومتابعة
-              </button>
+              </SubmitButton>
             </form>
           ) : null}
 
@@ -247,7 +248,7 @@ export default async function OnboardingPage({
 
               <div className="flex gap-3">
                 <Link className="focus-ring flex-1 rounded-2xl border border-black/10 px-5 py-4 text-center font-black text-black/55" href="/onboarding?step=profile">السابق</Link>
-                <button className="focus-ring flex-[2] rounded-2xl bg-[#153d35] px-5 py-4 font-black text-white" type="submit">حفظ ومتابعة</button>
+                <SubmitButton className="focus-ring flex-[2] rounded-2xl bg-[#153d35] px-5 py-4 font-black text-white">حفظ ومتابعة</SubmitButton>
               </div>
             </form>
           ) : null}
@@ -302,7 +303,7 @@ export default async function OnboardingPage({
 
               <div className="flex gap-3">
                 <Link className="focus-ring flex-1 rounded-2xl border border-black/10 px-5 py-4 text-center font-black text-black/55" href="/onboarding?step=priorities">السابق</Link>
-                <button className="focus-ring flex-[2] rounded-2xl bg-[#153d35] px-5 py-4 font-black text-white" type="submit">حفظ وإنهاء الإعداد</button>
+                <SubmitButton className="focus-ring flex-[2] rounded-2xl bg-[#153d35] px-5 py-4 font-black text-white">حفظ وإنهاء الإعداد</SubmitButton>
               </div>
             </form>
           ) : null}

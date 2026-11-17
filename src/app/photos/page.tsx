@@ -6,6 +6,7 @@ import { asUntypedSupabase } from "@/lib/supabase/untyped";
 
 import { movePhoto, removePhoto, setPrimaryPhoto } from "./actions";
 import { PhotoUploader } from "./photo-uploader";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -212,26 +213,26 @@ export default async function PhotosPage({
                       {!photo.is_primary ? (
                         <form action={setPrimaryPhoto}>
                           <input name="photo_id" type="hidden" value={photo.photo_id} />
-                          <button className="rounded-xl bg-[#153d35] px-3 py-2 text-xs font-black text-white" type="submit">اجعلها الرئيسية</button>
+                          <SubmitButton className="rounded-xl bg-[#153d35] px-3 py-2 text-xs font-black text-white">اجعلها الرئيسية</SubmitButton>
                         </form>
                       ) : null}
                       {index > 0 ? (
                         <form action={movePhoto}>
                           <input name="photo_id" type="hidden" value={photo.photo_id} />
                           <input name="direction" type="hidden" value="up" />
-                          <button className="rounded-xl border border-black/10 px-3 py-2 text-xs font-bold text-black/55" type="submit">تقديم</button>
+                          <SubmitButton className="rounded-xl border border-black/10 px-3 py-2 text-xs font-bold text-black/55">تقديم</SubmitButton>
                         </form>
                       ) : null}
                       {index < photosWithUrls.length - 1 ? (
                         <form action={movePhoto}>
                           <input name="photo_id" type="hidden" value={photo.photo_id} />
                           <input name="direction" type="hidden" value="down" />
-                          <button className="rounded-xl border border-black/10 px-3 py-2 text-xs font-bold text-black/55" type="submit">تأخير</button>
+                          <SubmitButton className="rounded-xl border border-black/10 px-3 py-2 text-xs font-bold text-black/55">تأخير</SubmitButton>
                         </form>
                       ) : null}
                       <form action={removePhoto}>
                         <input name="photo_id" type="hidden" value={photo.photo_id} />
-                        <button className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700" type="submit">حذف</button>
+                        <SubmitButton className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700">حذف</SubmitButton>
                       </form>
                     </div>
                   </div>
