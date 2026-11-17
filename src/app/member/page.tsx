@@ -71,11 +71,14 @@ export default async function MemberPage({
     { data: visibility },
     { data: previewRows },
     { data: introductionData },
+    { data: ageBands },
   ] = await Promise.all([
     supabase.rpc("get_my_marriage_practical_priorities", {}),
     supabase.rpc("get_my_marriage_visibility", {}),
     supabase.rpc("get_own_introduction_preview", {}),
     rpc.rpc("list_my_introductions", {}),
+    // Tiny lookup table: fetched in the same round trip instead of a follow-up query.
+    supabase.from("age_bands").select("id,label"),
   ]);
 
   if (!priorities?.[0]?.completed_at) redirect("/onboarding?step=priorities");
@@ -91,15 +94,7 @@ export default async function MemberPage({
     (item) => item.status === "offered" && item.my_decision === "pending",
   ).length;
 
-  let ageLabel = "—";
-  if (preview?.age_band_id) {
-    const { data: band } = await supabase
-      .from("age_bands")
-      .select("label")
-      .eq("id", preview.age_band_id)
-      .maybeSingle();
-    ageLabel = band?.label ?? "—";
-  }
+  const ageLabel = ageBands?.find((band) => band.id === preview?.age_band_id)?.label ?? "—";
 
   return (
     <main className="min-h-screen px-5 py-8 sm:py-12">

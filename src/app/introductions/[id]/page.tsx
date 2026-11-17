@@ -233,7 +233,7 @@ export default async function IntroductionDetailPage({
         <section className="mt-7 overflow-hidden rounded-[2rem] border border-black/7 bg-white shadow-sm">
           <div className="aspect-[16/9] bg-[#f1eee7] sm:aspect-[2/1]">
             {signedPhotoUrl ? (
-              <img alt="صورة معتمدة ضمن المقدمة" className="h-full w-full object-cover" src={signedPhotoUrl} />
+              <img alt="صورة معتمدة ضمن المقدمة" decoding="async" loading="lazy" className="h-full w-full object-cover" src={signedPhotoUrl} />
             ) : (
               <div className="grid h-full place-items-center p-6 text-center">
                 <div>

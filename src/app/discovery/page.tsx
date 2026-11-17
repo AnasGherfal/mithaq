@@ -161,11 +161,10 @@ export default async function DiscoveryPage({
     ? (discoveryData as DiscoveryCandidate[])
     : [];
 
-  const candidates: CandidateView[] = await Promise.all(
+  // Resolve storage paths in parallel, then sign every photo URL in ONE storage call.
+  const photoPaths = await Promise.all(
     rawCandidates.map(async (candidate) => {
-      if (!candidate.photo_id || candidate.photo_display_mode !== "full") {
-        return { ...candidate, signedPhotoUrl: null };
-      }
+      if (!candidate.photo_id || candidate.photo_display_mode !== "full") return null;
 
       const { data: storagePath, error: pathError } = await rpc.rpc(
         "get_my_marriage_discovery_photo_path",
@@ -175,20 +174,27 @@ export default async function DiscoveryPage({
         },
       );
 
-      if (pathError || typeof storagePath !== "string") {
-        return { ...candidate, signedPhotoUrl: null };
-      }
-
-      const { data: signed, error: signedError } = await supabase.storage
-        .from("member-profile-photos")
-        .createSignedUrl(storagePath, 5 * 60);
-
-      return {
-        ...candidate,
-        signedPhotoUrl: signedError ? null : signed.signedUrl,
-      };
+      return pathError || typeof storagePath !== "string" ? null : storagePath;
     }),
   );
+
+  const uniquePaths = [...new Set(photoPaths.filter((path): path is string => Boolean(path)))];
+  const signedByPath = new Map<string, string>();
+
+  if (uniquePaths.length > 0) {
+    const { data: signedList } = await supabase.storage
+      .from("member-profile-photos")
+      .createSignedUrls(uniquePaths, 5 * 60);
+
+    for (const item of signedList ?? []) {
+      if (item.path && item.signedUrl && !item.error) signedByPath.set(item.path, item.signedUrl);
+    }
+  }
+
+  const candidates: CandidateView[] = rawCandidates.map((candidate, index) => {
+    const path = photoPaths[index];
+    return { ...candidate, signedPhotoUrl: path ? (signedByPath.get(path) ?? null) : null };
+  });
 
   return (
     <main className="min-h-screen px-5 py-8 sm:py-12">
@@ -244,6 +250,8 @@ export default async function DiscoveryPage({
                     <img
                       alt="صورة ملف معتمدة"
                       className="h-full w-full object-cover"
+                      decoding="async"
+                      loading="lazy"
                       src={candidate.signedPhotoUrl}
                     />
                   ) : (
