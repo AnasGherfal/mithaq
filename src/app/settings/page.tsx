@@ -55,13 +55,13 @@ export default async function SettingsPage({
           <p className="text-sm font-black text-[#9d702d]">إعدادات الحساب</p>
           <h1 className="mt-2 text-3xl font-black text-[#153d35]">الخصوصية والتحكم في حسابك</h1>
           <p className="mt-3 max-w-xl text-sm leading-7 text-black/55">
-            ميثاق في مرحلة قائمة الانتظار. يمكنك الرجوع لصفحة حسابك أو طلب حذف الحساب والبيانات المرتبطة به.
+            تحكم في خصوصيتك وبياناتك. يمكنك الرجوع لحسابك أو طلب حذف الحساب والبيانات المرتبطة به.
           </p>
 
           <div className="mt-7 rounded-3xl border border-black/8 bg-[#f8f5ef] p-5">
             <h2 className="font-black text-[#153d35]">بياناتك في ميثاق</h2>
             <p className="mt-2 text-sm leading-7 text-black/55">
-              رقم الهاتف مخصص للدخول والتحقق ولا يظهر لمستخدمي ميثاق الآخرين. تفاصيل قائمة الانتظار ليست دليلاً عاماً للأعضاء.
+              رقم الهاتف مخصص للدخول والتحقق ولا يظهر لمستخدمي ميثاق الآخرين. ملفك وصورك لا تظهر إلا وفق إعدادات الخصوصية التي اخترتها.
             </p>
             <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold">
               <Link className="rounded-xl bg-white px-4 py-2 text-[#153d35]" href="/privacy">سياسة الخصوصية</Link>
@@ -82,7 +82,7 @@ export default async function SettingsPage({
             ) : (
               <>
                 <p className="mt-3 text-sm leading-7 text-black/55">
-                  عند إرسال الطلب يصبح حسابك في حالة انتظار للحذف، يُسحب طلب قائمة الانتظار، وتتوقف موافقتك على الرسائل التسويقية. النظام يحدد موعد المعالجة خلال 30 يوماً.
+                  عند إرسال الطلب يصبح حسابك في حالة انتظار للحذف، يتوقف ظهور ملفك، وتتوقف موافقتك على الرسائل التسويقية. النظام يحدد موعد المعالجة خلال 30 يوماً.
                 </p>
 
                 {error === "confirmation" ? (
