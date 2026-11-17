@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { PrimaryButton } from "@/components/primary-button";
@@ -36,12 +36,26 @@ type ConversationPreview = {
 };
 
 const PAGE_SIZE = 50;
+const MAX_BACKGROUND_FAILURES = 3;
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function mergeMessages(current: MessageRow[], incoming: MessageRow[]) {
   const byId = new Map<string, MessageRow>();
   for (const message of current) byId.set(message.message_id, message);
-  for (const message of incoming) byId.set(message.message_id, message);
+
+  // Messages are immutable once sent: keep the existing object (stable identity for memoized rows)
+  // and return the same array when nothing is new, so idle polling causes no re-render at all.
+  let changed = false;
+  for (const message of incoming) {
+    if (byId.has(message.message_id)) continue;
+    byId.set(message.message_id, message);
+    changed = true;
+  }
+  if (!changed) return current;
 
   return Array.from(byId.values()).sort((a, b) => {
     const timeDifference = new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime();
@@ -83,17 +97,20 @@ export default function ConversationScreen() {
   const [confirmEnd, setConfirmEnd] = useState(false);
   const refreshingRef = useRef(false);
   const pendingSendRef = useRef<PendingSend | null>(null);
+  const failureCountRef = useRef(0);
+  const lastReadMessageIdRef = useRef<string | null>(null);
 
   const markVisibleMessagesRead = useCallback(
     async (rows: MessageRow[]) => {
       if (AppState.currentState !== "active") return;
       const latestMessage = rows[rows.length - 1];
-      if (!latestMessage) return;
+      if (!latestMessage || latestMessage.message_id === lastReadMessageIdRef.current) return;
 
-      await supabase.rpc("mark_my_conversation_read", {
+      const { error } = await supabase.rpc("mark_my_conversation_read", {
         p_introduction_id: introductionId,
         p_through: latestMessage.sent_at,
       });
+      if (!error) lastReadMessageIdRef.current = latestMessage.message_id;
     },
     [introductionId],
   );
@@ -106,63 +123,82 @@ export default function ConversationScreen() {
         setLoading(true);
         setLoadError(false);
         setOlderError(null);
+        failureCountRef.current = 0;
       }
 
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) {
-        refreshingRef.current = false;
+      // A failed first load must show the error card. A failed background refresh keeps the chat on screen
+      // and only gives up after several consecutive failures (e.g. a real connectivity or access loss).
+      const failRefresh = () => {
         if (showLoading) {
           setLoadError(true);
           setLoading(false);
+          return;
         }
-        return;
-      }
-      if (!sessionData.session) {
-        refreshingRef.current = false;
-        router.replace({ pathname: "/auth", params: { locale } });
-        return;
-      }
+        failureCountRef.current += 1;
+        if (failureCountRef.current >= MAX_BACKGROUND_FAILURES) {
+          setLoadError(true);
+          setLoading(false);
+        }
+      };
 
-      const { error: openError } = await supabase.rpc("open_my_conversation", {
-        p_introduction_id: introductionId,
-      });
-      if (openError) {
-        refreshingRef.current = false;
-        setLoadError(true);
+      try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          failRefresh();
+          return;
+        }
+        if (!sessionData.session) {
+          router.replace({ pathname: "/auth", params: { locale } });
+          return;
+        }
+
+        // open_my_conversation creates the conversation row, so it is only needed on the first load.
+        // list_my_conversation_messages_v2 re-checks access (blocked, ended, hidden) on every call.
+        if (showLoading) {
+          const { error: openError } = await supabase.rpc("open_my_conversation", {
+            p_introduction_id: introductionId,
+          });
+          if (openError) {
+            failRefresh();
+            return;
+          }
+        }
+
+        // The partner preview rarely changes, so background refreshes only fetch messages.
+        const [messageResult, previewResult] = await Promise.all([
+          supabase.rpc("list_my_conversation_messages_v2", {
+            p_introduction_id: introductionId,
+            p_before_sent_at: null,
+            p_before_message_id: null,
+            p_limit: PAGE_SIZE,
+          }),
+          showLoading
+            ? supabase.rpc("get_introduction_preview", { p_introduction_id: introductionId })
+            : Promise.resolve(null),
+        ]);
+
+        if (messageResult.error || previewResult?.error) {
+          failRefresh();
+          return;
+        }
+
+        const rows = (messageResult.data ?? []) as MessageRow[];
+        if (previewResult) {
+          const previewRow = ((Array.isArray(previewResult.data) ? previewResult.data[0] : previewResult.data) ??
+            null) as ConversationPreview | null;
+          setPreview(previewRow);
+        }
+        setMessages((current) => (showLoading ? rows : mergeMessages(current, rows)));
+        if (showLoading) setHasOlder(rows.length === PAGE_SIZE);
+        failureCountRef.current = 0;
+        setLoadError(false);
         setLoading(false);
-        return;
+        void markVisibleMessagesRead(rows);
+      } catch {
+        failRefresh();
+      } finally {
+        refreshingRef.current = false;
       }
-
-      const [messageResult, previewResult] = await Promise.all([
-        supabase.rpc("list_my_conversation_messages_v2", {
-          p_introduction_id: introductionId,
-          p_before_sent_at: null,
-          p_before_message_id: null,
-          p_limit: PAGE_SIZE,
-        }),
-        supabase.rpc("get_introduction_preview", {
-          p_introduction_id: introductionId,
-        }),
-      ]);
-
-      refreshingRef.current = false;
-      if (messageResult.error || previewResult.error) {
-        if (showLoading) {
-          setLoadError(true);
-          setLoading(false);
-        }
-        return;
-      }
-
-      const rows = (messageResult.data ?? []) as MessageRow[];
-      const previewRow = ((Array.isArray(previewResult.data) ? previewResult.data[0] : previewResult.data) ??
-        null) as ConversationPreview | null;
-      setMessages((current) => (showLoading ? rows : mergeMessages(current, rows)));
-      setPreview(previewRow);
-      if (showLoading) setHasOlder(rows.length === PAGE_SIZE);
-      setLoadError(false);
-      setLoading(false);
-      void markVisibleMessagesRead(rows);
     },
     [introductionId, locale, markVisibleMessagesRead, validIntroduction],
   );
@@ -245,6 +281,8 @@ export default function ConversationScreen() {
     pendingSendRef.current = null;
     setDraft("");
     setSending(false);
+    // A poll that started before the send committed would miss the new message and block this refresh.
+    for (let waited = 0; refreshingRef.current && waited < 3000; waited += 150) await sleep(150);
     await loadMessages(false);
   }
 
@@ -528,7 +566,7 @@ export default function ConversationScreen() {
   );
 }
 
-function DayLabel({ sentAt, locale }: { sentAt: string; locale: MobileLocale }) {
+const DayLabel = memo(function DayLabel({ sentAt, locale }: { sentAt: string; locale: MobileLocale }) {
   const label = new Date(sentAt).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US", {
     weekday: "short",
     month: "short",
@@ -541,9 +579,17 @@ function DayLabel({ sentAt, locale }: { sentAt: string; locale: MobileLocale }) 
       <View style={styles.dayRule} />
     </View>
   );
-}
+});
 
-function MessageBubble({ message, locale, rtl }: { message: MessageRow; locale: MobileLocale; rtl: boolean }) {
+const MessageBubble = memo(function MessageBubble({
+  message,
+  locale,
+  rtl,
+}: {
+  message: MessageRow;
+  locale: MobileLocale;
+  rtl: boolean;
+}) {
   const time = new Date(message.sent_at).toLocaleTimeString(locale === "ar" ? "ar-LY" : "en-US", {
     hour: "numeric",
     minute: "2-digit",
@@ -565,7 +611,7 @@ function MessageBubble({ message, locale, rtl }: { message: MessageRow; locale: 
       </View>
     </View>
   );
-}
+});
 
 function conversationCopy(locale: MobileLocale) {
   const ar = locale === "ar";
